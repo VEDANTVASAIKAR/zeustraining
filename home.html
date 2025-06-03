@@ -70,28 +70,30 @@
 
     <h3>some random form</h3>
 
-    <div class = 'form'>
-        <form>
+    <div class = 'form' >
+        <div id = 'error'></div>
+        <form id="form" >
+
             <label for="name">Name:</label><br>
             <input type="text" id="name" name="name" placeholder="Your name" ><br>
             
             <label for="'comments">Comments:</label><br>
-            <textarea placeholder="Your Comments"> </textarea><br>
+            <textarea id="comments" placeholder="Your Comments"> </textarea><br>
             
             <p>Are You</p>
 
             
-            <input type = "radio" id="male" name ="male">
+            <input type = "radio" value ='male' id="male" name ="gender">
             <label for ="male" >Male</label><br>
             <br>
-            <input type = "radio" id="female" name ="female">
+            <input type = "radio" value ='female' id="female" name ="gender">
             <label for ="female" >Female</label><br>
             <br>
 
-            <button type="submit">Submit Query</button>
+            <button type="submit" id="submit">Submit Query</button>
         </form>
     </div>
-
+    <script src = 'index.js'></script>
 
 
 
