@@ -1,0 +1,54 @@
+@import url("https://teams.microsoft.com/l/message/19:c21de522-e16a-47f4-8c56-2e1536cee673_d8e987d0-a25e-43d0-ac92-cb6f3d2129e1@unq.gbl.spaces/1749033130239?context=%7B%22contextType%22%3A%22chat%22%7D");
+
+.box{
+    display: flex;
+    background-color: white;
+    max-height: 119px;
+    flex-wrap: wrap;
+    /* max-width: 3950px; */
+}
+.font{
+    font-family: Arial, Helvetica, sans-serif;
+}
+.details{
+    margin-left: 20px;
+    margin-right: 20px;
+   
+}
+.username{
+    font-weight: bold;
+    font-family: "Asta Sans", sans-serif;
+}
+.description{
+    margin-top: -10px;
+    font-weight: 500;
+    font-family: "Roboto", sans-serif;
+}
+.pimage{
+    width: 115px;
+    height: 119px;
+}
+body{
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    height: 100vh;
+    align-items: center;
+    font-family: Arial, Helvetica, sans-serif;
+
+}
+.icon{
+    margin-left : 20px; ;
+    
+    
+}
+span{
+    font-size: 14px;
+    color: grey;
+}
+.details{
+    margin-top: 5px;
+    justify-content: center;
+    height: 100%;
+    align-items: center;
+}
