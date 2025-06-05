@@ -8,13 +8,16 @@ h2{
     color: white;
 }
 header{
-    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     color: white;
     background-color: brown;
     font: italic;
+    margin-top: 20px;
+    height: 34px;
+    padding-bottom: 13px;
+    padding-top: -500px;
 }
 
 .headerh1{
@@ -25,11 +28,12 @@ body{
     font-family: Arial, Helvetica, sans-serif;
 }
 .whyhtml{
-    color: red;
+    color: brown;
 }
 .dummy1{
     background-color: red;
     color: red;
+    height: 20px;
 }
 table{
     background-color: rgb(173, 173, 173);
@@ -48,6 +52,16 @@ h3{
     margin-top: -8px;
 }
 h2{
-    padding: 10px;
+    padding: -2px,-4px;
     padding-left: 15px;
+    padding-bottom: 3px;
+    padding-top: 2px;
+
+    
+}
+.random{
+    margin-top: 40px;
+}
+.textarea{
+    overflow-y: scroll;
 }

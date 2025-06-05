@@ -1,20 +1,23 @@
 const form = document.getElementById('form')
 form.addEventListener('submit',(e)=>{
     e.preventDefault()
+    
     validate()
 })
 
 function validate(){
-    const name = document.getElementById('name').value
-    const comments = document.getElementById('comments').value
+    const name = document.getElementById('name')
+    const comments = document.getElementById('comments')
     const radio = document.getElementsByName('gender')
-    let selected;
-    if (name ==='' || comments ===''){
+    let selected,g ;
+    if (!name.value || !comments ){
         alert('cannot be empty')
     }
 
     for (let i = 0;i< radio.length;i++){
+    
         if(radio[i].checked){
+            g=radio[i]
             console.log(radio[i])
             selected = radio[i].value;
             break;
@@ -23,6 +26,10 @@ function validate(){
     if(!selected){
         alert('select gender')
     }
+    name.value=''
+    comments.value=''
+    g.checked= false
+
 }
 
 // let welcome = document.getElementById('welcome')
