@@ -1,0 +1,202 @@
+@font-face{
+    font-family: Quicksand ;
+    src: url('./Quicksand font 1/Quicksand-VariableFont_wght.ttf');
+}
+
+@font-face {
+    font-family: QuickSandMedium;
+    src: url("./Quicksand font 1/static/Quicksand-Medium.ttf");
+}
+ 
+@font-face {
+    font-family: QuickSandBold;
+    src: url("./Quicksand font 1/static/Quicksand-Bold.ttf");
+}
+ 
+@font-face {
+    font-family: QuickSandRegular;
+    src: url('./Quicksand font 1/static/Quicksand-Regular.ttf');
+}
+ 
+@font-face {
+    font-family: QuickSandLight;
+    src: url('./Quicksand font 1/static/Quicksand-Light.ttf');
+}
+ 
+@font-face {
+    font-family: QuickSandSemiBold;
+    src: url('./Quicksand font 1/static/Quicksand-SemiBold.ttf');
+}
+
+*{
+    margin: 0;
+    padding: 0;
+}
+
+html,body{
+    width: 100%;
+    background-color: #EEEEEE;
+}
+
+.header{
+    width: 100%;
+    background-image: url('./header pattern svg.svg');
+    border-bottom: 2px solid #3AC7EC;
+}
+
+
+/* ...........................FOOTER........................................ */
+
+.footer{
+    display: flex;
+    justify-content:center ;
+    align-items: center;
+    width: 100%;
+    bottom: 0;
+    position: absolute;
+    height: 40px;
+    background: #E0E1E1 0% 0% no-repeat padding-box;
+    opacity: 1;
+}
+.footerlogo{
+  
+    width: 90px;
+    height: 24px;
+    opacity: 1;
+}
+.line{
+    color: #0000001F;
+    margin-left: 16px;
+    font-size: 12px;
+    width: 0px;
+    height: 24px;
+    border: 1px solid #0000001F;
+    opacity: 1;
+
+}
+.copyright{
+    
+    top: 771px;
+    left: 381px;
+    margin-left: 16px;
+    text-align: left;
+    font: normal normal medium 12px/16px Quicksand;
+    letter-spacing: 0px;
+    color: #616161;
+    opacity: 1;
+}
+.zeusname{
+    
+    top: 771px;
+    left: 518px;
+    margin-left: 8px;
+    text-align: left;
+    font: normal normal bold 12px/16px Quicksand;
+    letter-spacing: 0px;
+    color: #616161;
+    opacity: 1;
+}
+.rights{
+ 
+    /* Layout Properties */
+    top: 771px;
+    left: 660px;
+      margin-left: 8px;
+    /* UI Properties */
+    text-align: left;
+    font: normal normal medium 12px/16px Quicksand;
+    letter-spacing: 0px;
+    color: #616161;
+    opacity: 1;
+}
+/* ...................................................................................................... */
+
+/* ...............................................LOGIN DETAILS......................................................... */
+
+.main{
+    display: flex ;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    
+}
+.logindetails{
+    width: 488px;
+    height: 550px;
+    /* UI Properties */
+    background: #FFFFFF 0% 0% no-repeat padding-box;
+    border: 1px solid #FFFFFF;
+    opacity: 1;
+}
+.formnav{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 20px;
+    justify-content: flex-start;
+
+}
+.backarrow{
+    margin-left: 32px;
+    width: 94px;
+    height: 24px;
+    text-align: left;
+    font: normal normal normal 26px/28px Material-Design-Iconic-Font;
+    letter-spacing: 0.65px;
+    color: #1F7A54;
+    opacity: 1;
+}
+.logintitle{
+    /* margin-left: 77px; */
+    text-align: center;
+    font-family:  QuickSandMedium;
+    font-size: 24px;
+    letter-spacing: 0px;
+    color: #222222;
+    opacity: 1;
+}
+
+.radio {
+    display: flex;
+    gap: 20px;
+    margin-top: 34px;
+    margin-left: 32px;
+    font-family: QuickSandMedium;
+    font-size: 16px;
+    color: #333;
+}
+
+.radioopt,
+.inds {
+    display: flex;
+    align-items: center;
+}
+
+/* Hide the native radio */
+.radio input[type="radio"] {
+    display: none;
+}
+
+/* Base label styles */
+.radio label {
+    display: inline-block;
+    padding-left: 32px;
+    background: url('./icons/radio-button-off.svg') no-repeat left center;
+    background-size: 24px 24px;
+    line-height: 24px;
+    /* cursor: pointer; */
+    font-size: 16px;
+    user-select: none;
+}
+
+/* Checked state - change background */
+.radio input[type="radio"]:checked + label {
+    background-image: url('./icons/radio-button-on.svg');
+}
+
+.label {
+    margin-left: 8px;
+}
+
+/* ...................................................................................................................... */
