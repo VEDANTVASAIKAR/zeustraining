@@ -299,11 +299,24 @@ select{
     height: 246px;
     margin:  24px 24px 24px;
     background-color: white;
+    
 }
+/* .container{
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    grid-auto-flow: dense;
+} */
+/* .card{
+    width: 476px;
+    height: 246px;
+    margin:  24px 24px 24px;
+    background-color: white;
+} */
 .card{
     display: flex;
     /* align-items: center; */
     justify-content: center;
+    background-color: white;
 }
 .sec1{
     width: 277px;
@@ -386,7 +399,7 @@ select{
     margin-left: 24px ;
     margin-right: 16px ;
     margin-top: 25px ;
-    margin-bottom: 42px ;
+    /* margin-bottom: 42px ; */
     
     
 }
@@ -401,7 +414,6 @@ select{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 2px solid black;
     /* margin: 0px 16px 16px 16px ; */
     /* margin-left: 24px; */
     margin-right: 24px;
