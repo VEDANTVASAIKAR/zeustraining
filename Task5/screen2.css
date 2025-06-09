@@ -1,0 +1,439 @@
+@font-face{
+    font-family: Quicksand ;
+    src: url('./Quicksand font 1/Quicksand-VariableFont_wght.ttf');
+}
+
+@font-face {
+    font-family: QuickSandMedium;
+    src: url("./Quicksand font 1/static/Quicksand-Medium.ttf");
+}
+ 
+@font-face {
+    font-family: QuickSandBold;
+    src: url("./Quicksand font 1/static/Quicksand-Bold.ttf");
+}
+ 
+@font-face {
+    font-family: QuickSandRegular;
+    src: url('./Quicksand font 1/static/Quicksand-Regular.ttf');
+}
+ 
+@font-face {
+    font-family: QuickSandLight;
+    src: url('./Quicksand font 1/static/Quicksand-Light.ttf');
+}
+ 
+@font-face {
+    font-family: QuickSandSemiBold;
+    src: url('./Quicksand font 1/static/Quicksand-SemiBold.ttf');
+}
+
+*{
+    margin: 0;
+    padding: 0;
+   
+}
+
+html,body{
+    width: 100%;
+    height: 100vh;
+    background-color: #EEEEEE;
+}
+
+.header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 56px;
+    background-image: url('./header pattern svg.svg');
+
+    align-content: center;
+    
+}
+.logo{
+    height: 36px;
+    display: flex;
+    
+    
+}
+.logo img{
+    margin-left: 24px;
+    height: 36px;
+}
+
+/* ...........................FOOTER........................................ */
+
+.footer{
+    margin-top: auto;
+    display: flex;
+    justify-content:center ;
+    align-items: center;
+    width: 100%;
+    /* bottom: 0;
+    position: absolute; */
+    height: 40px;
+    background: #E0E1E1 0% 0% no-repeat padding-box;
+    opacity: 1;
+}
+.footerlogo{
+  
+    width: 90px;
+    height: 24px;
+    opacity: 1;
+}
+.line{
+    color: #0000001F;
+    margin-left: 16px;
+    font-size: 12px;
+    width: 0px;
+    height: 24px;
+    border: 1px solid #0000001F;
+    opacity: 1;
+
+}
+.copyright{
+    
+    top: 771px;
+    left: 381px;
+    margin-left: 16px;
+    text-align: left;
+    font-family:  QuickSandMedium;
+    font-size: 12px;
+    letter-spacing: 0px;
+    color: #616161;
+    opacity: 1;
+}
+.zeusname{
+    
+    top: 771px;
+    left: 518px;
+    margin-left: 8px;
+    text-align: left;
+    font-family:  QuickSandBold;
+    font-size: 12px;
+    letter-spacing: 0px;
+    color: #616161;
+    opacity: 1;
+}
+.rights{
+ 
+    /* Layout Properties */
+    top: 771px;
+    left: 660px;
+      margin-left: 8px;
+    /* UI Properties */
+    text-align: left;
+    font-family:  QuickSandMedium;
+    font-size: 12px;
+    letter-spacing: 0px;
+    color: #616161;
+    opacity: 1;
+}
+/* ...................................................................................................... */
+.main{
+    display: flex ;
+    flex-direction: column;
+    min-height: calc(100vh - 95px);
+    max-width: 100%;
+    
+    /* border-top: 2px solid #FF5733; */
+     
+}
+/* ............................................................................................. */
+.header nav ul{
+    display: flex;
+    align-items: center;
+    list-style: none;
+}
+.header a{
+    text-decoration: none;
+    text-align: center;
+    font-family:  QuickSandMedium;
+    font-size: 14px;
+    letter-spacing: 0px;
+    color: #FFFFFF;
+    opacity: 1;
+}
+.header li{
+    margin-left: 32px;
+    width: min-content;
+}
+.header li :nth-child(n){
+    margin-right: 24px;
+    
+}
+.selected-navitem a{
+    border-bottom: 2px solid white;
+    padding-bottom: 17px;
+}
+.selectednav2{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 2px solid #222222;
+    height: 100%;
+}
+.nav2{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+.navigation2{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    /* UI Properties */
+    background: #8DDC97 0% 0% no-repeat padding-box;
+    border-radius: 2px;
+    opacity: 1;
+    
+    margin: 24px;
+}
+.classesimg{
+    text-align: left;
+    font: normal normal normal 32px/36px Material-Design-Iconic-Font;
+    letter-spacing: 0px;
+    color: #222222;
+    opacity: 1;
+}
+.coursesimg{
+    text-align: left;
+    font: normal normal normal 32px/36px Material-Design-Iconic-Font;
+    letter-spacing: 0px;
+    color: #222222;
+    opacity: 1;
+}
+.courses{
+    text-align: left;
+    font-family: QuickSandMedium;
+    font-size: 16px;
+    letter-spacing: 0px;
+    color: #222222;
+    opacity: 1;
+}
+.classes{
+    text-align: left;
+    font-family: QuickSandMedium;
+    font-size: 16px;
+    letter-spacing: 0px;
+    color: #222222;
+    opacity: 1;
+}
+.navigation2 span{
+    text-align: left;
+    font-family: QuickSandBold;
+    font-size: 24px;
+    letter-spacing: 0px;
+    color: #222222;
+    opacity: 1;
+}
+.navigation2 div{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+.selectednav2 span{
+    margin-left: 8px;
+    margin-right: 8px;
+}
+.nav2 span{
+    margin-left: 8px;
+    margin-right: 8px;
+}
+.nofncourses{
+    text-align: left;
+    font-family: QuicSandMedium;
+    font-size: 12px;
+    letter-spacing: 0px;
+    color: #686868;
+    opacity: 1;
+}
+.sortby{
+    text-align: left;
+    font-family: QuicSandMedium;
+    font-size: 12px;
+    letter-spacing: 0px;
+    color: #686868;
+    opacity: 1;
+}
+.courseselection{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+select{
+    border: none;
+    outline: none;
+    background-color: #EEEEEE;
+    text-align: left;
+    font-family: QuickSandMedium;
+    font-size: 16px;
+    letter-spacing: 0px;
+    color: #333333;
+    width: 156px;
+    margin-left: 6px;
+    opacity: 1;
+}
+.arrow{
+
+    transform: rotate(90deg);
+
+}
+.section2{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 24px;
+    height: 45px;
+    border-bottom: 1px solid rgb(192, 192, 192);
+}
+.corsename{
+    border-bottom: 1px solid black; ;
+}
+.section3{
+    width: 476px;
+    height: 246px;
+    margin:  24px 24px 24px;
+    background-color: white;
+}
+.card{
+    display: flex;
+    /* align-items: center; */
+    justify-content: center;
+}
+.sec1{
+    width: 277px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    font-family: QuickSandMedium;
+    font-size: 16px;
+    letter-spacing: 0px;
+    color: #222222;
+    opacity: 1;
+    margin-bottom: 7px;
+}
+.sec2{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    font-family: QuickSandMedium;
+    font-size: 12px;
+    letter-spacing: 0px;
+    color: #666666;
+    opacity: 1;
+    margin-bottom: 7px;
+}
+
+.sec4{
+    width: 244px;
+    height: 27px;
+    text-align: left;
+    font-family: QuickSandMedium;
+    font-size: 16px;
+    letter-spacing: 0px;
+    color: #222222;
+    opacity: 1;
+}
+.sec4 select{
+    margin-left: 0px;
+    margin-right: 40px;
+    text-align: left;
+    font-family: QuickSandMedium;
+    font-size: 16px;
+    letter-spacing: 0px;
+    color: #222222;
+    opacity: 1;
+    margin-bottom: 8px;
+    border-bottom: 1px solid black;
+    width: 100%;
+    height: 27px;
+    background-color: white;
+}
+.sec3{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    font-family: QuickSandMedium;
+    font-size: 12px;
+    letter-spacing: 0px;
+    color: #666666;
+    margin-bottom: 18px;
+}
+.sec3 span,.sec3 p,.sec2 p,.sec5 p{
+    margin-right: 6px;
+}
+.sec5{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    font-family: QuickSandMedium;
+    font-size: 12px;
+    letter-spacing: 0px;
+    color: #666666;
+    opacity: 1;
+    margin-top: 8px;
+}
+.coursedetails{
+    margin-left: 24px ;
+    margin-right: 16px ;
+    margin-top: 25px ;
+    margin-bottom: 42px ;
+    
+    
+}
+.courseimage{
+    margin-left: 16px ;
+   
+    margin-top: 25px ;
+    margin-bottom: 16px ;
+    
+}
+.actions{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid black;
+    /* margin: 0px 16px 16px 16px ; */
+    /* margin-left: 24px; */
+    margin-right: 24px;
+}
+.actions :nth-child(1){
+    margin-left: 24px;
+}
+.actions :nth-child(4){
+    margin-right: 24px;
+}
+/* .card{
+    padding: 24px;
+} */
+/* ............................................................................................. */
+.aboutandcontactus{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 32px;
+    text-align: center;
+    font-family: QuickSandMedium;
+    font-size: 14px;
+    letter-spacing: 0px;
+    color: #1F7A54;
+    opacity: 1;
+}
+.contactus{
+    margin-left: 9px;
+}
+.seperate{
+    margin-left: 9px;
+    color: #0000001F;
+    font-size: 18px
+}
+/* ............................................................................................. */

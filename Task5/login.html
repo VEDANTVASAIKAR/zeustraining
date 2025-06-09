@@ -11,7 +11,7 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport" content= "width=device-width, initial-scale=1.0">
     <title>Task 5</title>
     <link rel="stylesheet" href="./login.css">
 </head>
@@ -28,30 +28,74 @@
 
     <div class="main">
 
-
+        
         <form class="logindetails">
-
-            <div class="formnav">
-                <div class="backarrow">
-                    <img src="./icons/back.svg">
+            <div class="formm">
+                <div class="formnav">
+                    <div class="backarrow">
+                        <img class="ba" src="./icons/back.svg">
+                    </div>
+                    <div class="logintitle">
+                        Log In With Quantum
+                    </div>
                 </div>
-                <div class="logintitle">
-                    Log In With Quantum
+                <div class="radio">
+                    <div class="radioopt">
+                        <input type="radio" id="type1" name="schooltype">
+                        <label for="type1" class="label">District</label>
+                    </div>
+                    <div class="inds">
+                        <input type="radio" id="type2" name="schooltype">
+                        <label for="type2" class="label">Independent School</label>
+                    </div>
+                </div>
+                <div class="select">
+                    <div>
+                        <p class="selectdesc">State*</p>
+
+                        <select  class="stateoptions" id="stateoptions">
+                            <option value="Alabama">Alabama</option>
+                        </select>
+                    </div>
+                    <div>
+                        <p class="selectdesc">District*</p>
+
+                        <select  class="stateoptions" id="stateoptions">
+                            <option value="Alabama School District">Alabama School District</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="username">
+                    <input type="text" placeholder="Username/Email ID*">
+                    <div class="forgotusername">
+                        <p>FORGOT USERNAME?</p>
+                    </div>
+                </div>
+                <div class="password">
+                    <div class="passpreview">
+                        <input type="password" placeholder="Password*">
+                        <img class="preview" src="./icons/preview.svg">
+                    </div>
+                    <div class="forgotpassword">
+                        <p>FORGOT PASSWORD?</p>
+                    </div>
+                </div>
+                <div class="rememberme">
+                    <input class="check" type="checkbox" id="check" >
+                    <label for="check">Remember Me</label>
+
+                </div>
+                <div class="submitbutton">
+                    <button class="submit" id="submit">LOG IN</button>
                 </div>
             </div>
-
-            <div class="radio">
-                <div class="radioopt">
-                    <input type="radio" id="type1" name="schooltype">
-                    <label for="type1" class="label">District</label>
-                </div>
-                <div class="inds">
-                    <input type="radio" id="type2" name="schooltype">
-                    <label for="type2" class="label">Independent School</label>
-                </div>
-            </div>
-
         </form>
+        
+        <div class="aboutandcontactus">
+            <p class="about">About</p>
+            <p class="seperate">|</p>
+            <p class="contactus">Contact Us</p>
+        </div>
 
     </div>
 
