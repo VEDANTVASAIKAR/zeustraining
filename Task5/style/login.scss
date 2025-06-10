@@ -1,0 +1,15 @@
+// Import partials for each main section
+@import './fonts';
+@import './reset';
+@import './header';
+@import './footer';
+@import './main';
+@import './form';
+@import './media';
+
+// Add any additional global styles here
+html, body {
+  width: 100%;
+  height: 100vh;
+  background-color: #EEEEEE;
+}

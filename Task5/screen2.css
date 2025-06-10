@@ -580,6 +580,7 @@ select{
 @media(max-width : 770px){
     .section3{
         transform: scale(0.75); /* scales the entire section down by 20% */
+        
     }
     .container{
         
