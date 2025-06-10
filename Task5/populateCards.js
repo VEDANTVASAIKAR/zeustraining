@@ -17,7 +17,8 @@ function populateCards(cardDataArray) {
                 <div class="coursedetails">
                     <div class="sec1">
                         <p>${cardData.topic}</p>
-                        <img style="opacity: ${cardData.is_favourite ? "1" : "0"}" src="./icons/favourite.svg">
+                        ${cardData.is_favourite ? `<img src="./icons/favourite.svg">` :`<img src="./icons/notFavourite.svg">`}
+                        
                     </div>
                     <div class="sec2">
                         <p>${cardData.subject}</p>
