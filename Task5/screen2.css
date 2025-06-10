@@ -31,6 +31,7 @@
 *{
     margin: 0;
     padding: 0;
+    
    
 }
 
@@ -141,6 +142,53 @@ html,body{
      
 }
 /* ............................................................................................. */
+.badge {
+    position: absolute;
+    background-color: #2A7FF3;
+    color: white;
+    width: 17px;
+    text-align: center;
+    border-radius: 50%;
+    /* font-weight: bold; */
+    margin-left: -36px;
+    margin-top: -6px;
+    font-size: 14px;
+    font-family: QuickSandMedium;
+}
+.badgeann {
+    position: absolute;
+    background-color: #2A7FF3;
+    color: white;
+    width: 17px;
+    text-align: center;
+    border-radius: 50%;
+    /* font-weight: bold; */
+    margin-left: -30px;
+    margin-top: -6px;
+    font-size: 14px;
+    font-family: QuickSandMedium;
+}
+.badgeacc {
+    position: absolute;
+    background-color: #FFFFFF;
+    color: #222222;
+    width: 17px;
+    text-align: center;
+    border-radius: 50%;
+    /* font-weight: bold; */
+    margin-left: -38px;
+    
+    margin-top: -3px;
+    font-size: 10px;
+    font-family: QuickSandMedium;
+}
+.account{
+    width: 32px;
+    height: 32px;
+}
+.displayhamburger{
+    display: none;
+}
 .header nav ul{
     display: flex;
     align-items: center;
@@ -159,6 +207,7 @@ html,body{
     margin-left: 32px;
     width: min-content;
 }
+
 .header li :nth-child(n){
     margin-right: 24px;
     
@@ -290,22 +339,54 @@ select{
     margin: 24px;
     height: 45px;
     border-bottom: 1px solid rgb(192, 192, 192);
+    text-align: left;
+    font-family: QuickSandMedium;
+    font-size: 16px;
+    letter-spacing: 0px;
+    color: #686868;
+    opacity: 1;
 }
-.corsename{
+.expired{
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 52px;
+    height: 18px;
+    /* UI Properties */
+    text-align: left;
+    font:  QuickSandMedium;
+    font-size: 10px;
+    letter-spacing: 0px;
+    color: #D80000;
+    background: #FFE4E6 0% 0% no-repeat padding-box;
+    border-radius: 2px;
+    margin-left: 0px;
+    opacity: 1;
+}
+
+/* .corsename{
     border-bottom: 1px solid black; ;
-}
+} */
 .section3{
+    transform: scale(1);
     width: 476px;
     height: 246px;
     margin:  24px 24px 24px;
     background-color: white;
+    position: relative;
     
 }
-/* .container{
+.container{
     display: grid;
-    grid-template-columns: repeat(2,1fr);
+    align-items: center;
+    justify-content: center;
+    grid-template-columns: repeat(3,auto);
     grid-auto-flow: dense;
-} */
+}
 /* .card{
     width: 476px;
     height: 246px;
@@ -330,6 +411,10 @@ select{
     color: #222222;
     opacity: 1;
     margin-bottom: 7px;
+}
+.sec1 img{
+    margin-bottom: auto;
+    
 }
 .sec2{
     display: flex;
@@ -411,17 +496,25 @@ select{
     
 }
 .actions{
+    height: 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     /* margin: 0px 16px 16px 16px ; */
     /* margin-left: 24px; */
     margin-right: 24px;
-}
-.actions :nth-child(1){
     margin-left: 24px;
+    border-top: 1px solid rgb(177, 177, 177);
 }
-.actions :nth-child(4){
+.actions img{
+    margin-top: 16px;
+    margin-bottom: 8px;
+}
+
+.div1{
+    margin-left : 24px;
+}
+.div4{
     margin-right: 24px;
 }
 /* .card{
@@ -448,4 +541,60 @@ select{
     color: #0000001F;
     font-size: 18px
 }
+.ul{
+    transform: scale(1);
+}
 /* ............................................................................................. */
+
+@media(max-width : 1000px){
+    .hamburger{
+        display: none;
+    }
+    .displayhamburger{
+        display: block;
+    }
+    .section3{
+        transform: scale(0.80); /* scales the entire section down by 20% */
+        width: auto;
+        margin: auto;
+        height: auto;
+        box-sizing: border-box;
+
+    }
+    .container{
+        width: auto;
+        margin: 10px;
+    }
+   
+}
+
+@media(max-width : 1500px){
+    .container{
+
+        grid-template-columns: repeat(2,auto);
+     
+    }
+    
+   
+}
+@media(max-width : 770px){
+    .section3{
+        transform: scale(0.75); /* scales the entire section down by 20% */
+    }
+    .container{
+        
+        grid-template-columns: repeat(1,auto);
+    }
+    .ull{
+        width: auto;
+        margin: auto;
+        height: auto;
+        padding: 0 5px;
+    }
+    .ull li{
+        margin: auto;
+    }
+
+        
+   
+}

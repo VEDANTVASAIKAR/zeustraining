@@ -1,6 +1,6 @@
 
 function populateCards(cardDataArray) {
-    const section = document.querySelector('.main');
+    const section = document.querySelector('.container');
     
 
     cardDataArray.forEach(cardData => {
@@ -8,7 +8,9 @@ function populateCards(cardDataArray) {
         card.className = 'section3';
 
         card.innerHTML = `
+            ${cardData.isExpired ? `<div class="expired"><p>EXPIRED</p></div>` : ''}
             <div class='card'>
+                
                 <div class="courseimage">
                     <img src="${cardData.img}">
                 </div>
@@ -20,40 +22,42 @@ function populateCards(cardDataArray) {
                     <div class="sec2">
                         <p>${cardData.subject}</p>
                         <p>|</p>
-                        <p>Grade<span>${cardData.grade}</span><span>${cardData.grade_plus}</span></p>
+                        <p>Grade<span> ${cardData.grade}</span><span style="color : green;"> ${cardData.grade_plus}</span></p>
                     </div>
                     <div class="sec3">
-                        <p><span><b>${cardData.units}</b></span>Units</p>
-                        <p><span><b>${cardData.lessons}</b></span>Lessons</p>
-                        <p><span><b>${cardData.topics}</b></span>Topics</p>
+                    ${cardData.units ? `<p><span><b>${cardData.units}</b></span> Units</p>` : ''}
+                    ${cardData.lessons ? `<p><span><b>${cardData.lessons}</b></span> Lessons</p>` : ''}
+                    ${cardData.topics ? `<p><span><b>${cardData.topics}</b></span> Topics</p>` : ''}
                     </div>
+
                     <div class="sec4">
                         <select class="teachername" id="teachername">
-                            <option selected>${cardData.teacher_class  }</option>
+                            ${cardData.teacher_class ? `<option  selected>${cardData.teacher_class  }</option>` : `<option style="text-align: left;font-style: QuickSandMedium;font-size:16px;letter-spacing: 0px;color:rgb(112, 112, 112);opacity: 0.4;" selected>No Classes</option>`}
                         </select>
                     </div>
                     <div class="sec5">
-                        <p>${cardData.no_of_students} Students</p>
-                        <p>|</p>
-                        <p>${cardData.date_of_class}</p>
+                        ${cardData.no_of_students ?`<p>${cardData.no_of_students} Students</p>`: ''}
+                        ${cardData.date_of_class ? `<p>|</p>` : ''}
+                        ${cardData.date_of_class ? `<p>${cardData.date_of_class}</p>` : ''}
                     </div>
                 </div>
             </div>
+            
         `;
 
         const actions = document.createElement('div');
         actions.className = 'actions';
         actions.innerHTML = `
-            <div style="opacity: ${cardData.preview ? "1" : "0.4"}">
+            <div class='div1' style="opacity: ${cardData.preview ? "1" : "0.4"}">
                 <img src="./icons/preview.svg">
             </div>
-            <div style="opacity: ${cardData.manage_course ? "1" : "0.4"}">
+            <div  style="opacity: ${cardData.manage_course ? "1" : "0.4"}">
                 <img src="./icons/manage course.svg">
             </div>
-            <div style="opacity: ${cardData.grade_submission ? "1" : "0.4"}">
+            <div  style="opacity: ${cardData.grade_submission ? "1" : "0.4"}">
                 <img src="./icons/grade submissions.svg">
             </div>
-            <div style="opacity: ${cardData.reports ? "1" : "0.4"}">
+            <div class='div4' style="opacity: ${cardData.reports ? "1" : "0.4"}">
                 <img src="./icons/reports.svg">
             </div>
         `;
