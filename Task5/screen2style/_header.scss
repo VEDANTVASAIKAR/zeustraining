@@ -1,0 +1,93 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 56px;
+  background-image: url('../header pattern svg.svg');
+  align-content: center;
+}
+
+.logo {
+  height: 36px;
+  display: flex;
+}
+
+.logo img {
+  margin-left: 24px;
+  height: 36px;
+}
+
+.header nav ul {
+  display: flex;
+  align-items: center;
+  list-style: none;
+}
+
+.header a {
+  text-decoration: none;
+  text-align: center;
+  font-family: QuickSandMedium;
+  font-size: 14px;
+  letter-spacing: 0px;
+  color: #FFFFFF;
+  opacity: 1;
+}
+
+.header li {
+  width: min-content;
+}
+
+.header li :nth-child(n) {
+  margin-right: 24px;
+}
+
+.selected-navitem a {
+  border-bottom: 2px solid white;
+  padding-bottom: 17px;
+}
+
+.badge {
+  position: absolute;
+  background-color: #2A7FF3;
+  color: white;
+  width: 17px;
+  text-align: center;
+  border-radius: 50%;
+  margin-left: -30px;
+  margin-top: -6px;
+  font-size: 14px;
+  font-family: QuickSandMedium;
+}
+
+.badgeann {
+  position: absolute;
+  background-color: #2A7FF3;
+  color: white;
+  width: 17px;
+  text-align: center;
+  border-radius: 50%;
+  margin-left: -30px;
+  margin-top: -6px;
+  font-size: 14px;
+  font-family: QuickSandMedium;
+}
+
+.badgeacc {
+  position: absolute;
+  background-color: #FFFFFF;
+  color: #222222;
+  width: 17px;
+  text-align: center;
+  border-radius: 50%;
+  margin-left: -38px;
+  margin-top: -3px;
+  font-size: 10px;
+  font-family: QuickSandMedium;
+}
+
+.account {
+  width: 32px;
+  height: 32px;
+}
+

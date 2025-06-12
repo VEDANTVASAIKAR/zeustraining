@@ -1,0 +1,57 @@
+.section2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 24px;
+  height: 45px;
+  border-bottom: 1px solid rgb(192, 192, 192);
+  font-family: QuickSandMedium;
+  font-size: 16px;
+  color: #686868;
+  opacity: 1;
+
+  .nofncouses {
+    p {
+      font-family: QuickSandMedium;
+      font-size: 12px;
+      letter-spacing: 0px;
+      color: #686868;
+      opacity: 1;
+      margin: 0;
+    }
+  }
+
+  .courseselection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .sortby {
+      p {
+        font-family: QuickSandMedium;
+        font-size: 12px;
+        letter-spacing: 0px;
+        color: #686868;
+        opacity: 1;
+        margin: 0;
+      }
+    }
+
+    select.coursename {
+      border: none;
+      outline: none;
+      background-color: #EEEEEE;
+      font-family: QuickSandMedium;
+      font-size: 16px;
+      letter-spacing: 0px;
+      color: #333333;
+      width: 156px;
+      margin-left: 6px;
+      opacity: 1;
+    }
+
+    .arrow {
+      transform: rotate(90deg);
+    }
+  }
+}

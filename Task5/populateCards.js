@@ -8,7 +8,7 @@ function populateCards(cardDataArray) {
     cardDataArray.forEach(cardData => {
         const card = document.createElement('section');
         card.className = 'section3';
-
+        
         card.innerHTML = `
             ${cardData.isExpired ? `<div class="expired"><p>EXPIRED</p></div>` : ''}
             <div class='card'>
@@ -35,7 +35,8 @@ function populateCards(cardDataArray) {
 
                     <div class="sec4">
                         <select class="teachername" id="teachername">
-                            ${cardData.teacher_class ? `<option  selected>${cardData.teacher_class  }</option>` : `<option style="text-align: left;font-style: QuickSandMedium;font-size:16px;letter-spacing: 0px;color:rgb(112, 112, 112);opacity: 0.4;" selected>No Classes</option>`}
+                        
+                            ${cardData.teacher_class ? `<option  selected>${cardData.teacher_class  }</option>` : `<option  selected>No Classes</option>`}
                         </select>
                     </div>
                     <div class="sec5">

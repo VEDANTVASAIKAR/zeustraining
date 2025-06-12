@@ -1,0 +1,103 @@
+.belldiv {
+  display: none; // Default hidden, controlled by JS
+  position: absolute;
+  z-index: 999999;
+  right: 0; // Adjust as needed for placement
+}
+
+.bell {
+  max-width: 315px;
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF 0% 0% no-repeat padding-box;
+  box-shadow: 0px 3px 6px #00000029;
+  margin-right: 210px;
+  opacity: 1;
+
+  .bellitems {
+    display: flex;
+    flex-direction: column;
+    max-width: 315px;
+    background-color: #FFFFFF;
+    overflow-y: scroll;
+    max-height: 500px;
+  }
+
+  .bellitem {
+    border-bottom: 1px solid #2222221F;
+    padding: 8px 16px;
+    background-color: #fff;
+
+    // For unread/not checked, JS can toggle this class
+    &.notchecked {
+      background-color: #FFFFEE;
+    }
+
+    .bellsec1 {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      text-align: left;
+      font-family: QuickSandMedium;
+      font-size: 14px;
+      color: #222222;
+      opacity: 1;
+
+      .bellcontent {
+        font-family: QuickSandMedium;
+        font-size: 14px;
+        color: #222222;
+        opacity: 1;
+      }
+
+      .bellcheckimage img {
+        border-radius: 50%;
+        width: 15px;
+        height: 18px;
+      }
+    }
+
+    .bellsec2 {
+      margin-bottom: 8px;
+      font-family: QuickSandMedium;
+      font-size: 12px;
+      color: #6E6E6E;
+      opacity: 1;
+
+      .bellcourse {
+        .coursename, .bellcoursename {
+          color: #222222;
+        }
+      }
+    }
+
+    .bellsec3 {
+      display: flex;
+      justify-content: flex-end;
+      font-family: QuickSandMedium;
+      font-size: 12px;
+      color: #6E6E6E;
+      opacity: 1;
+      margin-bottom: 8px;
+
+
+    }
+  }
+
+  .annfooter {
+    max-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    background-color: #FFFFFF;
+    text-align: center;
+    font-family: QuickSandMedium;
+    font-size: 14px;
+    color: #1F7A54;
+    opacity: 1;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    border-top: 1px solid #2222221F;
+    border-bottom: 1px solid #2222221F;
+  }
+}

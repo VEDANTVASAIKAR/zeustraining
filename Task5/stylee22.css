@@ -150,7 +150,7 @@ html,body{
     text-align: center;
     border-radius: 50%;
     /* font-weight: bold; */
-    margin-left: -36px;
+    margin-left: -30px;
     margin-top: -6px;
     font-size: 14px;
     font-family: QuickSandMedium;
@@ -590,6 +590,7 @@ select{
     width: 100%;
     justify-content: end;
     
+    
     /* margin-right: 156px; */
     
 }
@@ -842,6 +843,19 @@ select{
         margin-left: -18px;
     }
     .announcements{
+        margin-right: 16px;
+    }
+    .bell{
+        margin-right: 16px;
+    }
+}
+@media(max-width : 550px){
+
+    .container{
+        grid-template-columns: repeat(auto-fit,minmax(376px,1fr));
+        padding: 12px;
+    }
+        .announcements{
         margin-right: 16px;
     }
     .bell{

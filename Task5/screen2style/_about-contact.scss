@@ -1,0 +1,25 @@
+.aboutandcontactus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  gap: 8px;
+}
+
+.about,
+.contactus {
+  font-family: QuickSandMedium;
+  font-size: 14px;
+  color: #1F7A54;
+  cursor: pointer;
+  margin: 0;
+}
+
+.seperate {
+  font-family: QuickSandMedium;
+  font-size: 14px;
+  color: #CFCFCF;
+  margin: 0 8px;
+  cursor: default;
+}
