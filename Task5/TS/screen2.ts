@@ -1,3 +1,4 @@
+console.log('hi')
 interface card {
         img: string,
         topic: string,
@@ -344,18 +345,20 @@ populatebelll(belldata)
 
 let hamburgerr = document.getElementById('hamburger');
 let hamburgermenuu = document.getElementsByClassName('hiddenhamburger');
-
+let click : string = 'notclicked'
 if (hamburgerr && hamburgermenuu.length > 0) {
-  hamburgerr.addEventListener('mouseover', (e) => {
-    hamburgermenuu[0].classList.add('ablehamburger');
+  hamburgerr.addEventListener('click', (e) => {
+    if(click === 'notclicked'){
+        hamburgermenuu[0].classList.add('ablehamburger');
+        click='clicked'
+    }
+    else{
+        hamburgermenuu[0].classList.remove('ablehamburger');
+        click = 'notclicked'
+    }
     
 
   });
-
-  hamburgerr.addEventListener('mouseout', (e) => {
-    hamburgermenuu[0].classList.remove('ablehamburger');
-  });
-
 } else {
   console.error("Element(s) not found: hamburger or hiddenhamburger");
 }
@@ -407,13 +410,38 @@ function handleann(){
 }
 handleann()
 // console.log('hi')
-let navv = document.getElementsByClassName('hamburger')
-for(let i=0;1<=navv.length;i++){
-    navv[i].addEventListener('click',(e)=>{
-    for(let j=0;j<navv.length;j++){
-        navv[j].setAttribute('class','navitem')
-    }
+// let navv = document.getElementsByClassName('hamburger')
+// for(let i=0;1<=navv.length;i++){
+//     navv[i].addEventListener('click',(e)=>{
+//     for(let j=0;j<navv.length;j++){
+//         navv[j].setAttribute('class','navitem')
+//     }
 
-    navv[i].setAttribute('class','selected-navitem')
+//     navv[i].setAttribute('class','selected-navitem')
+//     })
+// }
+console.log('hi')
+function hdashboardclick(){
+    let hdashboard = document.querySelector<HTMLElement>('.hdashboard')
+    let coursecatlog = document.querySelector<HTMLElement>('.coursecatlog')
+    console.log(hdashboard)
+    if(!hdashboard || !coursecatlog){
+        return `<h1>no data</h1>`
+    }
+    let dboard :string = 'notclicked'
+    hdashboard.addEventListener('click',()=>{
+
+        if(dboard==='notclicked'){
+            hdashboard.style.backgroundColor= '#F3F3F3';
+            dboard='clicked'
+            coursecatlog.style.display='block'
+        }
+        else{
+            hdashboard.style.backgroundColor= '#FFFFFF';
+            dboard='notclicked'
+            coursecatlog.style.display='none'
+        }
+        
     })
 }
+hdashboardclick()

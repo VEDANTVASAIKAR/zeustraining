@@ -1,3 +1,4 @@
+console.log('hi');
 function populateCard(cardDataArray) {
     var section = document.querySelector('.container');
     if (!section) {
@@ -189,12 +190,17 @@ populateannouncement(announcement);
 populatebelll(belldata);
 var hamburgerr = document.getElementById('hamburger');
 var hamburgermenuu = document.getElementsByClassName('hiddenhamburger');
+var click = 'notclicked';
 if (hamburgerr && hamburgermenuu.length > 0) {
-    hamburgerr.addEventListener('mouseover', function (e) {
-        hamburgermenuu[0].classList.add('ablehamburger');
-    });
-    hamburgerr.addEventListener('mouseout', function (e) {
-        hamburgermenuu[0].classList.remove('ablehamburger');
+    hamburgerr.addEventListener('click', function (e) {
+        if (click === 'notclicked') {
+            hamburgermenuu[0].classList.add('ablehamburger');
+            click = 'clicked';
+        }
+        else {
+            hamburgermenuu[0].classList.remove('ablehamburger');
+            click = 'notclicked';
+        }
     });
 }
 else {
@@ -244,15 +250,35 @@ function handleann() {
 }
 handleann();
 // console.log('hi')
-var navv = document.getElementsByClassName('hamburger');
-var _loop_1 = function (i) {
-    navv[i].addEventListener('click', function (e) {
-        for (var j = 0; j < navv.length; j++) {
-            navv[j].setAttribute('class', 'navitem');
+// let navv = document.getElementsByClassName('hamburger')
+// for(let i=0;1<=navv.length;i++){
+//     navv[i].addEventListener('click',(e)=>{
+//     for(let j=0;j<navv.length;j++){
+//         navv[j].setAttribute('class','navitem')
+//     }
+//     navv[i].setAttribute('class','selected-navitem')
+//     })
+// }
+console.log('hi');
+function hdashboardclick() {
+    var hdashboard = document.querySelector('.hdashboard');
+    var coursecatlog = document.querySelector('.coursecatlog');
+    console.log(hdashboard);
+    if (!hdashboard || !coursecatlog) {
+        return "<h1>no data</h1>";
+    }
+    var dboard = 'notclicked';
+    hdashboard.addEventListener('click', function () {
+        if (dboard === 'notclicked') {
+            hdashboard.style.backgroundColor = '#F3F3F3';
+            dboard = 'clicked';
+            coursecatlog.style.display = 'block';
         }
-        navv[i].setAttribute('class', 'selected-navitem');
+        else {
+            hdashboard.style.backgroundColor = '#FFFFFF';
+            dboard = 'notclicked';
+            coursecatlog.style.display = 'none';
+        }
     });
-};
-for (var i = 0; 1 <= navv.length; i++) {
-    _loop_1(i);
 }
+hdashboardclick();
