@@ -395,7 +395,7 @@ function handleann(){
 
     ann.addEventListener('click',()=>{
         if (annimg=='green'){
-            ann.innerHTML='<img src="./icons/announcement-clicked.svg"><span class="badge">1</span>';
+            ann.innerHTML='<img src="./icons/announcement-clicked.svg"><span class="badgeann">1</span>';
             annimg= 'white';
             // anndiv.style.display=''
             anndiv.style.display='flex'
