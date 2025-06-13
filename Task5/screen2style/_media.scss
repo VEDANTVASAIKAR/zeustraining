@@ -42,13 +42,16 @@
         margin-left: -18px;
     }
     .badge{
-        margin-left: -22px;
+        margin-left: -18px;
     }
     .announcements{
         margin-right: 16px;
     }
     .bell{
         margin-right: 16px;
+    }
+    .section3{
+        max-width: 346px;
     }
 }
 
@@ -58,10 +61,14 @@
         grid-template-columns: repeat(auto-fit,minmax(376px,1fr));
         padding: 12px;
     }
+    .anndiv{
         .announcements{
-        margin-right: 16px;
+            margin-right: 16px;
+        }
     }
-    .bell{
+    .belldiv{
+        .bell{
         margin-right: 16px;
+        }
     }
 }

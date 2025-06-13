@@ -243,8 +243,8 @@ function handleann() {
     });
 }
 handleann();
-console.log('hi');
-var navv = document.getElementsByTagName('li');
+// console.log('hi')
+var navv = document.getElementsByClassName('hamburger');
 var _loop_1 = function (i) {
     navv[i].addEventListener('click', function (e) {
         for (var j = 0; j < navv.length; j++) {

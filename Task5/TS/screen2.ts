@@ -406,8 +406,8 @@ function handleann(){
     })
 }
 handleann()
-console.log('hi')
-let navv = document.getElementsByTagName('li')
+// console.log('hi')
+let navv = document.getElementsByClassName('hamburger')
 for(let i=0;1<=navv.length;i++){
     navv[i].addEventListener('click',(e)=>{
     for(let j=0;j<navv.length;j++){
