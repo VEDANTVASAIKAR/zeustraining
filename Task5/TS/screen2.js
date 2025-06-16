@@ -206,46 +206,87 @@ if (hamburgerr && hamburgermenuu.length > 0) {
 else {
     console.error("Element(s) not found: hamburger or hiddenhamburger");
 }
-function handlebell() {
-    var bell = document.getElementById('bell');
-    var bellimg = 'green';
-    var belldiv = document.querySelector('.belldiv');
-    if (!bell || !belldiv) {
-        return "<h1>no data to show</h1>";
-    }
-    bell.addEventListener('click', function () {
-        if (bellimg == 'green') {
-            bell.innerHTML = '<img src="./icons/alerts-clicked.svg"><span class="badge">1</span>';
-            bellimg = 'white';
-            belldiv.style.display = 'flex';
-        }
-        else {
-            bell.innerHTML = '<img src="./icons/alerts.svg"><span class="badge">1</span>';
-            bellimg = 'green';
-            belldiv.style.display = 'none';
-        }
-    });
-}
-handlebell();
+// function handlebell(){
+var bell = document.getElementById('bell');
+var belldiv = document.querySelector('.belldiv');
+var bellimg = document.querySelector('#bellimg');
+var bellbadge = document.querySelector('.badge');
+// if(!bell || !belldiv){
+//     return`<h1>no data to show</h1>`
+// }
+// bell.addEventListener('click',()=>{
+//     if (belldiv.style.display =='none' || belldiv.style.display ==''){
+//         bell.innerHTML='<img src="./icons/alerts-clicked.svg">';
+//         bellimg= 'white';
+//         belldiv.style.display='flex'
+//     }
+//     else{
+//         bell.innerHTML='<img src="./icons/alerts.svg"><span class="badge">1</span>';
+//         bellimg='green'
+//         belldiv.style.display='none'
+//     }
+// })
+bell.addEventListener('mouseenter', function () {
+    // bell.innerHTML='<img src="./icons/alerts-clicked.svg">';
+    bellimg.src = 'http://127.0.0.1:5500/Task5/icons/alerts-clicked.svg';
+    console.log('mouseover');
+    belldiv.style.display = 'flex';
+    bellbadge.style.opacity = '0';
+    // if (bellimg=='green'){
+    //     bell.innerHTML='<img src="./icons/alerts-clicked.svg">';
+    //     bellimg= 'white';
+    //     belldiv.style.display='flex'
+    // }
+    // else{
+    //     bell.innerHTML='<img src="./icons/alerts.svg"><span class="badge">1</span>';
+    //     bellimg='green'
+    //     belldiv.style.display='none'
+    // }
+});
+bell.addEventListener('mouseleave', function () {
+    console.log('mouseout');
+    // bell.innerHTML='<img src="./icons/alerts.svg"><span class="badge">1</span>';
+    bellimg.src = 'http://127.0.0.1:5500/Task5/icons/alerts.svg';
+    // belldiv.classList.remove("show-bell-icon");
+    belldiv.style.display = 'none';
+    bellbadge.style.opacity = '1';
+});
+// let div = document.querySelector('.belldiv')
+// if(!div ){
+//     return `<h1>no data to show</h1>`
+// }
+// div.addEventListener('mouseleave',()=>{
+//     bell.innerHTML='<img src="./icons/alerts.svg"><span class="badge">1</span>';
+//     bellimg='green'
+//     belldiv.style.display='none'
+// })
+// }
+// handlebell()
 function handleann() {
     var ann = document.getElementById('announcements');
-    var annimg = 'green';
+    var badge = document.querySelector('.badgeann');
+    var annimg = document.querySelector('#annimage');
     var anndiv = document.querySelector('.anndiv');
-    if (!ann || !anndiv) {
+    if (!ann || !anndiv || !badge) {
         return "<h1>no data to show</h1>";
     }
-    ann.addEventListener('click', function () {
-        if (annimg == 'green') {
-            ann.innerHTML = '<img src="./icons/announcement-clicked.svg"><span class="badgeann">1</span>';
-            annimg = 'white';
-            // anndiv.style.display=''
-            anndiv.style.display = 'flex';
-        }
-        else {
-            ann.innerHTML = '<img src="./icons/announcements.svg"><span class="badgeann">1</span>';
-            annimg = 'green';
-            anndiv.style.display = 'none';
-        }
+    ann.addEventListener('mouseenter', function () {
+        // ann.innerHTML='<img src="./icons/announcement-clicked.svg">';
+        annimg.src = 'http://127.0.0.1:5500/Task5/icons/announcement-clicked.svg';
+        // annimg= 'white';
+        anndiv.style.display = 'flex';
+        badge.style.opacity = '0';
+    });
+    var div = document.querySelector('.anndiv');
+    if (!div) {
+        return "<h1>no data to show</h1>";
+    }
+    ann.addEventListener('mouseleave', function () {
+        // ann.innerHTML='<img src="./icons/announcements.svg"><span class="badgeann">1</span>';
+        annimg.src = 'http://127.0.0.1:5500/Task5/icons/announcements.svg';
+        // annimg='green'
+        anndiv.style.display = 'none';
+        badge.style.opacity = '1';
     });
 }
 handleann();

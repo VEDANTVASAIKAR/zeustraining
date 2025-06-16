@@ -32,6 +32,9 @@ html, body {
   height: 100vh;
   background-color: #EEEEEE;
 }
+html .show-bell-icon, body .show-bell-icon {
+  display: flex;
+}
 
 .header {
   display: flex;
@@ -458,6 +461,10 @@ html, body {
   display: flex;
 }
 
+.displayhamburger {
+  display: none;
+}
+
 .hamburgeritems {
   min-width: 280px;
   position: absolute;
@@ -530,7 +537,7 @@ html, body {
   position: absolute;
   display: flex;
   flex-direction: column;
-  margin-right: 140px;
+  margin-right: 90px;
   background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
   background: #FFFFFF 0% 0% no-repeat padding-box;
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1607843137);
@@ -742,7 +749,7 @@ html, body {
   flex-direction: column;
   background: #FFFFFF 0% 0% no-repeat padding-box;
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1607843137);
-  margin-right: 210px;
+  margin-right: 160px;
   opacity: 1;
   animation-name: bellanimation;
   animation-duration: 1s;
