@@ -1,0 +1,22 @@
+html,body{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    // width: 100%;
+    // height: 100vh;
+    background-color: #EEEEEE;
+}
+
+
+.main-div{
+    background-color: lightblue;
+    position: relative;
+    border: 2px solid white;
+    .movable{
+        width: 50px;
+        height: 50px;
+        // background-color: burlywood;
+        position: absolute;
+        touch-action: none;
+    }
+}

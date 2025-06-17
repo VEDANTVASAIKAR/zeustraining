@@ -1,0 +1,18 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: #EEEEEE;
+}
+
+.main-div {
+  background-color: lightblue;
+  position: relative;
+  border: 2px solid white;
+}
+.main-div .movable {
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  touch-action: none;
+}/*# sourceMappingURL=style.css.map */
