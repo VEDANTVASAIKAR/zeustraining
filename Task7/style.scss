@@ -12,11 +12,12 @@ html,body{
     background-color: lightblue;
     position: relative;
     border: 2px solid white;
-    .movable{
+    
+}
+.movable{
         width: 50px;
         height: 50px;
         // background-color: burlywood;
         position: absolute;
         touch-action: none;
     }
-}
