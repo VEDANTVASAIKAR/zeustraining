@@ -2,12 +2,18 @@ html, body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  width: 100%;
+  height: 100vh;
   background-color: #EEEEEE;
+  display: flex;
+  flex-direction: column;
 }
 
 .main-div {
   background-color: lightblue;
   position: relative;
+  flex: 1;
+  display: flex;
 }
 
 .movable {

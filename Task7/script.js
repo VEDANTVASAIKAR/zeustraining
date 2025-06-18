@@ -120,28 +120,24 @@ var MainDiv = /** @class */ (function (_super) {
     }
     return MainDiv;
 }(Div));
-var maindiv = new MainDiv('100vw', '50vh');
+var maindiv = new MainDiv('', '');
 // maindiv.position('fixed');
 maindiv.classname('main-div');
 maindiv.append(document.body);
-var maindiv1 = new MainDiv('100vw', '50vh');
-// maindiv1.position('fixed');
-maindiv1.color('black');
-maindiv1.classname('main-div');
-maindiv1.append(document.body);
+// let maindiv1 = new MainDiv('','')
+// // maindiv1.position('fixed');
+// maindiv1.color('black')
+// maindiv1.classname('main-div')
+// maindiv1.append(document.body)
 var movable = new Movable('50px', '50px');
 movable.position('absolute');
 movable.classname('movable');
 movable.color('burlywood');
 movable.append(maindiv.element);
 movable.execute();
-var movable1 = new Movable('50px', '50px');
-movable1.position('absolute');
-movable1.classname('movable');
-movable1.color('yellow');
-movable1.append(maindiv1.element);
-movable1.execute();
-// window.onresize = ()=>{
-//     movable.onResize()
-//     movable1.onResize()
-// }
+// let movable1 = new Movable('50px','50px')
+// movable1.position('absolute')
+// movable1.classname('movable')
+// movable1.color('yellow')
+// movable1.append(maindiv1.element)
+// movable1.execute()
