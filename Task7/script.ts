@@ -135,10 +135,10 @@ class MainDiv extends Div {
 }
 
 
-let maindiv = new MainDiv('','')
-// maindiv.position('fixed');
-maindiv.classname('main-div')
-maindiv.append(document.body)
+// let maindiv = new MainDiv('','')
+// // maindiv.position('fixed');
+// maindiv.classname('main-div')
+// maindiv.append(document.body)
 
 // let maindiv1 = new MainDiv('','')
 // // maindiv1.position('fixed');
@@ -146,12 +146,12 @@ maindiv.append(document.body)
 // maindiv1.classname('main-div')
 // maindiv1.append(document.body)
 
-let movable = new Movable('50px','50px')
-movable.position('absolute')
-movable.classname('movable')
-movable.color('burlywood')
-movable.append(maindiv.element)
-movable.execute()
+// let movable = new Movable('50px','50px')
+// movable.position('absolute')
+// movable.classname('movable')
+// movable.color('burlywood')
+// movable.append(maindiv.element)
+// movable.execute()
 
 // let movable1 = new Movable('50px','50px')
 // movable1.position('absolute')
@@ -160,3 +160,35 @@ movable.execute()
 // movable1.append(maindiv1.element)
 // movable1.execute()
 
+function createLayout(numMainDivs: number, childrenPerDiv: number) {
+    for (let i = 0; i < numMainDivs; i++) {
+        
+        let mainDiv = new MainDiv('', '');
+        mainDiv.classname('main-div');
+        mainDiv.position('relative'); // position relative for absolute children
+        mainDiv.color(getRandomColor());
+        mainDiv.append(document.body);
+
+        
+        for (let j = 0; j < childrenPerDiv; j++) {
+            let movable = new Movable('50px', '50px');
+            movable.position('absolute');
+            movable.classname('movable');
+            movable.color(getRandomColor());
+            movable.append(mainDiv.element);
+            movable.execute();
+        }
+    }
+}
+
+function getRandomColor(): string {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+// Example usage:
+createLayout(3, 2);  // 3 main divs, each with 5 movable children

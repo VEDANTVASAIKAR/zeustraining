@@ -1,0 +1,12 @@
+canvas{
+    border: 1px solid black;
+    background: #deb887;
+    touch-action: none;
+
+}
+html,body{
+    height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
