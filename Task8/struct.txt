@@ -1,0 +1,35 @@
+src/
+│
+├── core/
+│   ├── Grid.ts               # Main controller class
+│   ├── Renderer.ts           # Handles all canvas rendering
+│   ├── EventManager.ts       # Mouse & keyboard interaction
+│   └── GridDataModel.ts      # Efficient data storage + access
+│
+├── ui/
+│   ├── CellEditor.ts         # Floating HTML input overlay
+│   └── OverlayManager.ts     # Manages all overlay DOM elements
+│
+├── commands/
+│   ├── Command.ts            # Base interface
+│   ├── CommandManager.ts     # Executes and tracks commands
+│   ├── EditCommand.ts        # Handles editing a cell
+│   ├── ResizeCommand.ts      # Handles resizing a row/col
+│   └── SelectCommand.ts      # Handles selection changes
+│
+├── model/
+│   ├── Cell.ts               # Cell meta structure
+│   ├── Row.ts                # Row meta structure
+│   ├── Column.ts             # Column meta structure
+│   └── SelectionManager.ts   # Range selection, stats
+│
+├── data/
+│   ├── sampleDataGenerator.ts # Generate large JSON dataset
+│   └── dataLoader.ts          # Load/parse JSON into GridDataModel
+│
+├── utils/
+│   ├── math.ts               # Bounding box, range math
+│   ├── canvasHelpers.ts      # Text measurement, positioning
+│   └── constants.ts          # Default styles, sizes
+│
+└── main.ts                   # Entry point (init Grid, mount canvas)

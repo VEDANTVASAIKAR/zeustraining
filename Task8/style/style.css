@@ -1,6 +1,23 @@
-html,body{
-    height: 100vh;
-    width: 100%;
-    margin: 0;
-    padding: 0;
+html, body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.container {
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  position: relative;
+}
+canvas {
+  display: block;
+}
+#cellInput {
+  position: absolute;
+  display: none;
+  z-index: 10;
+  font-size: 12px;
+  padding: 2px;
+  box-sizing: border-box;
 }

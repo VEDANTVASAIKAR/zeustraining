@@ -1,0 +1,194 @@
+Goal
+Build an Excel-like virtual grid entirely rendered on <canvas>, supporting interaction and inline editing using overlaid HTML elements, handling 100,000 rows × 500 columns efficiently.
+
+🧠 Key Concepts to Study & Design Map
+Here’s an updated and focused study and implementation breakdown:
+
+🔳 1. Canvas-Only Grid Rendering
+🎯 Concepts to Study:
+CanvasRenderingContext2D methods:
+
+fillRect, strokeRect, fillText, measureText
+
+canvas.width / canvas.height control
+
+Coordinate transforms (ctx.translate, ctx.save, ctx.restore)
+
+Viewport math: scroll offset, visible rows/columns
+
+🧱 Structure:
+Define fixed rowHeight and columnWidths[]
+
+On scroll: calculate which cells are visible
+
+Only draw visible cell boundaries + labels + content
+
+🔧 Optimization Tactics:
+Dirty Rendering: Only repaint if needed
+
+Double Buffering: Use an offscreen canvas to draw, then copy to main canvas
+
+Virtualization:
+
+Use scrollTop, scrollLeft to compute:
+
+ini
+Copy
+Edit
+visibleRowStart = Math.floor(scrollTop / rowHeight)
+visibleRowEnd = visibleRowStart + viewportRowCount
+Same for columns
+
+🧩 2. Component/Subsystem Design
+🔳 Grid class
+Orchestrator for all drawing and interaction
+
+Handles:
+
+Scroll
+
+Resizing
+
+Delegating events
+
+Calling render
+
+🔳 Renderer class
+Handles drawing all elements on canvas
+
+Cell borders
+
+Cell contents
+
+Selected cells
+
+Headers
+
+🔳 Cell, Row, Column classes
+Store metadata like dimensions, style, dataIndex
+
+🔳 GridDataModel
+Holds actual data
+
+Map of data[row][col] (sparse or flat map preferred)
+
+Generate 50,000+ records and parse into this model
+
+🔳 SelectionManager
+Stores current selected cell(s), row(s), column(s)
+
+Handles drag-to-select logic
+
+Draws selected areas using Renderer
+
+🔳 CellEditor
+Creates & manages a floating HTML <input>
+
+On double-click or Enter
+
+Sync with canvas position
+
+Commit on blur/Enter
+
+Study DOM positioning:
+
+Use canvas.getBoundingClientRect() for offset
+
+Map cell coordinates to canvas position
+
+🎮 3. User Interaction Layer
+✍️ Cell Editing
+Mouse click → detect which cell
+
+Place HTML <input> at the cell's screen position
+
+On commit, trigger:
+
+js
+Copy
+Edit
+EditCommand(cell, oldValue, newValue)
+🎯 Resizing (Rows/Columns)
+Mouse movement detects edge (hover state)
+
+On mousedown + drag:
+
+Show resize feedback line
+
+Adjust rowHeight[] or columnWidths[]
+
+Trigger re-render
+
+🔲 Selection + Range Selection
+Mouse drag selects:
+
+Single cell
+
+Whole row/column
+
+Rectangular range
+
+Support Shift+click and Ctrl+click logic
+
+Compute stats (min, max, avg, sum) on selected range
+
+🌀 4. Command Pattern for Actions
+✨ Study This Pattern
+Encapsulates every user action as an object with execute() and undo()
+
+Command Type	Triggers
+EditCommand	Cell edit
+ResizeCommand	Resize column/row
+SelectCommand	Selection change
+
+🎛️ CommandManager
+Holds stack of commands
+
+Supports undo() and redo() methods
+
+🧠 5. Data Loading (JSON Model)
+⚙️ Features:
+Load JSON array like:
+
+json
+Copy
+Edit
+{ id: 1, firstName: "Raj", lastName: "Solanki", age: 30 }
+Map keys to columns (i.e. dynamic column headers)
+
+Allow column headers to be inferred from keys
+
+Generate mock data:
+
+Use a script to generate 50,000–100,000 records
+
+Randomized values
+
+🔍 Summary of What to Study
+Concept	Purpose
+Canvas API	Low-level rendering
+Coordinate math	Virtual scrolling, hit-testing
+Virtualization logic	Large datasets rendering
+HTML overlay syncing	Cell editing with inputs
+Command Pattern	Undo/redo actions
+Selection logic	Cell ranges, stats
+Sparse data structure	Efficient memory usage
+Mouse/keyboard event handling	UI interactions
+Object-oriented design	Code organization
+
+🚀 Suggested Learning/Study Sequence
+HTML Canvas Basics – 2D drawing, coordinates, clipping
+
+Grid Virtualization – Calculate visible rows/cols based on scroll
+
+OOP Design – Classes for grid, data, render, editor
+
+Event Handling – Clicks, drags, resizing
+
+Command Pattern – Implement undo/redo infrastructure
+
+JSON Handling + Data Models – Generate large datasets
+
+Overlay Editing – Place input fields on canvas cells
+
+Selection Range Stats – Compute count, sum, etc
