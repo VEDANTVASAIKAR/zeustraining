@@ -36,8 +36,11 @@ class Cell {
   /**
    * Draws the cell on the canvas.
    * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
+   * @param ctx Canvas context
+   * @param showRightHandle Whether to show the right resize handle
+   * @param showBottomHandle Whether to show the bottom resize handle
    */
-  draw(ctx: CanvasRenderingContext2D): void {
+  draw(ctx: CanvasRenderingContext2D , showRightHandle: boolean = false, showBottomHandle: boolean = false): void {
     ctx.strokeStyle = "#000";
     ctx.lineWidth = 0.3;
     ctx.strokeRect(this.x, this.y, this.width, this.height);
@@ -49,9 +52,10 @@ class Cell {
 
     // to diplay according to the width of the cell
     let datawidth  = ctx.measureText(this.data).width
-    let ellipse = ''
+    let ellipse = this.data
     let i = 0;
     if (datawidth > this.width){
+      ellipse = '';
       while(ctx.measureText(ellipse).width < (this.width-8)){
         ellipse += this.data[i]
         i++;
@@ -59,9 +63,44 @@ class Cell {
     }
     
     ctx.fillText(ellipse, this.x + 4, this.y + this.height / 2);
+
+    // Draw handles if requested
+    // ctx.save();
+    // if (showRightHandle) {
+    //   ctx.fillStyle = "#1976d2";
+    //   ctx.fillRect(this.x + this.width - 5, this.y + this.height / 2 - 7, 6, 14);
+    // }
+    // if (showBottomHandle) {
+    //   ctx.fillStyle = "#388e3c";
+    //   ctx.fillRect(this.x + this.width / 2 - 7, this.y + this.height - 5, 14, 6);
+    // }
+    // ctx.restore();
   }
 
-  
+  /**
+   * Checks if the mouse is near the right or bottom edge (resize area).
+   * @param {number} mouseX - X coordinate of the mouse relative to the canvas
+   * @param {number} mouseY - Y coordinate of the mouse relative to the canvas
+   * @param {number} tolerance - Pixel tolerance to detect edge (default 5px)
+   * @returns {"right"|"bottom"|null}
+   */
+  getResizeEdge(mouseX: number, mouseY: number, tolerance: number = 5): "right" | "bottom" | null {
+    if (
+      mouseX > this.x + this.width - tolerance &&
+      mouseX < this.x + this.width + tolerance &&
+      mouseY > this.y && mouseY < this.y + this.height
+    ) {
+      return "right";
+    }
+    if (
+      mouseY > this.y + this.height - tolerance &&
+      mouseY < this.y + this.height + tolerance &&
+      mouseX > this.x && mouseX < this.x + this.width
+    ) {
+      return "bottom";
+    }
+    return null;
+  }
  
 
 }
@@ -98,7 +137,19 @@ class GridDrawer {
   private selectedCol: number = 0;
 
 
+  private resizing: boolean = false;
+  private resizeRow: number = -1;
+  private resizeCol: number = -1;
+  private resizeEdge: "right" | "bottom" | null = null;
+  private startX: number = 0;
+  private startY: number = 0;
+  private startWidth: number = 0;
+  private startHeight: number = 0;
 
+  // For showing handles only when hover
+  private hoveredResizeRow: number = -1;
+  private hoveredResizeCol: number = -1;
+  private hoveredResizeEdge: "right" | "bottom" | null = null;
 
   /**
    * Initializes the GridDrawer object.
@@ -158,11 +209,27 @@ class GridDrawer {
   /**
    * Draws the entire grid on the canvas.
    */
+  // drawGrid(): void {
+  //   this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  //   for (const row of this.cells) {
+  //     for (const cell of row) {
+  //       cell.draw(this.ctx);
+  //     }
+  //   }
+  // }
   drawGrid(): void {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    for (const row of this.cells) {
-      for (const cell of row) {
-        cell.draw(this.ctx);
+    for (let row = 0; row < this.rows; row++) {
+      for (let col = 0; col < this.cols; col++) {
+        let showRight = false, showBottom = false;
+        if (
+          row === this.hoveredResizeRow &&
+          col === this.hoveredResizeCol
+        ) {
+          showRight = this.hoveredResizeEdge === "right";
+          showBottom = this.hoveredResizeEdge === "bottom";
+        }
+        this.cells[row][col].draw(this.ctx, showRight, showBottom);
       }
     }
   }
@@ -246,6 +313,34 @@ class GridDrawer {
         e.preventDefault();
         showInput(this.selectedRow, this.selectedCol);
       }
+    });
+
+    this.canvas.addEventListener("mousemove", (e) => {
+      if (this.resizing) return;
+      const rect = this.canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      let found = false;
+      for (let row = 0; row < this.rows && !found; row++) {
+        for (let col = 0; col < this.cols && !found; col++) {
+          const edge = this.cells[row][col].getResizeEdge(x, y);
+          if (edge) {
+            this.canvas.style.cursor = edge === "right" ? "ew-resize" : "ns-resize";
+            this.hoveredResizeRow = row;
+            this.hoveredResizeCol = col;
+            this.hoveredResizeEdge = edge;
+            found = true;
+          }
+        }
+      }
+      if (!found) {
+        this.canvas.style.cursor = "default";
+        this.hoveredResizeRow = -1;
+        this.hoveredResizeCol = -1;
+        this.hoveredResizeEdge = null;
+      }
+      this.drawGrid();
     });
 
 

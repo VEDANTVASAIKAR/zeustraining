@@ -21,8 +21,13 @@ var Cell = /** @class */ (function () {
     /**
      * Draws the cell on the canvas.
      * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
+     * @param ctx Canvas context
+     * @param showRightHandle Whether to show the right resize handle
+     * @param showBottomHandle Whether to show the bottom resize handle
      */
-    Cell.prototype.draw = function (ctx) {
+    Cell.prototype.draw = function (ctx, showRightHandle, showBottomHandle) {
+        if (showRightHandle === void 0) { showRightHandle = false; }
+        if (showBottomHandle === void 0) { showBottomHandle = false; }
         ctx.strokeStyle = "#000";
         ctx.lineWidth = 0.3;
         ctx.strokeRect(this.x, this.y, this.width, this.height);
@@ -30,17 +35,50 @@ var Cell = /** @class */ (function () {
         ctx.font = "12px Arial";
         ctx.textBaseline = "middle";
         console.log(ctx.measureText(this.data));
-        // let displaydata = this.data;
+        // to diplay according to the width of the cell
         var datawidth = ctx.measureText(this.data).width;
-        var ellipse = '';
+        var ellipse = this.data;
         var i = 0;
         if (datawidth > this.width) {
+            ellipse = '';
             while (ctx.measureText(ellipse).width < (this.width - 8)) {
                 ellipse += this.data[i];
                 i++;
             }
         }
         ctx.fillText(ellipse, this.x + 4, this.y + this.height / 2);
+        // Draw handles if requested
+        // ctx.save();
+        // if (showRightHandle) {
+        //   ctx.fillStyle = "#1976d2";
+        //   ctx.fillRect(this.x + this.width - 5, this.y + this.height / 2 - 7, 6, 14);
+        // }
+        // if (showBottomHandle) {
+        //   ctx.fillStyle = "#388e3c";
+        //   ctx.fillRect(this.x + this.width / 2 - 7, this.y + this.height - 5, 14, 6);
+        // }
+        // ctx.restore();
+    };
+    /**
+     * Checks if the mouse is near the right or bottom edge (resize area).
+     * @param {number} mouseX - X coordinate of the mouse relative to the canvas
+     * @param {number} mouseY - Y coordinate of the mouse relative to the canvas
+     * @param {number} tolerance - Pixel tolerance to detect edge (default 5px)
+     * @returns {"right"|"bottom"|null}
+     */
+    Cell.prototype.getResizeEdge = function (mouseX, mouseY, tolerance) {
+        if (tolerance === void 0) { tolerance = 5; }
+        if (mouseX > this.x + this.width - tolerance &&
+            mouseX < this.x + this.width + tolerance &&
+            mouseY > this.y && mouseY < this.y + this.height) {
+            return "right";
+        }
+        if (mouseY > this.y + this.height - tolerance &&
+            mouseY < this.y + this.height + tolerance &&
+            mouseX > this.x && mouseX < this.x + this.width) {
+            return "bottom";
+        }
+        return null;
     };
     return Cell;
 }());
@@ -65,6 +103,18 @@ var GridDrawer = /** @class */ (function () {
         this.selectedRow = 0;
         /**  Currently selected column index */
         this.selectedCol = 0;
+        this.resizing = false;
+        this.resizeRow = -1;
+        this.resizeCol = -1;
+        this.resizeEdge = null;
+        this.startX = 0;
+        this.startY = 0;
+        this.startWidth = 0;
+        this.startHeight = 0;
+        // For showing handles only when hover
+        this.hoveredResizeRow = -1;
+        this.hoveredResizeCol = -1;
+        this.hoveredResizeEdge = null;
         var canvas = document.getElementById(canvasId);
         if (!canvas) {
             throw new Error("Canvas with id \"".concat(canvasId, "\" not found."));
@@ -102,13 +152,25 @@ var GridDrawer = /** @class */ (function () {
     /**
      * Draws the entire grid on the canvas.
      */
+    // drawGrid(): void {
+    //   this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    //   for (const row of this.cells) {
+    //     for (const cell of row) {
+    //       cell.draw(this.ctx);
+    //     }
+    //   }
+    // }
     GridDrawer.prototype.drawGrid = function () {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        for (var _i = 0, _a = this.cells; _i < _a.length; _i++) {
-            var row = _a[_i];
-            for (var _b = 0, row_1 = row; _b < row_1.length; _b++) {
-                var cell = row_1[_b];
-                cell.draw(this.ctx);
+        for (var row = 0; row < this.rows; row++) {
+            for (var col = 0; col < this.cols; col++) {
+                var showRight = false, showBottom = false;
+                if (row === this.hoveredResizeRow &&
+                    col === this.hoveredResizeCol) {
+                    showRight = this.hoveredResizeEdge === "right";
+                    showBottom = this.hoveredResizeEdge === "bottom";
+                }
+                this.cells[row][col].draw(this.ctx, showRight, showBottom);
             }
         }
     };
@@ -188,6 +250,33 @@ var GridDrawer = /** @class */ (function () {
                 e.preventDefault();
                 showInput(_this.selectedRow, _this.selectedCol);
             }
+        });
+        this.canvas.addEventListener("mousemove", function (e) {
+            if (_this.resizing)
+                return;
+            var rect = _this.canvas.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            var found = false;
+            for (var row = 0; row < _this.rows && !found; row++) {
+                for (var col = 0; col < _this.cols && !found; col++) {
+                    var edge = _this.cells[row][col].getResizeEdge(x, y);
+                    if (edge) {
+                        _this.canvas.style.cursor = edge === "right" ? "ew-resize" : "ns-resize";
+                        _this.hoveredResizeRow = row;
+                        _this.hoveredResizeCol = col;
+                        _this.hoveredResizeEdge = edge;
+                        found = true;
+                    }
+                }
+            }
+            if (!found) {
+                _this.canvas.style.cursor = "default";
+                _this.hoveredResizeRow = -1;
+                _this.hoveredResizeCol = -1;
+                _this.hoveredResizeEdge = null;
+            }
+            _this.drawGrid();
         });
     };
     return GridDrawer;
