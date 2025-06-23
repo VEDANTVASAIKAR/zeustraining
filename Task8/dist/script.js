@@ -3,6 +3,14 @@
  * Represents a single cell in the grid.
  */
 class Cell {
+    /**
+     * Initializes a Cell object.
+     * @param x - X position of the cell
+     * @param y - Y position of the cell
+     * @param width - Width of the cell
+     * @param height - Height of the cell
+     * @param data - Initial content of the cell (optional)
+     */
     constructor(x, y, width, height, data = "") {
         this.x = x;
         this.y = y;
@@ -10,15 +18,23 @@ class Cell {
         this.height = height;
         this.data = data;
     }
+    /**
+     * Draws the cell on the given canvas context.
+     * Optionally draws resize handles.
+     * @param ctx - The canvas 2D rendering context
+     * @param showRightHandle - Whether to show the right resize handle
+     * @param showBottomHandle - Whether to show the bottom resize handle
+     */
     draw(ctx, showRightHandle = false, showBottomHandle = false) {
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = 0.3;
+        ctx.strokeStyle = "#ccc";
+        ctx.lineWidth = 0.4;
         ctx.strokeRect(this.x, this.y, this.width, this.height);
         ctx.fillStyle = "#000";
         ctx.font = "12px Arial";
         ctx.textBaseline = "middle";
         let ellipse = this.data;
         let i = 0;
+        // Ellipse text if too long for the cell
         if (ctx.measureText(this.data).width > this.width) {
             ellipse = '';
             while (ctx.measureText(ellipse).width < (this.width - 8) && i < this.data.length) {
@@ -28,16 +44,25 @@ class Cell {
         }
         ctx.fillText(ellipse, this.x + 4, this.y + this.height / 2);
         ctx.save();
+        // Draw the right resize handle if requested
         if (showRightHandle) {
             ctx.fillStyle = "#1976d2";
             ctx.fillRect(this.x + this.width - 5, this.y + this.height / 2 - 7, 6, 14);
         }
+        // Draw the bottom resize handle if requested
         if (showBottomHandle) {
             ctx.fillStyle = "#388e3c";
             ctx.fillRect(this.x + this.width / 2 - 7, this.y + this.height - 5, 14, 6);
         }
         ctx.restore();
     }
+    /**
+     * Checks if the mouse is near the right or bottom edge (resize area).
+     * @param mouseX - X coordinate of the mouse relative to the canvas
+     * @param mouseY - Y coordinate of the mouse relative to the canvas
+     * @param tolerance - Pixel tolerance to detect edge (default 5px)
+     * @returns "right"|"bottom"|null
+     */
     getResizeEdge(mouseX, mouseY, tolerance = 5) {
         if (mouseX > this.x + this.width - tolerance &&
             mouseX < this.x + this.width + tolerance &&
@@ -56,17 +81,27 @@ class Cell {
  * Manages the grid of cells and canvas interactions.
  */
 class GridDrawer {
+    /**
+     * Initializes the GridDrawer object.
+     * @param canvasId - The ID of the canvas element
+     * @param rows - Number of rows in the grid
+     * @param cols - Number of columns in the grid
+     * @param cellWidth - Width of each cell
+     * @param cellHeight - Height of each cell
+     */
     constructor(canvasId, rows = 50, cols = 20, cellWidth = 100, cellHeight = 30) {
-        this.selectedRow = 0;
-        this.selectedCol = 0;
-        this.resizing = false;
-        this.resizeRow = -1;
-        this.resizeCol = -1;
-        this.resizeEdge = null;
-        this.startX = 0;
-        this.startY = 0;
-        this.startWidth = 0;
-        this.startHeight = 0;
+        this.selectedRow = 0; // Currently selected row index
+        this.selectedCol = 0; // Currently selected column index
+        // Resizing state
+        this.resizing = false; // Is a resize currently in progress
+        this.resizeRow = -1; // Row index of the cell being resized
+        this.resizeCol = -1; // Column index of the cell being resized
+        this.resizeEdge = null; // Which edge is being resized
+        this.startX = 0; // X position where resize started
+        this.startY = 0; // Y position where resize started
+        this.startWidth = 0; // Width of cell at start of resize
+        this.startHeight = 0; // Height of cell at start of resize
+        // For showing handles only on hover
         this.hoveredResizeRow = -1;
         this.hoveredResizeCol = -1;
         this.hoveredResizeEdge = null;
@@ -84,6 +119,7 @@ class GridDrawer {
         this.cols = cols;
         this.cellWidth = cellWidth;
         this.cellHeight = cellHeight;
+        // Set initial canvas size
         this.canvas.width = this.cols * this.cellWidth;
         this.canvas.height = this.rows * this.cellHeight;
         this.cells = [];
@@ -106,6 +142,7 @@ class GridDrawer {
     }
     /**
      * Draws the entire grid on the canvas.
+     * Shows resize handles if a cell edge is hovered.
      */
     drawGrid() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -122,33 +159,33 @@ class GridDrawer {
         }
     }
     /**
-     * Shifts x positions of all columns to the right of the resized column,
-     * and y positions of all rows below the resized row.
-     * Should be called after resizing a column or row.
+     * Updates x or y positions of only the affected cells after resizing.
      */
-    shiftColumnsAndRows() {
-        // Shift all columns' x
-        for (let row = 0; row < this.rows; row++) {
-            let currX = 0;
-            for (let col = 0; col < this.cols; col++) {
-                this.cells[row][col].x = currX;
-                currX += this.cells[row][col].width;
+    updateCellPositionsAfterResize() {
+        // Only update affected cells
+        if (this.resizeEdge === "right") {
+            // Column resize: update x for columns to the right of resizeCol
+            for (let row = 0; row < this.rows; row++) {
+                for (let col = this.resizeCol + 1; col < this.cols; col++) {
+                    this.cells[row][col].x = this.cells[row][col - 1].x + this.cells[row][col - 1].width;
+                }
             }
         }
-        // Shift all rows' y
-        for (let col = 0; col < this.cols; col++) {
-            let currY = 0;
-            for (let row = 0; row < this.rows; row++) {
-                this.cells[row][col].y = currY;
-                currY += this.cells[row][col].height;
+        if (this.resizeEdge === "bottom") {
+            // Row resize: update y for rows below resizeRow
+            for (let col = 0; col < this.cols; col++) {
+                for (let row = this.resizeRow + 1; row < this.rows; row++) {
+                    this.cells[row][col].y = this.cells[row - 1][col].y + this.cells[row - 1][col].height;
+                }
             }
         }
     }
     /**
-     * Attaches pointer and keyboard event listeners.
+     * Attaches pointer and keyboard event listeners for resizing, editing, and navigation.
      */
     attachEvents() {
         const input = document.getElementById("cellInput");
+        // Helper to compute pointer position relative to canvas
         const getPointerPos = (e) => {
             const rect = this.canvas.getBoundingClientRect();
             return {
@@ -156,7 +193,13 @@ class GridDrawer {
                 y: e.clientY - rect.top
             };
         };
+        // Used to avoid triggering edit after a resize
         let pointerWasResize = false;
+        /**
+         * Displays the input box over the specified cell for editing.
+         * @param row - Row index of the cell
+         * @param col - Column index of the cell
+         */
         const showInput = (row, col) => {
             const cell = this.cells[row][col];
             input.style.left = `${cell.x}px`;
@@ -166,18 +209,22 @@ class GridDrawer {
             input.value = cell.data;
             input.style.display = "block";
             input.focus();
+            // Save cell data and hide input on blur
             input.onblur = () => {
                 cell.data = input.value;
                 input.style.display = "none";
                 this.drawGrid();
             };
         };
+        // Pointer down: check for resize handle or prepare for editing
         this.canvas.addEventListener("pointerdown", (e) => {
             const { x, y } = getPointerPos(e);
+            let clickedResize = false;
             for (let row = 0; row < this.rows; row++) {
                 for (let col = 0; col < this.cols; col++) {
                     const edge = this.cells[row][col].getResizeEdge(x, y);
                     if (edge) {
+                        // Start resizing
                         this.resizing = true;
                         this.resizeRow = row;
                         this.resizeCol = col;
@@ -188,14 +235,29 @@ class GridDrawer {
                         this.startHeight = this.cells[row][col].height;
                         this.canvas.setPointerCapture(e.pointerId);
                         pointerWasResize = true;
+                        clickedResize = true;
                         return;
                     }
                 }
             }
-            pointerWasResize = false;
-            this.selectedCol = Math.floor(x / this.cellWidth);
-            this.selectedRow = Math.floor(y / this.cellHeight);
+            pointerWasResize = false; // Not resizing, so allow editing on pointerup
+            // Find the cell under the mouse by checking each cell's bounds
+            let found = false;
+            for (let row = 0; row < this.rows && !found; row++) {
+                for (let col = 0; col < this.cols && !found; col++) {
+                    const cell = this.cells[row][col];
+                    if (x >= cell.x &&
+                        x < cell.x + cell.width &&
+                        y >= cell.y &&
+                        y < cell.y + cell.height) {
+                        this.selectedRow = row;
+                        this.selectedCol = col;
+                        found = true;
+                    }
+                }
+            }
         });
+        // Pointer up: finish resizing, or start editing if not resizing
         this.canvas.addEventListener("pointerup", (e) => {
             if (this.resizing) {
                 this.resizing = false;
@@ -204,11 +266,15 @@ class GridDrawer {
                 this.resizeEdge = null;
                 this.canvas.releasePointerCapture(e.pointerId);
                 this.canvas.style.cursor = "default";
+                // Prevent edit after resize
                 pointerWasResize = true;
                 return;
             }
+            // Only show input if not resizing
             if (!pointerWasResize) {
+                // Show input for editing
                 if (this.selectedRow < this.rows && this.selectedCol < this.cols) {
+                    // Only show if not already open
                     if (input.style.display !== "block") {
                         showInput(this.selectedRow, this.selectedCol);
                     }
@@ -216,9 +282,11 @@ class GridDrawer {
             }
             pointerWasResize = false;
         });
+        // Pointer move: resize cell if dragging a handle, or update handle hover state
         this.canvas.addEventListener("pointermove", (e) => {
             const { x, y } = getPointerPos(e);
             if (this.resizing) {
+                // Resize logic
                 if (this.resizeEdge === "right") {
                     const newWidth = Math.max(20, this.startWidth + (x - this.startX));
                     for (let r = 0; r < this.rows; r++) {
@@ -231,12 +299,14 @@ class GridDrawer {
                         this.cells[this.resizeRow][c].height = newHeight;
                     }
                 }
-                // Shift only the relevant columns and rows
-                this.shiftColumnsAndRows();
+                // --- Update x/y positions ONLY for affected cells ---
+                this.updateCellPositionsAfterResize();
+                // Redraw grid
                 this.drawGrid();
                 e.preventDefault();
                 return;
             }
+            // Handle hover state for resize handles
             let found = false;
             for (let row = 0; row < this.rows && !found; row++) {
                 for (let col = 0; col < this.cols && !found; col++) {
@@ -258,6 +328,7 @@ class GridDrawer {
             }
             this.drawGrid();
         });
+        // Keyboard navigation and editing
         document.addEventListener("keydown", (e) => {
             if (input.style.display === "block") {
                 const currentCell = this.cells[this.selectedRow][this.selectedCol];

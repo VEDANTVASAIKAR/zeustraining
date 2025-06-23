@@ -32,8 +32,8 @@ class Cell {
    * @param showBottomHandle - Whether to show the bottom resize handle
    */
   draw(ctx: CanvasRenderingContext2D , showRightHandle: boolean = false, showBottomHandle: boolean = false): void {
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 0.3;
+    ctx.strokeStyle = "#ccc";
+    ctx.lineWidth = 0.4;
     ctx.strokeRect(this.x, this.y, this.width, this.height);
 
     ctx.fillStyle = "#000";
@@ -198,6 +198,29 @@ class GridDrawer {
   }
 
   /**
+   * Updates x or y positions of only the affected cells after resizing.
+   */
+  private updateCellPositionsAfterResize(): void {
+    // Only update affected cells
+    if (this.resizeEdge === "right") {
+      // Column resize: update x for columns to the right of resizeCol
+      for (let row = 0; row < this.rows; row++) {
+        for (let col = this.resizeCol + 1; col < this.cols; col++) {
+          this.cells[row][col].x = this.cells[row][col - 1].x + this.cells[row][col - 1].width;
+        }
+      }
+    }
+    if (this.resizeEdge === "bottom") {
+      // Row resize: update y for rows below resizeRow
+      for (let col = 0; col < this.cols; col++) {
+        for (let row = this.resizeRow + 1; row < this.rows; row++) {
+          this.cells[row][col].y = this.cells[row - 1][col].y + this.cells[row - 1][col].height;
+        }
+      }
+    }
+  }
+
+  /**
    * Attaches pointer and keyboard event listeners for resizing, editing, and navigation.
    */
   attachEvents(): void {
@@ -264,9 +287,24 @@ class GridDrawer {
         }
       }
       pointerWasResize = false; // Not resizing, so allow editing on pointerup
-      // Store selection for editing
-      this.selectedCol = Math.floor(x / this.cellWidth);
-      this.selectedRow = Math.floor(y / this.cellHeight);
+
+      // Find the cell under the mouse by checking each cell's bounds
+      let found = false;
+      for (let row = 0; row < this.rows && !found; row++) {
+        for (let col = 0; col < this.cols && !found; col++) {
+          const cell = this.cells[row][col];
+          if (
+            x >= cell.x &&
+            x < cell.x + cell.width &&
+            y >= cell.y &&
+            y < cell.y + cell.height
+          ) {
+            this.selectedRow = row;
+            this.selectedCol = col;
+            found = true;
+          }
+        }
+      }
     });
 
     // Pointer up: finish resizing, or start editing if not resizing
@@ -312,22 +350,8 @@ class GridDrawer {
             this.cells[this.resizeRow][c].height = newHeight;
           }
         }
-        // --- Update x/y positions for ALL cells ---
-        // This ensures all subsequent columns/rows are shifted accordingly after a resize.
-        for (let r = 0; r < this.rows; r++) {
-          let xPos = 0;
-          for (let c = 0; c < this.cols; c++) {
-            this.cells[r][c].x = xPos;
-            xPos += this.cells[r][c].width;
-          }
-        }
-        for (let c = 0; c < this.cols; c++) {
-          let yPos = 0;
-          for (let r = 0; r < this.rows; r++) {
-            this.cells[r][c].y = yPos;
-            yPos += this.cells[r][c].height;
-          }
-        }
+        // --- Update x/y positions ONLY for affected cells ---
+        this.updateCellPositionsAfterResize();
         // Redraw grid
         this.drawGrid();
         e.preventDefault();
