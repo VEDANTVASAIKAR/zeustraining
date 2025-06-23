@@ -38,7 +38,7 @@ class Cell {
                 i++;
             }
         }
-        ctx.fillText(ellipse, this.x + 4, this.y + this.height / 2);
+        ctx.fillText(ellipse, this.x + this.width / 2, this.y + this.height / 2);
         ctx.save();
         if (showRightHandle) {
             ctx.fillStyle = "#1976d2";
