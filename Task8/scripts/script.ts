@@ -45,25 +45,24 @@ class Cell {
     ctx.fillStyle = "#000";
     ctx.font = "12px Arial";
     ctx.textBaseline = "middle";
-    ctx.fillText(this.data, this.x + 4, this.y + this.height / 2);
+    console.log(ctx.measureText(this.data));
+
+    // to diplay according to the width of the cell
+    let datawidth  = ctx.measureText(this.data).width
+    let ellipse = ''
+    let i = 0;
+    if (datawidth > this.width){
+      while(ctx.measureText(ellipse).width < (this.width-8)){
+        ellipse += this.data[i]
+        i++;
+      }   
+    }
+    
+    ctx.fillText(ellipse, this.x + 4, this.y + this.height / 2);
   }
 
   
- /**
-   * Checks if a given point is on the resize handle of the cell.
-   * @param {number} px - X coordinate of the point
-   * @param {number} py - Y coordinate of the point
-   * @returns {boolean} True if the point is on the resize handle
-   */
-  isOnResizeHandle(px: number, py: number): boolean {
-    const handleSize = 10;
-    return (
-      px >= this.x + this.width - handleSize &&
-      px <= this.x + this.width &&
-      py >= this.y + this.height - handleSize &&
-      py <= this.y + this.height
-    );
-  }
+ 
 
 }
 
@@ -71,38 +70,34 @@ class Cell {
  * Manages the grid of cells and canvas interactions.
  */
 class GridDrawer {
-  /** @type {HTMLCanvasElement} The canvas element */
+  /**  The canvas element */
   private canvas: HTMLCanvasElement;
 
-  /** @type {CanvasRenderingContext2D} The 2D rendering context of the canvas */
+  /**  The 2D rendering context of the canvas */
   private ctx: CanvasRenderingContext2D;
 
-  /** @type {number} Number of rows in the grid */
+  /**  Number of rows in the grid */
   private rows: number;
 
-  /** @type {number} Number of columns in the grid */
+  /** Number of columns in the grid */
   private cols: number;
 
-  /** @type {number} Width of each cell */
+  /**  Width of each cell */
   private cellWidth: number;
 
-  /** @type {number} Height of each cell */
+  /**  Height of each cell */
   private cellHeight: number;
 
-  /** @type {Cell[][]} 2D array of Cell objects */
+  /**  2D array of Cell objects */
   private cells: Cell[][];
 
-  /** @type {number} Currently selected row index */
+  /**  Currently selected row index */
   private selectedRow: number = 0;
 
-  /** @type {number} Currently selected column index */
+  /**  Currently selected column index */
   private selectedCol: number = 0;
 
-  /** @type {boolean} Whether a cell is being resized */
-  private isResizing: boolean = false;
 
-  /** @type {Cell | null} The cell currently being resized */
-  private resizingCell: Cell | null = null;
 
 
   /**
@@ -203,8 +198,15 @@ class GridDrawer {
 
     this.canvas.addEventListener("click", (e) => {
       const rect = this.canvas.getBoundingClientRect();
+      console.log(e.clientX)
+      console.log(e.clientY);
+      
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
+      console.log(rect.left);
+      console.log(rect.top);
+      console.log(x);
+      console.log(y);
 
       this.selectedCol = Math.floor(x / this.cellWidth);
       this.selectedRow = Math.floor(y / this.cellHeight);
@@ -244,49 +246,6 @@ class GridDrawer {
         e.preventDefault();
         showInput(this.selectedRow, this.selectedCol);
       }
-    });
-
-    // Handle pointer down for editing or resizing
-    this.canvas.addEventListener("pointerdown", (e) => {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const col = Math.floor(x / this.cellWidth);
-        const row = Math.floor(y / this.cellHeight);
-
-        if (row < this.rows && col < this.cols) {
-            const cell = this.cells[row][col];
-            if (cell.isOnResizeHandle(x, y)) {
-                this.isResizing = true;
-                this.resizingCell = cell;
-            } else {
-                this.selectedCol = col;
-                this.selectedRow = row;
-                showInput(row, col);
-            }
-        }
-    });
-
-    // Handle pointer move for resizing
-    this.canvas.addEventListener("pointermove", (e) => {
-        if (this.isResizing && this.resizingCell) {
-            const rect = this.canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            this.resizingCell.width = Math.max(20, x - this.resizingCell.x);
-            this.resizingCell.height = Math.max(20, y - this.resizingCell.y);
-
-            this.ctx.clearRect(this.resizingCell.x, this.resizingCell.y, this.canvas.width, this.canvas.height);
-            this.resizingCell.draw(this.ctx);
-        }
-    });
-
-    // Handle pointer up to stop resizing
-    this.canvas.addEventListener("pointerup", () => {
-        this.isResizing = false;
-        this.resizingCell = null;
     });
 
 

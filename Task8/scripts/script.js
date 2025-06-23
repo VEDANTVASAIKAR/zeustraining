@@ -29,20 +29,18 @@ var Cell = /** @class */ (function () {
         ctx.fillStyle = "#000";
         ctx.font = "12px Arial";
         ctx.textBaseline = "middle";
-        ctx.fillText(this.data, this.x + 4, this.y + this.height / 2);
-    };
-    /**
-      * Checks if a given point is on the resize handle of the cell.
-      * @param {number} px - X coordinate of the point
-      * @param {number} py - Y coordinate of the point
-      * @returns {boolean} True if the point is on the resize handle
-      */
-    Cell.prototype.isOnResizeHandle = function (px, py) {
-        var handleSize = 10;
-        return (px >= this.x + this.width - handleSize &&
-            px <= this.x + this.width &&
-            py >= this.y + this.height - handleSize &&
-            py <= this.y + this.height);
+        console.log(ctx.measureText(this.data));
+        // let displaydata = this.data;
+        var datawidth = ctx.measureText(this.data).width;
+        var ellipse = '';
+        var i = 0;
+        if (datawidth > this.width) {
+            while (ctx.measureText(ellipse).width < (this.width - 8)) {
+                ellipse += this.data[i];
+                i++;
+            }
+        }
+        ctx.fillText(ellipse, this.x + 4, this.y + this.height / 2);
     };
     return Cell;
 }());
@@ -63,14 +61,10 @@ var GridDrawer = /** @class */ (function () {
         if (cols === void 0) { cols = 20; }
         if (cellWidth === void 0) { cellWidth = 100; }
         if (cellHeight === void 0) { cellHeight = 30; }
-        /** @type {number} Currently selected row index */
+        /**  Currently selected row index */
         this.selectedRow = 0;
-        /** @type {number} Currently selected column index */
+        /**  Currently selected column index */
         this.selectedCol = 0;
-        /** @type {boolean} Whether a cell is being resized */
-        this.isResizing = false;
-        /** @type {Cell | null} The cell currently being resized */
-        this.resizingCell = null;
         var canvas = document.getElementById(canvasId);
         if (!canvas) {
             throw new Error("Canvas with id \"".concat(canvasId, "\" not found."));
@@ -147,8 +141,14 @@ var GridDrawer = /** @class */ (function () {
         };
         this.canvas.addEventListener("click", function (e) {
             var rect = _this.canvas.getBoundingClientRect();
+            console.log(e.clientX);
+            console.log(e.clientY);
             var x = e.clientX - rect.left;
             var y = e.clientY - rect.top;
+            console.log(rect.left);
+            console.log(rect.top);
+            console.log(x);
+            console.log(y);
             _this.selectedCol = Math.floor(x / _this.cellWidth);
             _this.selectedRow = Math.floor(y / _this.cellHeight);
             if (_this.selectedRow < _this.rows && _this.selectedCol < _this.cols) {
@@ -188,43 +188,6 @@ var GridDrawer = /** @class */ (function () {
                 e.preventDefault();
                 showInput(_this.selectedRow, _this.selectedCol);
             }
-        });
-        // Handle pointer down for editing or resizing
-        this.canvas.addEventListener("pointerdown", function (e) {
-            var rect = _this.canvas.getBoundingClientRect();
-            var x = e.clientX - rect.left;
-            var y = e.clientY - rect.top;
-            var col = Math.floor(x / _this.cellWidth);
-            var row = Math.floor(y / _this.cellHeight);
-            if (row < _this.rows && col < _this.cols) {
-                var cell = _this.cells[row][col];
-                if (cell.isOnResizeHandle(x, y)) {
-                    _this.isResizing = true;
-                    _this.resizingCell = cell;
-                }
-                else {
-                    _this.selectedCol = col;
-                    _this.selectedRow = row;
-                    showInput(row, col);
-                }
-            }
-        });
-        // Handle pointer move for resizing
-        this.canvas.addEventListener("pointermove", function (e) {
-            if (_this.isResizing && _this.resizingCell) {
-                var rect = _this.canvas.getBoundingClientRect();
-                var x = e.clientX - rect.left;
-                var y = e.clientY - rect.top;
-                _this.resizingCell.width = Math.max(20, x - _this.resizingCell.x);
-                _this.resizingCell.height = Math.max(20, y - _this.resizingCell.y);
-                _this.ctx.clearRect(_this.resizingCell.x, _this.resizingCell.y, _this.canvas.width, _this.canvas.height);
-                _this.resizingCell.draw(_this.ctx);
-            }
-        });
-        // Handle pointer up to stop resizing
-        this.canvas.addEventListener("pointerup", function () {
-            _this.isResizing = false;
-            _this.resizingCell = null;
         });
     };
     return GridDrawer;
