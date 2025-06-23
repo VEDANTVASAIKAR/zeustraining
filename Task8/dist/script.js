@@ -3,14 +3,6 @@
  * Represents a single cell in the grid.
  */
 class Cell {
-    /**
-     * Initializes a Cell object.
-     * @param {number} x - X position of the cell
-     * @param {number} y - Y position of the cell
-     * @param {number} width - Width of the cell
-     * @param {number} height - Height of the cell
-     * @param {string} [data=""] - Initial content of the cell
-     */
     constructor(x, y, width, height, data = "") {
         this.x = x;
         this.y = y;
@@ -18,13 +10,6 @@ class Cell {
         this.height = height;
         this.data = data;
     }
-    /**
-     * Draws the cell on the canvas.
-     * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
-     * @param ctx Canvas context
-     * @param showRightHandle Whether to show the right resize handle
-     * @param showBottomHandle Whether to show the bottom resize handle
-     */
     draw(ctx, showRightHandle = false, showBottomHandle = false) {
         ctx.strokeStyle = "#000";
         ctx.lineWidth = 0.3;
@@ -32,38 +17,27 @@ class Cell {
         ctx.fillStyle = "#000";
         ctx.font = "12px Arial";
         ctx.textBaseline = "middle";
-        console.log(ctx.measureText(this.data));
-        // to diplay according to the width of the cell
-        let datawidth = ctx.measureText(this.data).width;
         let ellipse = this.data;
         let i = 0;
-        if (datawidth > this.width) {
+        if (ctx.measureText(this.data).width > this.width) {
             ellipse = '';
-            while (ctx.measureText(ellipse).width < (this.width - 8)) {
+            while (ctx.measureText(ellipse).width < (this.width - 8) && i < this.data.length) {
                 ellipse += this.data[i];
                 i++;
             }
         }
         ctx.fillText(ellipse, this.x + 4, this.y + this.height / 2);
-        // Draw handles if requested
-        // ctx.save();
-        // if (showRightHandle) {
-        //   ctx.fillStyle = "#1976d2";
-        //   ctx.fillRect(this.x + this.width - 5, this.y + this.height / 2 - 7, 6, 14);
-        // }
-        // if (showBottomHandle) {
-        //   ctx.fillStyle = "#388e3c";
-        //   ctx.fillRect(this.x + this.width / 2 - 7, this.y + this.height - 5, 14, 6);
-        // }
-        // ctx.restore();
+        ctx.save();
+        if (showRightHandle) {
+            ctx.fillStyle = "#1976d2";
+            ctx.fillRect(this.x + this.width - 5, this.y + this.height / 2 - 7, 6, 14);
+        }
+        if (showBottomHandle) {
+            ctx.fillStyle = "#388e3c";
+            ctx.fillRect(this.x + this.width / 2 - 7, this.y + this.height - 5, 14, 6);
+        }
+        ctx.restore();
     }
-    /**
-     * Checks if the mouse is near the right or bottom edge (resize area).
-     * @param {number} mouseX - X coordinate of the mouse relative to the canvas
-     * @param {number} mouseY - Y coordinate of the mouse relative to the canvas
-     * @param {number} tolerance - Pixel tolerance to detect edge (default 5px)
-     * @returns {"right"|"bottom"|null}
-     */
     getResizeEdge(mouseX, mouseY, tolerance = 5) {
         if (mouseX > this.x + this.width - tolerance &&
             mouseX < this.x + this.width + tolerance &&
@@ -82,18 +56,8 @@ class Cell {
  * Manages the grid of cells and canvas interactions.
  */
 class GridDrawer {
-    /**
-     * Initializes the GridDrawer object.
-     * @param {string} canvasId - The ID of the canvas element
-     * @param {number} [rows=50] - Number of rows in the grid
-     * @param {number} [cols=20] - Number of columns in the grid
-     * @param {number} [cellWidth=100] - Width of each cell
-     * @param {number} [cellHeight=30] - Height of each cell
-     */
     constructor(canvasId, rows = 50, cols = 20, cellWidth = 100, cellHeight = 30) {
-        /**  Currently selected row index */
         this.selectedRow = 0;
-        /**  Currently selected column index */
         this.selectedCol = 0;
         this.resizing = false;
         this.resizeRow = -1;
@@ -103,7 +67,6 @@ class GridDrawer {
         this.startY = 0;
         this.startWidth = 0;
         this.startHeight = 0;
-        // For showing handles only when hover
         this.hoveredResizeRow = -1;
         this.hoveredResizeCol = -1;
         this.hoveredResizeEdge = null;
@@ -144,14 +107,6 @@ class GridDrawer {
     /**
      * Draws the entire grid on the canvas.
      */
-    // drawGrid(): void {
-    //   this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    //   for (const row of this.cells) {
-    //     for (const cell of row) {
-    //       cell.draw(this.ctx);
-    //     }
-    //   }
-    // }
     drawGrid() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         for (let row = 0; row < this.rows; row++) {
@@ -167,15 +122,41 @@ class GridDrawer {
         }
     }
     /**
-     * Attaches mouse and keyboard event listeners for editing and navigation.
+     * Shifts x positions of all columns to the right of the resized column,
+     * and y positions of all rows below the resized row.
+     * Should be called after resizing a column or row.
+     */
+    shiftColumnsAndRows() {
+        // Shift all columns' x
+        for (let row = 0; row < this.rows; row++) {
+            let currX = 0;
+            for (let col = 0; col < this.cols; col++) {
+                this.cells[row][col].x = currX;
+                currX += this.cells[row][col].width;
+            }
+        }
+        // Shift all rows' y
+        for (let col = 0; col < this.cols; col++) {
+            let currY = 0;
+            for (let row = 0; row < this.rows; row++) {
+                this.cells[row][col].y = currY;
+                currY += this.cells[row][col].height;
+            }
+        }
+    }
+    /**
+     * Attaches pointer and keyboard event listeners.
      */
     attachEvents() {
         const input = document.getElementById("cellInput");
-        /**
-         * Displays the input box over the specified cell.
-         * @param {number} row - Row index of the cell
-         * @param {number} col - Column index of the cell
-         */
+        const getPointerPos = (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        };
+        let pointerWasResize = false;
         const showInput = (row, col) => {
             const cell = this.cells[row][col];
             input.style.left = `${cell.x}px`;
@@ -188,32 +169,100 @@ class GridDrawer {
             input.onblur = () => {
                 cell.data = input.value;
                 input.style.display = "none";
-                this.ctx.clearRect(cell.x, cell.y, cell.width, cell.height);
-                cell.draw(this.ctx);
+                this.drawGrid();
             };
         };
-        this.canvas.addEventListener("click", (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            console.log(e.clientX);
-            console.log(e.clientY);
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            console.log(rect.left);
-            console.log(rect.top);
-            console.log(x);
-            console.log(y);
+        this.canvas.addEventListener("pointerdown", (e) => {
+            const { x, y } = getPointerPos(e);
+            for (let row = 0; row < this.rows; row++) {
+                for (let col = 0; col < this.cols; col++) {
+                    const edge = this.cells[row][col].getResizeEdge(x, y);
+                    if (edge) {
+                        this.resizing = true;
+                        this.resizeRow = row;
+                        this.resizeCol = col;
+                        this.resizeEdge = edge;
+                        this.startX = x;
+                        this.startY = y;
+                        this.startWidth = this.cells[row][col].width;
+                        this.startHeight = this.cells[row][col].height;
+                        this.canvas.setPointerCapture(e.pointerId);
+                        pointerWasResize = true;
+                        return;
+                    }
+                }
+            }
+            pointerWasResize = false;
             this.selectedCol = Math.floor(x / this.cellWidth);
             this.selectedRow = Math.floor(y / this.cellHeight);
-            if (this.selectedRow < this.rows && this.selectedCol < this.cols) {
-                showInput(this.selectedRow, this.selectedCol);
+        });
+        this.canvas.addEventListener("pointerup", (e) => {
+            if (this.resizing) {
+                this.resizing = false;
+                this.resizeRow = -1;
+                this.resizeCol = -1;
+                this.resizeEdge = null;
+                this.canvas.releasePointerCapture(e.pointerId);
+                this.canvas.style.cursor = "default";
+                pointerWasResize = true;
+                return;
             }
+            if (!pointerWasResize) {
+                if (this.selectedRow < this.rows && this.selectedCol < this.cols) {
+                    if (input.style.display !== "block") {
+                        showInput(this.selectedRow, this.selectedCol);
+                    }
+                }
+            }
+            pointerWasResize = false;
+        });
+        this.canvas.addEventListener("pointermove", (e) => {
+            const { x, y } = getPointerPos(e);
+            if (this.resizing) {
+                if (this.resizeEdge === "right") {
+                    const newWidth = Math.max(20, this.startWidth + (x - this.startX));
+                    for (let r = 0; r < this.rows; r++) {
+                        this.cells[r][this.resizeCol].width = newWidth;
+                    }
+                }
+                else if (this.resizeEdge === "bottom") {
+                    const newHeight = Math.max(15, this.startHeight + (y - this.startY));
+                    for (let c = 0; c < this.cols; c++) {
+                        this.cells[this.resizeRow][c].height = newHeight;
+                    }
+                }
+                // Shift only the relevant columns and rows
+                this.shiftColumnsAndRows();
+                this.drawGrid();
+                e.preventDefault();
+                return;
+            }
+            let found = false;
+            for (let row = 0; row < this.rows && !found; row++) {
+                for (let col = 0; col < this.cols && !found; col++) {
+                    const edge = this.cells[row][col].getResizeEdge(x, y);
+                    if (edge) {
+                        this.canvas.style.cursor = edge === "right" ? "ew-resize" : "ns-resize";
+                        this.hoveredResizeRow = row;
+                        this.hoveredResizeCol = col;
+                        this.hoveredResizeEdge = edge;
+                        found = true;
+                    }
+                }
+            }
+            if (!found) {
+                this.canvas.style.cursor = "default";
+                this.hoveredResizeRow = -1;
+                this.hoveredResizeCol = -1;
+                this.hoveredResizeEdge = null;
+            }
+            this.drawGrid();
         });
         document.addEventListener("keydown", (e) => {
             if (input.style.display === "block") {
                 const currentCell = this.cells[this.selectedRow][this.selectedCol];
                 currentCell.data = input.value;
-                this.ctx.clearRect(currentCell.x, currentCell.y, currentCell.width, currentCell.height);
-                currentCell.draw(this.ctx);
+                this.drawGrid();
                 switch (e.key) {
                     case "ArrowUp":
                         if (this.selectedRow > 0)
@@ -241,33 +290,6 @@ class GridDrawer {
                 e.preventDefault();
                 showInput(this.selectedRow, this.selectedCol);
             }
-        });
-        this.canvas.addEventListener("mousemove", (e) => {
-            if (this.resizing)
-                return;
-            const rect = this.canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            let found = false;
-            for (let row = 0; row < this.rows && !found; row++) {
-                for (let col = 0; col < this.cols && !found; col++) {
-                    const edge = this.cells[row][col].getResizeEdge(x, y);
-                    if (edge) {
-                        this.canvas.style.cursor = edge === "right" ? "ew-resize" : "ns-resize";
-                        this.hoveredResizeRow = row;
-                        this.hoveredResizeCol = col;
-                        this.hoveredResizeEdge = edge;
-                        found = true;
-                    }
-                }
-            }
-            if (!found) {
-                this.canvas.style.cursor = "default";
-                this.hoveredResizeRow = -1;
-                this.hoveredResizeCol = -1;
-                this.hoveredResizeEdge = null;
-            }
-            this.drawGrid();
         });
     }
 }
