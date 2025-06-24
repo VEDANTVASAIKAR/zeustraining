@@ -3,14 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./style.css">
-    <title>Document</title>
+    <title>Excel Clone</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            border: 1px solid #ccc;
+            overflow: hidden;
+        }
+        #excelCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .stats-panel {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            min-height: 100px;
+        }
+    </style>
 </head>
 <body>
-    <canvas id="mycanvas">
-
-    </canvas>
-     
-    <script src = './script2.js'></script>
+    <div class="container">
+        <div class="toolbar">
+            <button id="loadDataBtn">Load Sample Data</button>
+            <button id="undoBtn">Undo (Ctrl+Z)</button>
+            <button id="redoBtn">Redo (Ctrl+Y)</button>
+        </div>
+        <div class="canvas-container">
+            <canvas id="excelCanvas"></canvas>
+        </div>
+        <div class="stats-panel" id="statsContainer">
+            Select cells to see statistics
+        </div>
+    </div>
+    <script src="excel-clone.js"></script>
 </body>
 </html>

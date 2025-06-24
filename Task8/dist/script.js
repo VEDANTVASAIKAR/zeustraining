@@ -24,7 +24,7 @@ class Cell {
     }
     draw(ctx, showRightHandle = false, showBottomHandle = false) {
         ctx.strokeStyle = "#ccc";
-        ctx.lineWidth = 0.4;
+        ctx.lineWidth = 0.5;
         ctx.strokeRect(this.x, this.y, this.width, this.height);
         ctx.fillStyle = "#000";
         ctx.font = "12px Arial";
