@@ -9,6 +9,7 @@ html, body {
   height: 100vh;
   overflow: auto;
   position: relative;
+  display: flex;
 }
 canvas {
   display: block;
@@ -20,4 +21,11 @@ canvas {
   font-size: 12px;
   padding: 2px;
   box-sizing: border-box;
+}
+.row{
+  width: 100%;
+  height: 40px;
+}
+#colHeader{
+  width: 40px;
 }
