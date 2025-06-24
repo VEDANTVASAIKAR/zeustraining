@@ -4,12 +4,15 @@ html, body {
   padding: 0;
   overflow: hidden;
 }
+.main{
+
+display: flex;
+}
 .container {
   width: 100vw;
   height: 100vh;
   overflow: auto;
   position: relative;
-  display: flex;
 }
 canvas {
   display: block;
@@ -28,4 +31,7 @@ canvas {
 }
 #colHeader{
   width: 40px;
+}
+input[type=text]:focus {
+  border: 3px solid #0a753a;
 }
