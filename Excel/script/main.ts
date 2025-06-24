@@ -1,9 +1,8 @@
-import {Grid} from './core/grid.js'
-
+import { Grid } from './core/grid.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const baseCanvas = document.getElementById('baseCanvas') as HTMLCanvasElement;
-    const container = document.getElementById('canvasContainer')!;
-    const grid = new Grid(baseCanvas, container);
-    grid.init();
+    const container = document.getElementById('canvasContainer')!;
+    const scrollArea = document.getElementById('scrollArea')!;
+    const grid = new Grid(container, scrollArea);
+    grid.init();
 });

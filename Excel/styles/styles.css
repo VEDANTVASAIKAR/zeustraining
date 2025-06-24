@@ -1,14 +1,26 @@
 #canvasContainer {
     position: relative;
-    width: 100%;   /* Visible area, should be smaller than the canvas! */
+    width: 100vw;
     height: 100vh;
     overflow: auto;
     border: 1px solid #aaa;
     background: #efefef;
 }
-#baseCanvas {
+
+#scrollArea {
+    /* Make the scroll area virtually infinite (change as needed) */
+    width: 50000px;
+    height: 30000px;
     position: absolute;
-    top: 0;
     left: 0;
+    top: 0;
+    pointer-events: none; /* So you can click through it */
     z-index: 0;
+}
+
+.excel-canvas {
+    position: absolute;
+    z-index: 1;
+    background: #fff;
+    box-shadow: 0 0 2px rgba(0,0,0,0.05);
 }

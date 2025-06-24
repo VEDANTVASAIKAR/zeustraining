@@ -1,75 +1,82 @@
 /**
- * This class manages the grid system and canvas rendering logic.
- * It handles the base canvas and dynamically adds canvases as the user scrolls.
+ * Excel-like infinite grid manager using canvases.
+ * Adds/removes canvases as you scroll, just like Excel.
  */
 export class Grid {
-    constructor(baseCanvas, container) {
-        // A set to keep track of which canvas segments have already been created
-        // This prevents creating the same canvas multiple times
+    constructor(container, scrollArea) {
+        // Keeps track of which tiles (segmentX, segmentY) are already rendered
         this.renderedSegments = new Set();
-        this.baseCanvas = baseCanvas;
-        this.baseCtx = baseCanvas.getContext('2d'); // Get the 2D drawing context
         this.container = container;
+        this.scrollArea = scrollArea;
     }
     /**
-     * This method starts everything — it renders the base canvas
-     * and sets up the scroll listener to create canvases dynamically.
+     * Start the grid system: initially render visible canvases and set up scroll listener.
      */
     init() {
-        this.renderBaseCanvas(); // Draw something on the base canvas
-        this.setupScrollListener(); // Start listening for scroll events
+        this.renderVisibleCanvases();
+        this.setupScrollListener();
     }
     /**
-     * Draws the base canvas — this canvas is always visible.
-     * Think of it like the top-left corner of Excel.
-     */
-    renderBaseCanvas() {
-        this.baseCtx.fillStyle = '#f0f0f0'; // Light gray background
-        this.baseCtx.fillRect(0, 0, this.baseCanvas.width, this.baseCanvas.height); // Fill the canvas
-        this.baseCtx.fillStyle = '#333'; // Dark text color
-        this.baseCtx.fillText('Base Canvas Always Visible', 10, 20); // Draw some text
-    }
-    /**
-     * This sets up a scroll listener on the canvas container.
-     * Every time the user scrolls, we check if we need to add a new canvas.
-     *
-     * FIX: Listen on the container, not window, and use scrollLeft/scrollTop.
+     * Listen for scroll events and update canvases as needed.
      */
     setupScrollListener() {
         this.container.addEventListener('scroll', () => {
-            const scrollX = this.container.scrollLeft;
-            const scrollY = this.container.scrollTop;
-            const segmentX = Math.floor(scrollX / this.baseCanvas.width);
-            const segmentY = Math.floor(scrollY / this.baseCanvas.height);
-            const segmentKey = `${segmentX}:${segmentY}`;
-            if (!this.renderedSegments.has(segmentKey)) {
-                this.renderedSegments.add(segmentKey);
-                this.createDynamicCanvas(segmentX, segmentY);
-            }
+            this.renderVisibleCanvases();
+        });
+        // Also rerender after resize (viewport may change)
+        window.addEventListener('resize', () => {
+            this.renderVisibleCanvases();
         });
     }
     /**
-     * This creates a new canvas at the correct position based on scroll.
-     * @param segmentX Horizontal segment index
-     * @param segmentY Vertical segment index
+     * Render all canvases needed to cover the visible area.
      */
-    createDynamicCanvas(segmentX, segmentY) {
-        // Create a new canvas element
-        const dynamicCanvas = document.createElement('canvas');
-        dynamicCanvas.width = this.baseCanvas.width; // Same width as base canvas
-        dynamicCanvas.height = this.baseCanvas.height; // Same height as base canvas
-        // Position the canvas absolutely inside the container
-        dynamicCanvas.style.position = 'absolute';
-        dynamicCanvas.style.left = `${segmentX * this.baseCanvas.width}px`; // Horizontal position
-        dynamicCanvas.style.top = `${segmentY * this.baseCanvas.height}px`; // Vertical position
-        dynamicCanvas.style.zIndex = '1'; // Make sure it's above the base canvas
-        // Get the drawing context for the new canvas
-        const ctx = dynamicCanvas.getContext('2d');
-        ctx.fillStyle = '#fff'; // White background
-        ctx.fillRect(0, 0, dynamicCanvas.width, dynamicCanvas.height); // Fill the canvas
-        ctx.fillStyle = '#000'; // Black text
-        ctx.fillText(`Canvas [${segmentX}, ${segmentY}]`, 10, 20); // Label the canvas
-        // Add the canvas to the container (not directly to the body!)
-        this.container.appendChild(dynamicCanvas);
+    renderVisibleCanvases() {
+        const viewLeft = this.container.scrollLeft;
+        const viewTop = this.container.scrollTop;
+        const viewRight = viewLeft + this.container.clientWidth;
+        const viewBottom = viewTop + this.container.clientHeight;
+        // Figure out which tile indices are visible (including a 1-tile buffer)
+        const startX = Math.floor(viewLeft / Grid.TILE_WIDTH) - 1;
+        const endX = Math.floor(viewRight / Grid.TILE_WIDTH) + 1;
+        const startY = Math.floor(viewTop / Grid.TILE_HEIGHT) - 1;
+        const endY = Math.floor(viewBottom / Grid.TILE_HEIGHT) + 1;
+        for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+                const key = `${x}:${y}`;
+                if (!this.renderedSegments.has(key)) {
+                    this.renderedSegments.add(key);
+                    this.createTileCanvas(x, y);
+                }
+            }
+        }
+    }
+    /**
+     * Create and add one canvas tile at (tileX, tileY).
+     */
+    createTileCanvas(tileX, tileY) {
+        const canvas = document.createElement('canvas');
+        canvas.width = Grid.TILE_WIDTH;
+        canvas.height = Grid.TILE_HEIGHT;
+        canvas.className = 'excel-canvas';
+        // Position absolutely in grid coordinates
+        canvas.style.left = `${tileX * Grid.TILE_WIDTH}px`;
+        canvas.style.top = `${tileY * Grid.TILE_HEIGHT}px`;
+        // Example: draw a grid and label it
+        const ctx = canvas.getContext('2d');
+        // Background
+        ctx.fillStyle = (tileX + tileY) % 2 === 0 ? '#fff' : '#f8f8ff';
+        ctx.fillRect(0, 0, Grid.TILE_WIDTH, Grid.TILE_HEIGHT);
+        // Draw cell grid (every 100px for demo)
+        ctx.strokeStyle = '#e0e0e0';
+        // Label
+        ctx.fillStyle = '#333';
+        ctx.font = 'bold 18px sans-serif';
+        ctx.fillText(`Canvas [${tileX}, ${tileY}]`, 16, 30);
+        canvas.id = `canvas-${tileX}-${tileY}`;
+        this.container.appendChild(canvas);
     }
 }
+// Size of each canvas tile (match Excel's "screenful")
+Grid.TILE_WIDTH = 1920;
+Grid.TILE_HEIGHT = 560;
