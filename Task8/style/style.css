@@ -33,5 +33,15 @@ canvas {
   width: 40px;
 }
 input[type=text]:focus {
-  border: 3px solid #0a753a;
+  outline: none;
+  /* border: 3px solid #0a753a; */
+}
+#fill-handle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #0a753a;
+  z-index: 99;
+  display: none;
+  pointer-events: auto; /* for drag-to-fill feature later */
 }

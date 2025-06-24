@@ -47,6 +47,40 @@ export class GridEvents {
     }
   }
 
+  /**
+   * Update the green fill handle overlay position and visibility
+   */
+  private updateFillHandle() {
+    const handle = document.getElementById('fill-handle') as HTMLDivElement;
+    if (!handle) return;
+
+    const row = this.model.selectedRow;
+    const col = this.model.selectedCol;
+    if (row < 0 || col < 0 || row >= this.model.rows || col >= this.model.cols) {
+      handle.style.display = 'none';
+      return;
+    }
+
+    const cell = this.model.cells[row][col];
+    // Get canvas offset relative to document
+    const canvasRect = this.canvas.getBoundingClientRect();
+    console.log(canvasRect.left);
+    console.log(cell.x);
+    console.log(cell.width);
+    console.log(window.scrollX);
+    
+    
+    
+    handle.style.left = `${ cell.x + cell.width  -5}px`;
+    handle.style.top = `${ + cell.y + cell.height  -5}px`;
+    handle.style.display = 'block';
+  }
+  private disablefilhandle(){
+    const handle = document.getElementById('fill-handle') as HTMLDivElement;
+    if (!handle) return;
+    handle.style.display = 'none';
+  }
+
   attach() {
     const getPointerPos = (e: PointerEvent) => {
       const rect = this.canvas.getBoundingClientRect();
@@ -66,12 +100,15 @@ export class GridEvents {
       this.input.style.height = `${cell.height}px`;
       this.input.value = cell.data;
       this.input.style.display = "block";
-      // this.input.style.border = '2px solid green '
+      this.input.style.border = '2px solid #0a753a '
       this.input.focus();
+      this.updateFillHandle();
       this.input.onblur = () => {
         cell.data = this.input.value;
         this.input.style.display = "none";
+        this.disablefilhandle()
         this.renderer.draw(this.model, this.hoveredResizeRow, this.hoveredResizeCol, this.hoveredResizeEdge);
+        this.updateFillHandle();
       };
     };
 
@@ -114,8 +151,12 @@ export class GridEvents {
             this.model.selectedRow = row;
             this.model.selectedCol = col;
             found = true;
+            this.updateFillHandle();
           }
         }
+      }
+      if (!found) {
+        this.updateFillHandle();
       }
     });
 
@@ -129,6 +170,7 @@ export class GridEvents {
         this.canvas.releasePointerCapture(e.pointerId);
         this.canvas.style.cursor = "default";
         pointerWasResize = true;
+        this.updateFillHandle();
         return;
       }
       if (!pointerWasResize) {
@@ -139,6 +181,7 @@ export class GridEvents {
         }
       }
       pointerWasResize = false;
+      this.updateFillHandle();
     });
 
     // Pointer move
@@ -160,6 +203,7 @@ export class GridEvents {
         }
         this.updateCellPositionsAfterResize();
         this.renderer.draw(this.model, this.hoveredResizeRow, this.hoveredResizeCol, this.hoveredResizeEdge);
+        // this.updateFillHandle();
         e.preventDefault();
         return;
       }
@@ -185,10 +229,11 @@ export class GridEvents {
         this.hoveredResizeEdge = null;
       }
       this.renderer.draw(this.model, this.hoveredResizeRow, this.hoveredResizeCol, this.hoveredResizeEdge);
+      // this.updateFillHandle();
     });
 
     // Keyboard navigation and editing
-    document.addEventListener("keydown", (e) => {
+    this.canvas.addEventListener("keydown", (e) => {
       if (this.input.style.display === "block") {
         const currentCell = this.model.cells[this.model.selectedRow][this.model.selectedCol];
         currentCell.data = this.input.value;
@@ -216,7 +261,9 @@ export class GridEvents {
 
         e.preventDefault();
         showInput(this.model.selectedRow, this.model.selectedCol);
+        this.updateFillHandle();
       }
     });
+    showInput(0,0);
   }
 }

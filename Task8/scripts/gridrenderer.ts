@@ -19,5 +19,6 @@ export class GridRenderer {
       }
     }
     // Optionally show selection (not implemented here)
+    
   }
 }
