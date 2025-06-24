@@ -1,4 +1,4 @@
-import { GridDrawer } from "./griddrawer";
+import { GridDrawer } from "./griddrawer.js";
 
 
 // Initialize and draw the grid

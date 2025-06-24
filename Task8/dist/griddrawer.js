@@ -1,4 +1,4 @@
-import { Cell } from "./cell";
+import { Cell } from "./cell.js";
 /**
  * Manages the grid of cells and canvas interactions, with headers.
  */
