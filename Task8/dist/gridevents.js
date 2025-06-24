@@ -52,7 +52,8 @@ export class GridEvents {
             this.input.style.height = `${cell.height}px`;
             this.input.value = cell.data;
             this.input.style.display = "block";
-            this.input.focus();
+            this.input.style.border = '2px solid green ';
+            // this.input.focus();
             this.input.onblur = () => {
                 cell.data = this.input.value;
                 this.input.style.display = "none";
