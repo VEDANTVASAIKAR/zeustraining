@@ -1,3 +1,8 @@
+
+
+/**
+ * Represents a single cell in the grid.
+ */
 export class Cell {
   data: string;
   x: number;
@@ -13,9 +18,9 @@ export class Cell {
     this.data = data;
   }
 
-  draw(ctx: CanvasRenderingContext2D): void {
+  draw(ctx: CanvasRenderingContext2D, showRightHandle: boolean = false, showBottomHandle: boolean = false): void {
     ctx.strokeStyle = "#ccc";
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 0.4;
     ctx.strokeRect(this.x, this.y, this.width, this.height);
 
     ctx.fillStyle = "#000";
@@ -30,15 +35,21 @@ export class Cell {
         i++;
       }
     }
-    ctx.textAlign = "center";
-    ctx.fillText(ellipse, this.x + this.width / 2, this.y + this.height / 2);
+    ctx.fillText(ellipse, this.x + this.width/2, this.y + this.height / 2);
 
     ctx.save();
-    
+    if (showRightHandle) {
+      ctx.fillStyle = "#1976d2";
+      ctx.fillRect(this.x + this.width - 5, this.y + this.height / 2 - 7, 6, 14);
+    }
+    if (showBottomHandle) {
+      ctx.fillStyle = "#388e3c";
+      ctx.fillRect(this.x + this.width / 2 - 7, this.y + this.height - 5, 14, 6);
+    }
     ctx.restore();
   }
 
-  getResizeEdge(mouseX: number, mouseY: number, tolerance = 5): "right" | "bottom" | null {
+  getResizeEdge(mouseX: number, mouseY: number, tolerance: number = 5): "right" | "bottom" | null {
     if (
       mouseX > this.x + this.width - tolerance &&
       mouseX < this.x + this.width + tolerance &&

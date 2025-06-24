@@ -1,6 +1,3 @@
 import { GridDrawer } from "./griddrawer.js";
 
-
-// Initialize and draw the grid
-const grid = new GridDrawer("canvas");
-grid.drawGrid();
+const grid = new GridDrawer("canvas", "cellInput");
