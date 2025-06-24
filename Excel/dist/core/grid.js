@@ -3,11 +3,6 @@
  * It handles the base canvas and dynamically adds canvases as the user scrolls.
  */
 export class Grid {
-    /**
-     * Constructor is called when we create a new Grid object.
-     * @param baseCanvas The static canvas element from HTML
-     * @param container The div that holds all canvas elements
-     */
     constructor(baseCanvas, container) {
         // A set to keep track of which canvas segments have already been created
         // This prevents creating the same canvas multiple times
@@ -35,24 +30,21 @@ export class Grid {
         this.baseCtx.fillText('Base Canvas Always Visible', 10, 20); // Draw some text
     }
     /**
-     * This sets up a scroll listener on the window.
+     * This sets up a scroll listener on the canvas container.
      * Every time the user scrolls, we check if we need to add a new canvas.
+     *
+     * FIX: Listen on the container, not window, and use scrollLeft/scrollTop.
      */
     setupScrollListener() {
-        window.addEventListener('scroll', () => {
-            // Get how far the user has scrolled horizontally and vertically
-            const scrollX = window.scrollX;
-            const scrollY = window.scrollY;
-            // Calculate which "segment" of the grid we're in
-            // Each segment is the size of one canvas
+        this.container.addEventListener('scroll', () => {
+            const scrollX = this.container.scrollLeft;
+            const scrollY = this.container.scrollTop;
             const segmentX = Math.floor(scrollX / this.baseCanvas.width);
             const segmentY = Math.floor(scrollY / this.baseCanvas.height);
-            // Create a unique key for this segment
             const segmentKey = `${segmentX}:${segmentY}`;
-            // If we haven't already created a canvas for this segment, do it now
             if (!this.renderedSegments.has(segmentKey)) {
-                this.renderedSegments.add(segmentKey); // Mark this segment as rendered
-                this.createDynamicCanvas(segmentX, segmentY); // Create the canvas
+                this.renderedSegments.add(segmentKey);
+                this.createDynamicCanvas(segmentX, segmentY);
             }
         });
     }

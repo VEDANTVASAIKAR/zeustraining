@@ -3,25 +3,26 @@
  * It handles the base canvas and dynamically adds canvases as the user scrolls.
  */
 export class Grid {
-    // The canvas that is always visible (like Excel's base layer)
-    private baseCanvas: HTMLCanvasElement;
-
-    // The drawing context for the base canvas (used to draw on it)
-    private baseCtx: CanvasRenderingContext2D;
-
-    // The container where all canvases (base + dynamic) will be placed
-    private container: HTMLElement;
-
-    // A set to keep track of which canvas segments have already been created
-    // This prevents creating the same canvas multiple times
-    private renderedSegments: Set<string> = new Set();
-
     /**
      * Constructor is called when we create a new Grid object.
      * @param baseCanvas The static canvas element from HTML
      * @param container The div that holds all canvas elements
      */
+
+    // The canvas that is always visible (like Excel's base layer)
+    private baseCanvas: HTMLCanvasElement;
+    // The drawing context for the base canvas (used to draw on it)
+    private baseCtx: CanvasRenderingContext2D;
+    // The container where all canvases (base + dynamic) will be placed
+    private container: HTMLElement;
+    // A set to keep track of which canvas segments have already been created
+    // This prevents creating the same canvas multiple times
+    private renderedSegments: Set<string>;
+
     constructor(baseCanvas: HTMLCanvasElement, container: HTMLElement) {
+        // A set to keep track of which canvas segments have already been created
+        // This prevents creating the same canvas multiple times
+        this.renderedSegments = new Set<string>();
         this.baseCanvas = baseCanvas;
         this.baseCtx = baseCanvas.getContext('2d')!; // Get the 2D drawing context
         this.container = container;
@@ -32,8 +33,8 @@ export class Grid {
      * and sets up the scroll listener to create canvases dynamically.
      */
     public init(): void {
-        this.renderBaseCanvas();      // Draw something on the base canvas
-        this.setupScrollListener();   // Start listening for scroll events
+        this.renderBaseCanvas(); // Draw something on the base canvas
+        this.setupScrollListener(); // Start listening for scroll events
     }
 
     /**
@@ -48,27 +49,23 @@ export class Grid {
     }
 
     /**
-     * This sets up a scroll listener on the window.
+     * This sets up a scroll listener on the canvas container.
      * Every time the user scrolls, we check if we need to add a new canvas.
+     * 
+     * FIX: Listen on the container, not window, and use scrollLeft/scrollTop.
      */
     private setupScrollListener(): void {
-        window.addEventListener('scroll', () => {
-            // Get how far the user has scrolled horizontally and vertically
-            const scrollX = window.scrollX;
-            const scrollY = window.scrollY;
+        this.container.addEventListener('scroll', () => {
+            const scrollX = this.container.scrollLeft;
+            const scrollY = this.container.scrollTop;
 
-            // Calculate which "segment" of the grid we're in
-            // Each segment is the size of one canvas
             const segmentX = Math.floor(scrollX / this.baseCanvas.width);
             const segmentY = Math.floor(scrollY / this.baseCanvas.height);
 
-            // Create a unique key for this segment
             const segmentKey = `${segmentX}:${segmentY}`;
-
-            // If we haven't already created a canvas for this segment, do it now
             if (!this.renderedSegments.has(segmentKey)) {
-                this.renderedSegments.add(segmentKey); // Mark this segment as rendered
-                this.createDynamicCanvas(segmentX, segmentY); // Create the canvas
+                this.renderedSegments.add(segmentKey);
+                this.createDynamicCanvas(segmentX, segmentY);
             }
         });
     }
@@ -81,7 +78,7 @@ export class Grid {
     private createDynamicCanvas(segmentX: number, segmentY: number): void {
         // Create a new canvas element
         const dynamicCanvas = document.createElement('canvas');
-        dynamicCanvas.width = this.baseCanvas.width;   // Same width as base canvas
+        dynamicCanvas.width = this.baseCanvas.width; // Same width as base canvas
         dynamicCanvas.height = this.baseCanvas.height; // Same height as base canvas
 
         // Position the canvas absolutely inside the container
@@ -100,4 +97,6 @@ export class Grid {
         // Add the canvas to the container (not directly to the body!)
         this.container.appendChild(dynamicCanvas);
     }
+
+
 }

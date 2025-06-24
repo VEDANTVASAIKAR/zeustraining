@@ -1,0 +1,14 @@
+#canvasContainer {
+    position: relative;
+    width: 100%;   /* Visible area, should be smaller than the canvas! */
+    height: 100vh;
+    overflow: auto;
+    border: 1px solid #aaa;
+    background: #efefef;
+}
+#baseCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
