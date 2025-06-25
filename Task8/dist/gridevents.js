@@ -205,7 +205,7 @@ export class GridEvents {
             // this.updateFillHandle();
         });
         // Keyboard navigation and editing
-        this.canvas.addEventListener("keydown", (e) => {
+        document.addEventListener("keydown", (e) => {
             if (this.input.style.display === "block") {
                 const currentCell = this.model.cells[this.model.selectedRow][this.model.selectedCol];
                 currentCell.data = this.input.value;
