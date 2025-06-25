@@ -1,4 +1,4 @@
-import { Cell } from "./cell";
+import { Cell } from "./cell.js";
 /**
  * Manages all cells in the grid using a sparse map.
  * Allows efficient storage and retrieval of cells by (row, col).

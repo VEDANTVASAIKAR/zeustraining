@@ -1,4 +1,4 @@
-import { Cell } from "./cell";
+import { Cell } from "./cell.js";
 
 /**
  * Manages all cells in the grid using a sparse map.
@@ -54,4 +54,5 @@ export class CellManager {
         }
         return cell;
     }
+    
 }

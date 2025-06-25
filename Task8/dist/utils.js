@@ -12,5 +12,5 @@ export function findIndexFromCoord(coord, sizes) {
             return i;
         }
     }
-    return -1; // If coord is outside the total range
+    return -1;
 }

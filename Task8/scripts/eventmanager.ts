@@ -1,65 +1,88 @@
 import { Rows } from "./rows.js";
 import { Cols } from "./cols.js";
 import { findIndexFromCoord } from "./utils.js";
-
+import { CellManager } from "./cellmanager.js";
+import { GridDrawer } from "./griddrawer.js";
 /**
  * Manages all event listeners for the grid and input elements.
  */
 export class EventManager {
-    /**
-     * Creates an EventManager.
-     * @param {HTMLCanvasElement} canvas - The grid canvas element.
-     * @param {HTMLInputElement} cellInput - The input element for cell editing.
-     * @param {Rows} rows - The Rows instance.
-     * @param {Cols} cols - The Cols instance.
-     */
+    selectedRow: number | null = null;
+    selectedCol: number | null = null;
+
     constructor(
-        /** @type {HTMLCanvasElement} The canvas element for the grid */
         public canvas: HTMLCanvasElement,
-        /** @type {HTMLInputElement} The input element for editing cells */
         public cellInput: HTMLInputElement,
-        /** @type {Rows} The rows manager */
         public rows: Rows,
-        /** @type {Cols} The columns manager */
-        public cols: Cols
+        public cols: Cols,
+        public grid: GridDrawer,
+        public cellManager: CellManager
     ) {
         this.attachCanvasEvents();
+        this.attachInputEvents();
     }
 
-    /**
-     * Attaches all relevant events to the canvas.
-     */
     attachCanvasEvents() {
         this.canvas.addEventListener("click", (event) => this.handleCanvasClick(event));
     }
 
-    /**
-     * Handles click events on the canvas, showing and positioning the input box.
-     * @param {MouseEvent} event - The click event.
-     */
+    attachInputEvents() {
+        this.cellInput.addEventListener("blur", () => this.saveCell());
+        this.cellInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                this.saveCell();
+            }
+        });
+    }
+
     handleCanvasClick(event: MouseEvent) {
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
 
-        // Calculate row and col using utility
         const col = findIndexFromCoord(x, this.cols.widths);
         const row = findIndexFromCoord(y, this.rows.heights);
 
-        if (row < 0 || col < 0) return; // Out of bounds
+        if (row < 0 || col < 0) return;
 
-        // Calculate cell top-left position
+        this.selectedRow = row;
+        this.selectedCol = col;
+
         const cellLeft = this.cols.widths.slice(0, col).reduce((a, b) => a + b, 0);
         const cellTop = this.rows.heights.slice(0, row).reduce((a, b) => a + b, 0);
 
-        // Position and display the input box
         this.cellInput.style.display = "block";
         this.cellInput.style.position = "absolute";
         this.cellInput.style.left = cellLeft + "px";
         this.cellInput.style.top = cellTop + "px";
         this.cellInput.style.width = this.cols.widths[col] + "px";
         this.cellInput.style.height = this.rows.heights[row] + "px";
-        this.cellInput.value = ""; // Later: set to cell value
+
+        // Prefill input with existing value
+        const cell = this.cellManager.getCell(row, col);
+        this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
         this.cellInput.focus();
+    }
+
+    saveCell() {
+        if (
+            this.selectedRow !== null &&
+            this.selectedCol !== null
+        ) {
+            this.cellManager.setCell(
+                this.selectedRow,
+                this.selectedCol,
+                this.cellInput.value
+            );
+            // Redraw only the edited cell:
+            this.grid.drawCell(
+                this.selectedRow,
+                this.selectedCol,
+                this.cellInput.value,
+                this.rows,
+                this.cols
+            );
+        }
+        this.cellInput.style.display = "none";
     }
 }
