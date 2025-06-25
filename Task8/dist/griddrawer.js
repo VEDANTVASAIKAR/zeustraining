@@ -1,22 +1,32 @@
-import { GridModel } from "./gridmodel.js";
-import { GridRenderer } from "./gridrenderer.js";
-import { GridEvents } from "./gridevents.js";
+import { Line } from "./line.js";
+import { CELL_WIDTH, CELL_HEIGHT } from "./constants.js";
+/**
+ * Responsible for drawing grid lines (rows and columns) on a canvas.
+ * Uses separate classes for Row, Column, and Line.
+ */
 export class GridDrawer {
-    constructor(canvasId, inputId) {
-        const canvas = document.getElementById(canvasId);
-        const input = document.getElementById(inputId);
-        if (!canvas || !input)
-            throw new Error("Canvas or input not found");
-        const ctx = canvas.getContext("2d");
+    /**
+     * @param canvasId - The ID of the canvas element
+     */
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        const ctx = this.canvas.getContext("2d");
         if (!ctx)
             throw new Error("No 2D context");
-        // Set canvas size (no headers)
-        const rows = 50, cols = 20, cellWidth = 100, cellHeight = 30;
-        canvas.width = cols * cellWidth;
-        canvas.height = rows * cellHeight;
-        this.model = new GridModel(rows, cols, cellWidth, cellHeight);
-        this.renderer = new GridRenderer(canvas, ctx);
-        this.events = new GridEvents(this.model, this.renderer, canvas, input);
-        this.renderer.draw(this.model, -1, -1, null);
+        this.ctx = ctx;
+    }
+    drawRows(rows, cols) {
+        for (let i = 0; i <= rows.n; i++) {
+            const y = i * CELL_HEIGHT;
+            const line = new Line(0, y, cols.n * CELL_WIDTH, y);
+            line.draw(this.ctx);
+        }
+    }
+    drawCols(rows, cols) {
+        for (let i = 0; i <= cols.n; i++) {
+            const x = i * CELL_WIDTH;
+            const line = new Line(x, 0, x, rows.n * CELL_HEIGHT);
+            line.draw(this.ctx);
+        }
     }
 }
