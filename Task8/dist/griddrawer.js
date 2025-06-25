@@ -8,12 +8,14 @@ export class GridDrawer {
     /**
      * @param canvasId - The ID of the canvas element
      */
-    constructor(canvasId) {
+    constructor(canvasId, rows, cols) {
         this.canvas = document.getElementById(canvasId);
         const ctx = this.canvas.getContext("2d");
         if (!ctx)
             throw new Error("No 2D context");
         this.ctx = ctx;
+        this.canvas.width = cols.n * CELL_WIDTH;
+        this.canvas.height = rows.n * CELL_HEIGHT;
     }
     drawRows(rows, cols) {
         for (let i = 0; i <= rows.n; i++) {

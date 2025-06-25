@@ -4,12 +4,17 @@ html, body {
   padding: 0;
   overflow: hidden;
 }
-.main{
+/* .main{
 
 display: flex;
-}
+} */
+ #scrollable{
+  height: 300000px;
+  width: 3000000px;
+ }
 .container {
-  width: 100vw;
+  flex: 1 1 auto;
+  min-width: 0;
   height: 100vh;
   overflow: auto;
   position: relative;
