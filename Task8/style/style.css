@@ -17,6 +17,14 @@ display: flex;
 canvas {
   display: block;
 }
+/* #input{
+  position: absolute;
+  display: none;
+  z-index: 10;
+  box-sizing: border-box;
+  border: 7px solid #0a753a; */
+
+/* } */
 #cellInput {
   position: absolute;
   display: none;
@@ -24,6 +32,7 @@ canvas {
   font-size: 12px;
   padding: 2px;
   box-sizing: border-box;
+  /* border: 7px solid #0a753a; */
 }
 .row{
   width: 100%;

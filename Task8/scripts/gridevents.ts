@@ -21,6 +21,7 @@ export class GridEvents {
   hoveredResizeRow: number = -1;
   hoveredResizeCol: number = -1;
   hoveredResizeEdge: "right" | "bottom" | null = null;
+  
 
   constructor(model: GridModel, renderer: GridRenderer, canvas: HTMLCanvasElement, input: HTMLInputElement) {
     this.model = model;
