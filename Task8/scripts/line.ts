@@ -11,7 +11,7 @@ export class Line{
 
         ctx.beginPath();
         ctx.moveTo(this.x1,this.y1);
-        ctx.lineTo(this.x2,this.x2);
+        ctx.lineTo(this.x2,this.y2);
         ctx.stroke();
     }
     
