@@ -14,3 +14,17 @@ export function findIndexFromCoord(coord, sizes) {
     }
     return -1;
 }
+// **
+//  * Converts a zero-based column index to Excel-style column header (A, B, ..., Z, AA, AB, ...).
+//  * @param {number} index - Zero-based column index (0 = A)
+//  * @returns {string} - Excel column header string
+//  */
+export function getExcelColumnLabel(index) {
+    let label = '';
+    while (index >= 0) {
+        label = String.fromCharCode((index % 26) + 65) + label; // 65 = "A"
+        index = Math.floor(index / 26) - 1;
+    }
+    return label;
+}
+console.log(getExcelColumnLabel(25000));

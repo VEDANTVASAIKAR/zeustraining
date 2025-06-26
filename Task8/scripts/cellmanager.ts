@@ -11,6 +11,7 @@ export class CellManager {
      */
     constructor() {
         this.cellMap = new Map<string, Cell>();
+        
     }
 
     /**
@@ -44,10 +45,14 @@ export class CellManager {
         if (!cell) {
             cell = new Cell(row, col, value);
             this.cellMap.set(this.getKey(row, col), cell);
+            console.log(`CREATED new Cell at (${row}, ${col}) with value:`, value);
+            console.log('Total cells with data:', this.cellMap.size);
         } else {
             cell.value = value;
+             console.log(`UPDATED Cell at (${row}, ${col}) to value:`, value);
         }
         return cell;
     }
+    
     
 }

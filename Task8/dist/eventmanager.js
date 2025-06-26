@@ -51,7 +51,9 @@ export class EventManager {
     }
     saveCell() {
         if (this.selectedRow !== null &&
-            this.selectedCol !== null) {
+            this.selectedCol !== null
+        // this.cellInput.value !== ''
+        ) {
             this.cellManager.setCell(this.selectedRow, this.selectedCol, this.cellInput.value);
             // Redraw only the edited cell:
             this.grid.drawCell(this.selectedRow, this.selectedCol, this.cellInput.value, this.rows, this.cols);

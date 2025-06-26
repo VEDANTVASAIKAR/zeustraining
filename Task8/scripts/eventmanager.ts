@@ -67,7 +67,8 @@ export class EventManager {
     saveCell() {
         if (
             this.selectedRow !== null &&
-            this.selectedCol !== null
+            this.selectedCol !== null 
+            // this.cellInput.value !== ''
         ) {
             this.cellManager.setCell(
                 this.selectedRow,
@@ -84,5 +85,6 @@ export class EventManager {
             );
         }
         this.cellInput.style.display = "none";
+        
     }
 }

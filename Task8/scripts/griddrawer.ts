@@ -2,18 +2,21 @@ import { Line } from "./line.js";
 import { Rows } from "./rows.js";
 import { Cols } from "./cols.js";
 import { CELL_WIDTH, CELL_HEIGHT } from "./constants.js";
+import { CellManager } from "./cellmanager.js";
+import { getExcelColumnLabel } from "./utils.js";
 
 
 export class GridDrawer {
   ctx: CanvasRenderingContext2D;
   canvas: HTMLCanvasElement;
-
+  cellmanager : CellManager
   /**
    * @param canvasId - The ID of the canvas element
    */
-  constructor(canvasId: string , rows: Rows, cols: Cols) {
+  constructor(canvasId: string , rows: Rows, cols: Cols,cellmanager : CellManager) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
     const ctx = this.canvas.getContext("2d");
+    this.cellmanager = cellmanager;
     if (!ctx) throw new Error("No 2D context");
     this.ctx = ctx;
     // this.canvas.width = cols.n* CELL_WIDTH
@@ -35,6 +38,20 @@ export class GridDrawer {
       const line = new Line(x +0.5, 0, x+0.5, rows.n * CELL_HEIGHT);
       line.draw(this.ctx);
     }
+  }
+
+  columnheaders(rows: Rows, cols: Cols){
+    for (let i =0; i < rows.n;i++){
+      for (let j=0;j< cols.n; j++){
+        let label = getExcelColumnLabel(j)
+        this.cellmanager.setCell(i,j,label)
+
+
+      }
+      
+    }
+    
+    
   }
 /**
  * Draws a single cell value, preserving the grid borders by only clearing/painting inside the borders.

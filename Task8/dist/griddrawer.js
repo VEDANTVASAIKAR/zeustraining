@@ -1,12 +1,14 @@
 import { Line } from "./line.js";
 import { CELL_WIDTH, CELL_HEIGHT } from "./constants.js";
+import { getExcelColumnLabel } from "./utils.js";
 export class GridDrawer {
     /**
      * @param canvasId - The ID of the canvas element
      */
-    constructor(canvasId, rows, cols) {
+    constructor(canvasId, rows, cols, cellmanager) {
         this.canvas = document.getElementById(canvasId);
         const ctx = this.canvas.getContext("2d");
+        this.cellmanager = cellmanager;
         if (!ctx)
             throw new Error("No 2D context");
         this.ctx = ctx;
@@ -27,6 +29,14 @@ export class GridDrawer {
             const x = i * CELL_WIDTH;
             const line = new Line(x + 0.5, 0, x + 0.5, rows.n * CELL_HEIGHT);
             line.draw(this.ctx);
+        }
+    }
+    columnheaders(rows, cols) {
+        for (let i = 0; i < rows.n; i++) {
+            for (let j = 0; j < cols.n; j++) {
+                let label = getExcelColumnLabel(j);
+                this.cellmanager.setCell(i, j, label);
+            }
         }
     }
     /**
