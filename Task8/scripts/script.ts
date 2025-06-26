@@ -11,7 +11,7 @@ let selectedCol: number | null = null;
 
 
 const rows = new Rows(100);
-const cols = new Cols(500); 
+const cols = new Cols(50); 
 const grid = new GridDrawer("canvas", rows, cols);
 const cellManager = new CellManager();
 
@@ -23,3 +23,4 @@ const cellInput = document.getElementById("cellInput") as HTMLInputElement;
 
 // pass grid and cellManager to event manager
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager);
+

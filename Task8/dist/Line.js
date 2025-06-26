@@ -9,7 +9,7 @@ export class Line {
         ctx.beginPath();
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
-        ctx.lineWidth = 0.5;
+        ctx.lineWidth = 1;
         ctx.strokeStyle = 'black';
         ctx.stroke();
     }

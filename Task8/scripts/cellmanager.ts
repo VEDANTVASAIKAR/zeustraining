@@ -1,12 +1,8 @@
 import { Cell } from "./cell.js";
 
-/**
- * Manages all cells in the grid using a sparse map.
- * Allows efficient storage and retrieval of cells by (row, col).
- */
 export class CellManager {
     /**
-     * @type {Map<string, Cell>} Stores cells keyed by "row,col"
+     * @type {Map<string, Cell>} 
      */
     cellMap: Map<string, Cell>;
 
@@ -18,7 +14,6 @@ export class CellManager {
     }
 
     /**
-     * Generates the key for the map given row and column.
      * @param {number} row Row index
      * @param {number} col Column index
      * @returns {string} Key as "row,col"

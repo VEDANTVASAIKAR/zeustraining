@@ -3,7 +3,6 @@
  */
 export class Cols {
     /**
-     * Initializes the Cols object.
      * @param {number} n The number of columns.
      * @param {number} defaultWidth The default width of each column.
      */
@@ -20,7 +19,6 @@ export class Cols {
         }
     }
     /**
-     * Sets the width of a specific column.
      * @param {number} colIndex Index of the column.
      * @param {number} width New width to set.
      */
@@ -28,7 +26,6 @@ export class Cols {
         this.widths[colIndex] = width;
     }
     /**
-     * Gets the width of a specific column.
      * @param {number} colIndex Index of the column.
      * @returns {number} The width of the column.
      */

@@ -3,10 +3,7 @@ import { Rows } from "./rows.js";
 import { Cols } from "./cols.js";
 import { CELL_WIDTH, CELL_HEIGHT } from "./constants.js";
 
-/**
- * Responsible for drawing grid lines (rows and columns) on a canvas.
- * Uses separate classes for Row, Column, and Line.
- */
+
 export class GridDrawer {
   ctx: CanvasRenderingContext2D;
   canvas: HTMLCanvasElement;
@@ -19,23 +16,23 @@ export class GridDrawer {
     const ctx = this.canvas.getContext("2d");
     if (!ctx) throw new Error("No 2D context");
     this.ctx = ctx;
-    this.canvas.width = cols.n* CELL_WIDTH
-    // this.canvas.width = window.innerWidth
-    this.canvas.height = rows.n* CELL_HEIGHT
-    // this.canvas.height = window.innerHeight
+    // this.canvas.width = cols.n* CELL_WIDTH
+    this.canvas.width = window.innerWidth
+    // this.canvas.height = rows.n* CELL_HEIGHT
+    this.canvas.height = window.innerHeight
   }
 
   drawRows(rows: Rows, cols: Cols) {
     for (let i = 0; i <= rows.n; i++) {
       const y = i * CELL_HEIGHT;
-      const line = new Line(0, y, cols.n * CELL_WIDTH, y);
+      const line = new Line(0, y + 0.5, cols.n * CELL_WIDTH, y+0.5);
       line.draw(this.ctx);
     }
   }
   drawCols(rows: Rows, cols: Cols) {
     for (let i = 0; i <= cols.n; i++) {
       const x = i * CELL_WIDTH;
-      const line = new Line(x, 0, x, rows.n * CELL_HEIGHT);
+      const line = new Line(x +0.5, 0, x+0.5, rows.n * CELL_HEIGHT);
       line.draw(this.ctx);
     }
   }
@@ -66,8 +63,8 @@ drawCell(
     this.ctx.clearRect(x + 1, y + 1, w - 2, h - 2);
 
     // Draw the borders again to keep the grid sharp (in case they were erased by previous clear)
-    this.ctx.strokeStyle = "#ccc";
-    this.ctx.strokeRect(x, y, w, h);
+    this.ctx.strokeStyle = "black";
+    this.ctx.strokeRect(x+0.5, y+0.5, w, h);
 
     // Draw the cell value text, aligned left with a small padding and vertically centered
     this.ctx.fillStyle = "#000";
