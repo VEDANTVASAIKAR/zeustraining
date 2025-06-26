@@ -22,11 +22,12 @@ export class GridDrawer {
     if (!ctx) throw new Error("No 2D context");
     this.ctx = ctx;
     // this.canvas.width = cols.n* CELL_WIDTH
-    // this.canvas.width = window.innerWidth *1.5
+    // this.canvas.width = window.innerWidth
     // this.canvas.height = rows.n* CELL_HEIGHT
-    // this.canvas.height = window.innerHeight*1.5
-    this.canvas.width = cols.widths.reduce((a, b) => a + b, 0);
-    this.canvas.height = rows.heights.reduce((a, b) => a + b, 0);
+    // this.canvas.height = window.innerHeight
+    // Get the visible area of the container
+    this.canvas.width = this.container.clientWidth;
+    this.canvas.height = this.container.clientHeight;
   }
 
   drawRows(rows: Rows, cols: Cols) {
@@ -124,38 +125,40 @@ drawCell(
     cols: Cols,
     isheader : boolean = false
   ) {
-    // Calculate the top-left x and y position of the cell
+    // Virtual grid position in the giant sheet
     const x = cols.widths.slice(0, col).reduce((a, b) => a + b, 0);
     const y = rows.heights.slice(0, row).reduce((a, b) => a + b, 0);
     const w = cols.widths[col];
     const h = rows.heights[row];
 
+    // OFFSET by scroll position!
+    const drawX = x - this.container.scrollLeft;
+    const drawY = y - this.container.scrollTop;
+
     // Only clear the inside area of the cell, leaving a 1px margin for grid borders
-    // This prevents erasing the existing grid lines
-    this.ctx.clearRect(x + 1, y + 1, w - 2, h - 2);
+    this.ctx.clearRect(drawX + 1, drawY + 1, w - 2, h - 2);
 
-    // Draw the borders again to keep the grid sharp (in case they were erased by previous clear)
+    // Draw the borders again to keep the grid sharp
     this.ctx.strokeStyle = "black";
-    this.ctx.strokeRect(x+0.5, y+0.5, w, h);
+    this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
 
-    // Draw the cell value text, aligned left with a small padding and vertically centered
+    // Draw the cell value
     this.ctx.fillStyle = "#000";
     this.ctx.font = "12px Arial";
-    
     this.ctx.textAlign = "left";
     if(isheader){
       this.ctx.textBaseline = "top";
       this.ctx.fillText(
         value != null ? String(value) : "",
-        x + w/2,         // 4px padding from left border
-        y + h / 2      // vertical center of the cell
+        drawX + w/2,
+        drawY + h / 2
       );
     }else{
       this.ctx.textBaseline = "middle";
       this.ctx.fillText(
         value != null ? String(value) : "",
-        x + 4,         // 4px padding from left border
-        y +h/2   // vertical alignment
+        drawX + 4,
+        drawY + h/2
       );
     }
   }
