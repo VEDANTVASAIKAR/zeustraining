@@ -20,9 +20,9 @@ display: flex;
   position: relative;
 }
 #canvas {
-  position: absolute;
+  /* position: absolute;
   top: 0;
-  left: 0;
+  left: 0; */
   /* width and height will be set by JS to match the visible area */
   z-index: 1;
   pointer-events: auto;

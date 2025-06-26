@@ -14,9 +14,11 @@ export class GridDrawer {
             throw new Error("No 2D context");
         this.ctx = ctx;
         // this.canvas.width = cols.n* CELL_WIDTH
-        this.canvas.width = window.innerWidth * 1.5;
+        // this.canvas.width = window.innerWidth *1.5
         // this.canvas.height = rows.n* CELL_HEIGHT
-        this.canvas.height = window.innerHeight * 1.5;
+        // this.canvas.height = window.innerHeight*1.5
+        this.canvas.width = cols.widths.reduce((a, b) => a + b, 0);
+        this.canvas.height = rows.heights.reduce((a, b) => a + b, 0);
     }
     drawRows(rows, cols) {
         for (let i = 0; i <= rows.n; i++) {

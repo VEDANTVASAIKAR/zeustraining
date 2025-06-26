@@ -15,9 +15,11 @@ export class EventManager {
         this.container = document.querySelector('.container');
         this.attachCanvasEvents();
         this.attachInputEvents();
+        this.redraw();
     }
     redraw() {
         this.container.addEventListener('scroll', () => {
+            console.log("Scroll event fired!"); // Add this line
             this.grid.rendervisible(this.rows, this.cols);
         });
     }
