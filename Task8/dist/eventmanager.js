@@ -12,10 +12,15 @@ export class EventManager {
         this.cellManager = cellManager;
         this.selectedRow = null;
         this.selectedCol = null;
+        /** @type {number | null} The index of the column border currently hovered for resizing */
+        this.hoveredColBorder = null;
+        /** @type {number | null} The index of the row border currently hovered for resizing */
+        this.hoveredRowBorder = null;
         this.container = document.querySelector('.container');
         this.attachCanvasEvents();
         this.attachInputEvents();
         this.redraw();
+        this.attachmouseevents();
     }
     redraw() {
         this.container.addEventListener('scroll', () => {
@@ -33,6 +38,51 @@ export class EventManager {
                 this.saveCell();
             }
         });
+    }
+    attachmouseevents() {
+        this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
+    }
+    handleMouseMove(event) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const threshold = 5; // px distance to detect border for resizing
+        const headerHeight = this.rows.heights[0];
+        const headerWidth = this.cols.widths[0];
+        // Track if we found a border (for cursor)
+        let foundBorder = false;
+        // --- Check for column resizing (hovering near right edge of any column in header row) ---
+        if (y < headerHeight) {
+            let sum = 0;
+            for (let col = 0; col < this.cols.n; col++) {
+                sum += this.cols.widths[col];
+                if (Math.abs(x - sum) < threshold) {
+                    this.canvas.style.cursor = "col-resize";
+                    this.hoveredColBorder = col;
+                    foundBorder = true;
+                    break;
+                }
+            }
+        }
+        // --- Check for row resizing (hovering near bottom edge of any row in the header column) ---
+        if (!foundBorder && x < headerWidth) {
+            let sum = 0;
+            for (let row = 0; row < this.rows.n; row++) {
+                sum += this.rows.heights[row];
+                if (Math.abs(y - sum) < threshold) {
+                    this.canvas.style.cursor = "row-resize";
+                    this.hoveredRowBorder = row;
+                    foundBorder = true;
+                    break;
+                }
+            }
+        }
+        // --- Default cursor if not on any border ---
+        if (!foundBorder) {
+            this.canvas.style.cursor = "default";
+            this.hoveredColBorder = null;
+            this.hoveredRowBorder = null;
+        }
     }
     handleCanvasClick(event) {
         const rect = this.canvas.getBoundingClientRect();

@@ -46,14 +46,14 @@ export class CellManager {
             cell = new Cell(row, col, value);
 
             this.cellMap.set(this.getKey(row, col), cell);
-            console.log(`CREATED new Cell at (${row}, ${col}) with value:`, value);
-            console.log('Total cells with data:', this.cellMap.size);
+            // console.log(`CREATED new Cell at (${row}, ${col}) with value:`, value);
+            // console.log('Total cells with data:', this.cellMap.size);
         }else if(value == ''){
             this.deleteCell(row,col)
         } 
         else {
             cell.value = value;
-             console.log(`UPDATED Cell at (${row}, ${col}) to value:`, value);
+            //  console.log(`UPDATED Cell at (${row}, ${col}) to value:`, value);
         }
         return cell;
     }
@@ -68,7 +68,7 @@ export class CellManager {
         const key = this.getKey(row, col);
         if (this.cellMap.has(key)) {
             this.cellMap.delete(key);
-            console.log(`Deleted cell at (${row}, ${col})`);
+            // console.log(`Deleted cell at (${row}, ${col})`);
             return true;
         } else {
             // No cell existed at that position

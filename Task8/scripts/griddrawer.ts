@@ -47,7 +47,7 @@ export class GridDrawer {
 
 
 
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       // 1. Find the first visible row
       let sum = 0;
       let startRow = 0;
@@ -90,16 +90,16 @@ export class GridDrawer {
       //         this.drawCell(row, col, value, rows, cols);
       //     }
       // }
-      for (let i = startRow; i <= endRow; i++) {
-        const y = i * CELL_HEIGHT;
-        const line = new Line(0, y + 0.5, cols.n * CELL_WIDTH, y+0.5);
-        line.draw(this.ctx);
-      }
-      for (let i = startCol; i <= endCol; i++) {
-        const x = i * CELL_WIDTH;
-        const line = new Line(x +0.5, 0, x+0.5, rows.n * CELL_HEIGHT);
-        line.draw(this.ctx);
-      }
+      // for (let i = startRow; i <= endRow; i++) {
+      //   const y = i * CELL_HEIGHT;
+      //   const line = new Line(0, y + 0.5, cols.n * CELL_WIDTH, y+0.5);
+      //   line.draw(this.ctx);
+      // }
+      // for (let i = startCol; i <= endCol; i++) {
+      //   const x = i * CELL_WIDTH;
+      //   const line = new Line(x +0.5, 0, x+0.5, rows.n * CELL_HEIGHT);
+      //   line.draw(this.ctx);
+      // }
 
   }
 
