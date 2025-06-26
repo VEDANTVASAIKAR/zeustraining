@@ -22,12 +22,10 @@ export class GridDrawer {
     if (!ctx) throw new Error("No 2D context");
     this.ctx = ctx;
     // this.canvas.width = cols.n* CELL_WIDTH
-    // this.canvas.width = window.innerWidth
+    this.canvas.width = window.innerWidth
     // this.canvas.height = rows.n* CELL_HEIGHT
-    // this.canvas.height = window.innerHeight
+    this.canvas.height = window.innerHeight
     // Get the visible area of the container
-    this.canvas.width = this.container.clientWidth;
-    this.canvas.height = this.container.clientHeight;
   }
 
   drawRows(rows: Rows, cols: Cols) {
@@ -46,6 +44,8 @@ export class GridDrawer {
   }
 
   rendervisible(rows: Rows, cols: Cols) {
+
+
 
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       // 1. Find the first visible row
@@ -82,14 +82,25 @@ export class GridDrawer {
           endCol++;
       }
 
-      // 5. Now loop through just these cells and draw them!
-      for (let row = startRow; row < endRow; row++) {
-          for (let col = startCol; col < endCol; col++) {
-              const cell = this.cellmanager.getCell(row, col);
-              const value = cell ? cell.value : '';
-              this.drawCell(row, col, value, rows, cols);
-          }
+      // // 5. Now loop through just these cells and draw them!
+      // for (let row = startRow; row < endRow; row++) {
+      //     for (let col = startCol; col < endCol; col++) {
+      //         const cell = this.cellmanager.getCell(row, col);
+      //         const value = cell ? cell.value : '';
+      //         this.drawCell(row, col, value, rows, cols);
+      //     }
+      // }
+      for (let i = startRow; i <= endRow; i++) {
+        const y = i * CELL_HEIGHT;
+        const line = new Line(0, y + 0.5, cols.n * CELL_WIDTH, y+0.5);
+        line.draw(this.ctx);
       }
+      for (let i = startCol; i <= endCol; i++) {
+        const x = i * CELL_WIDTH;
+        const line = new Line(x +0.5, 0, x+0.5, rows.n * CELL_HEIGHT);
+        line.draw(this.ctx);
+      }
+
   }
 
   columnheaders(rows: Rows, cols: Cols){

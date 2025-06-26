@@ -17,7 +17,7 @@ display: flex;
   min-width: 0;
   height: 100vh;
   overflow: auto;
-  position: relative;
+  /* position: relative; */
 }
 #canvas {
   /* position: absolute;
@@ -44,23 +44,8 @@ display: flex;
   box-sizing: border-box;
   /* border: 7px solid #0a753a; */
 }
-.row{
-  width: 100%;
-  height: 40px;
-}
-/* #colHeader{
- height: 40px;
-} */
+
 input[type=text]:focus {
   outline: none;
   /* border: 3px solid #0a753a; */
-}
-#fill-handle {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: #0a753a;
-  z-index: 99;
-  display: none;
-  pointer-events: auto; /* for drag-to-fill feature later */
 }

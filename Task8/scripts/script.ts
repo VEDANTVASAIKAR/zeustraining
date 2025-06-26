@@ -10,8 +10,8 @@ let selectedRow: number | null = null;
 let selectedCol: number | null = null;
 
 
-const rows = new Rows(5000);
-const cols = new Cols(10); 
+const rows = new Rows(500);
+const cols = new Cols(100); 
 
 const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols,cellManager);
