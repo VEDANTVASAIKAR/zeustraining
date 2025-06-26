@@ -19,8 +19,13 @@ display: flex;
   overflow: auto;
   position: relative;
 }
-canvas {
-  display: block;
+#canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* width and height will be set by JS to match the visible area */
+  z-index: 1;
+  pointer-events: auto;
 }
 /* #input{
   position: absolute;

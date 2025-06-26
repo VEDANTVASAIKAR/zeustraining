@@ -18,3 +18,4 @@ const cellInput = document.getElementById("cellInput");
 // pass grid and cellManager to event manager
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager);
 console.log(cols.widths);
+let container = document.querySelector('.container');

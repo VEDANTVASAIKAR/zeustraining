@@ -9,20 +9,22 @@ import { getExcelColumnLabel } from "./utils.js";
 export class GridDrawer {
   ctx: CanvasRenderingContext2D;
   canvas: HTMLCanvasElement;
-  cellmanager : CellManager
+  cellmanager : CellManager;
+  container : HTMLElement
   /**
    * @param canvasId - The ID of the canvas element
    */
   constructor(canvasId: string , rows: Rows, cols: Cols,cellmanager : CellManager) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+    this.container = document.querySelector('.container') as HTMLElement;
     const ctx = this.canvas.getContext("2d");
     this.cellmanager = cellmanager;
     if (!ctx) throw new Error("No 2D context");
     this.ctx = ctx;
     // this.canvas.width = cols.n* CELL_WIDTH
-    this.canvas.width = window.innerWidth
+    this.canvas.width = window.innerWidth *1.5
     // this.canvas.height = rows.n* CELL_HEIGHT
-    this.canvas.height = window.innerHeight
+    this.canvas.height = window.innerHeight*1.5
   }
 
   drawRows(rows: Rows, cols: Cols) {
@@ -38,6 +40,53 @@ export class GridDrawer {
       const line = new Line(x +0.5, 0, x+0.5, rows.n * CELL_HEIGHT);
       line.draw(this.ctx);
     }
+  }
+
+  rendervisible(rows: Rows, cols: Cols) {
+
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      // 1. Find the first visible row
+      let sum = 0;
+      let startRow = 0;
+      while (startRow < rows.n && sum + rows.heights[startRow] <= this.container.scrollTop) {
+          sum += rows.heights[startRow];
+          startRow++;
+      }
+
+      // 2. Find the last visible row (one past the last)
+      sum = 0;
+      let endRow = 0;
+      const visibleBottom = this.container.scrollTop + this.container.clientHeight;
+      while (endRow < rows.n && sum < visibleBottom) {
+          sum += rows.heights[endRow];
+          endRow++;
+      }
+
+      // 3. Find the first visible column
+      sum = 0;
+      let startCol = 0;
+      while (startCol < cols.n && sum + cols.widths[startCol] <= this.container.scrollLeft) {
+          sum += cols.widths[startCol];
+          startCol++;
+      }
+
+      // 4. Find the last visible column (one past the last)
+      sum = 0;
+      let endCol = 0;
+      const visibleRight = this.container.scrollLeft + this.container.clientWidth;
+      while (endCol < cols.n && sum < visibleRight) {
+          sum += cols.widths[endCol];
+          endCol++;
+      }
+
+      // 5. Now loop through just these cells and draw them!
+      for (let row = startRow; row < endRow; row++) {
+          for (let col = startCol; col < endCol; col++) {
+              const cell = this.cellmanager.getCell(row, col);
+              const value = cell ? cell.value : '';
+              this.drawCell(row, col, value, rows, cols);
+          }
+      }
   }
 
   columnheaders(rows: Rows, cols: Cols){

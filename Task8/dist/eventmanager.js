@@ -12,8 +12,14 @@ export class EventManager {
         this.cellManager = cellManager;
         this.selectedRow = null;
         this.selectedCol = null;
+        this.container = document.querySelector('.container');
         this.attachCanvasEvents();
         this.attachInputEvents();
+    }
+    redraw() {
+        this.container.addEventListener('scroll', () => {
+            this.grid.rendervisible(this.rows, this.cols);
+        });
     }
     attachCanvasEvents() {
         this.canvas.addEventListener("click", (event) => this.handleCanvasClick(event));

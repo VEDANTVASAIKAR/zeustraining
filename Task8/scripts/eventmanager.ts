@@ -9,6 +9,7 @@ import { GridDrawer } from "./griddrawer.js";
 export class EventManager {
     selectedRow: number | null = null;
     selectedCol: number | null = null;
+    container : HTMLElement;
 
     constructor(
         public canvas: HTMLCanvasElement,
@@ -18,8 +19,15 @@ export class EventManager {
         public grid: GridDrawer,
         public cellManager: CellManager
     ) {
+        this.container = document.querySelector('.container') as HTMLElement;
         this.attachCanvasEvents();
         this.attachInputEvents();
+    }
+
+    redraw() {
+        this.container.addEventListener('scroll', () => {
+            this.grid.rendervisible(this.rows, this.cols);
+        });
     }
 
     attachCanvasEvents() {
@@ -34,6 +42,8 @@ export class EventManager {
             }
         });
     }
+
+    
 
     handleCanvasClick(event: MouseEvent) {
         const rect = this.canvas.getBoundingClientRect();

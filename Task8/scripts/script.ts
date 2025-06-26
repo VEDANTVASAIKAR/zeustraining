@@ -30,5 +30,6 @@ const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellM
 
 console.log(cols.widths);
 
+let container = document.querySelector('.container') as HTMLElement ;
 
 
