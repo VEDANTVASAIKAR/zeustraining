@@ -65,11 +65,15 @@ export class EventManager {
     }
 
     saveCell() {
+
+        console.log(this.cellInput.value.length);
+        
         if (
             this.selectedRow !== null &&
             this.selectedCol !== null 
             // this.cellInput.value !== ''
-        ) {
+           
+        ) { 
             this.cellManager.setCell(
                 this.selectedRow,
                 this.selectedCol,

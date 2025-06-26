@@ -40,18 +40,40 @@ export class CellManager {
      * @param {string|number|null} value Value to set
      * @returns {Cell} The created or updated cell.
      */
-    setCell(row: number, col: number, value: string | number | null): Cell {
+    setCell(row: number, col: number, value: string | number | null ): Cell {
         let cell = this.getCell(row, col);
         if (!cell) {
             cell = new Cell(row, col, value);
+
             this.cellMap.set(this.getKey(row, col), cell);
             console.log(`CREATED new Cell at (${row}, ${col}) with value:`, value);
             console.log('Total cells with data:', this.cellMap.size);
-        } else {
+        }else if(value == ''){
+            this.deleteCell(row,col)
+        } 
+        else {
             cell.value = value;
              console.log(`UPDATED Cell at (${row}, ${col}) to value:`, value);
         }
         return cell;
+    }
+
+        /**
+     * Deletes the cell at the given row and column, if it exists.
+     * @param {number} row Row index
+     * @param {number} col Column index
+     * @returns {boolean} True if the cell was deleted, false if it did not exist.
+     */
+    deleteCell(row: number, col: number): boolean {
+        const key = this.getKey(row, col);
+        if (this.cellMap.has(key)) {
+            this.cellMap.delete(key);
+            console.log(`Deleted cell at (${row}, ${col})`);
+            return true;
+        } else {
+            // No cell existed at that position
+            return false;
+        }
     }
     
     

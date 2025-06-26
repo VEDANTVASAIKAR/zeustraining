@@ -32,11 +32,17 @@ export class GridDrawer {
         }
     }
     columnheaders(rows, cols) {
-        for (let i = 0; i < rows.n; i++) {
-            for (let j = 0; j < cols.n; j++) {
-                let label = getExcelColumnLabel(j);
-                this.cellmanager.setCell(i, j, label);
-            }
+        for (let j = 0; j < cols.n; j++) {
+            let label = getExcelColumnLabel(j);
+            this.cellmanager.setCell(0, j, label);
+            this.drawCell(0, j, label, rows, cols, true);
+        }
+    }
+    rowheaders(rows, cols) {
+        for (let i = 1; i <= rows.n; i++) {
+            let label = i;
+            this.cellmanager.setCell(i, 0, label);
+            this.drawCell(i, 0, label, rows, cols, true);
         }
     }
     /**
@@ -48,7 +54,7 @@ export class GridDrawer {
      * @param {Rows} rows The Rows manager (for calculating cell heights)
      * @param {Cols} cols The Cols manager (for calculating cell widths)
      */
-    drawCell(row, col, value, rows, cols) {
+    drawCell(row, col, value, rows, cols, isheader = false) {
         // Calculate the top-left x and y position of the cell
         const x = cols.widths.slice(0, col).reduce((a, b) => a + b, 0);
         const y = rows.heights.slice(0, row).reduce((a, b) => a + b, 0);
@@ -63,10 +69,18 @@ export class GridDrawer {
         // Draw the cell value text, aligned left with a small padding and vertically centered
         this.ctx.fillStyle = "#000";
         this.ctx.font = "12px Arial";
-        this.ctx.textBaseline = "middle";
         this.ctx.textAlign = "left";
-        this.ctx.fillText(value != null ? String(value) : "", x + 4, // 4px padding from left border
-        y + h / 2 // vertical center of the cell
-        );
+        if (isheader) {
+            this.ctx.textBaseline = "top";
+            this.ctx.fillText(value != null ? String(value) : "", x + w / 2, // 4px padding from left border
+            y + h / 2 // vertical center of the cell
+            );
+        }
+        else {
+            this.ctx.textBaseline = "middle";
+            this.ctx.fillText(value != null ? String(value) : "", x + 4, // 4px padding from left border
+            y + h / 2 // vertical alignment
+            );
+        }
     }
 }

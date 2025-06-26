@@ -38,10 +38,31 @@ export class CellManager {
             console.log(`CREATED new Cell at (${row}, ${col}) with value:`, value);
             console.log('Total cells with data:', this.cellMap.size);
         }
+        else if (value == '') {
+            this.deleteCell(row, col);
+        }
         else {
             cell.value = value;
             console.log(`UPDATED Cell at (${row}, ${col}) to value:`, value);
         }
         return cell;
+    }
+    /**
+ * Deletes the cell at the given row and column, if it exists.
+ * @param {number} row Row index
+ * @param {number} col Column index
+ * @returns {boolean} True if the cell was deleted, false if it did not exist.
+ */
+    deleteCell(row, col) {
+        const key = this.getKey(row, col);
+        if (this.cellMap.has(key)) {
+            this.cellMap.delete(key);
+            console.log(`Deleted cell at (${row}, ${col})`);
+            return true;
+        }
+        else {
+            // No cell existed at that position
+            return false;
+        }
     }
 }

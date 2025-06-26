@@ -50,6 +50,7 @@ export class EventManager {
         this.cellInput.focus();
     }
     saveCell() {
+        console.log(this.cellInput.value.length);
         if (this.selectedRow !== null &&
             this.selectedCol !== null
         // this.cellInput.value !== ''
