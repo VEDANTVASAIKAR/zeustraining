@@ -92,6 +92,7 @@ export class EventManager {
             this.cols.setWidth(this.resizingCol, finalWidth);
             // Disable the preview line
             this.previewLineX = null;
+            this.grid.ctx.clearRect(0, 0, this.grid.canvas.width, this.grid.canvas.height);
             // Redraw everything
             this.grid.drawRows(this.rows, this.cols);
             this.grid.drawCols(this.rows, this.cols);
