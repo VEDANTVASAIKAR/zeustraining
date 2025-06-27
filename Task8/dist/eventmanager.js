@@ -91,7 +91,7 @@ export class EventManager {
             // Clear preview line
             this.previewLineX = null;
             // Redraw everything once
-            this.grid.redrawAll(this.rows, this.cols);
+            this.grid.drawGrid(this.rows, this.cols);
         }
         this.resizingCol = null;
     }

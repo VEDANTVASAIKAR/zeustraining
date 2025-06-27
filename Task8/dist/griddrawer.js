@@ -155,13 +155,14 @@ export class GridDrawer {
         this.ctx.setLineDash([]); // Reset line style
     }
     /**
-   * Redraws the entire visible area: cells, headers, and grid lines.
-   * Call this after any resize or edit.
-   */
-    redrawAll(rows, cols) {
-        // 1. Clear the whole canvas
+    /**
+     * Draws the entire grid: cells, headers, and grid lines.
+     * This should be the only function you call to fully redraw after changes.
+     */
+    drawGrid(rows, cols) {
+        // 1. Clear canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        // 2. Draw all data cells (skip headers in row 0 and col 0)
+        // 2. Draw all cells (skip headers in row 0 and col 0)
         for (let row = 1; row < rows.n; row++) {
             for (let col = 1; col < cols.n; col++) {
                 const cell = this.cellmanager.getCell(row, col);
@@ -169,7 +170,7 @@ export class GridDrawer {
                 this.drawCell(row, col, value, rows, cols, false);
             }
         }
-        // 3. Draw headers
+        // 3. Draw column headers and row headers
         this.columnheaders(rows, cols);
         this.rowheaders(rows, cols);
         // 4. Draw grid lines

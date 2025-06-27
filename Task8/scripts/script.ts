@@ -17,10 +17,11 @@ const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols,cellManager);
 
 
-grid.drawRows(rows, cols);
-grid.drawCols(rows, cols);
-grid.columnheaders(rows,cols)
-grid.rowheaders(rows,cols)
+// grid.drawRows(rows, cols);
+// grid.drawCols(rows, cols);
+grid.drawGrid(rows,cols)
+// grid.columnheaders(rows,cols)
+// grid.rowheaders(rows,cols)
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const cellInput = document.getElementById("cellInput") as HTMLInputElement;
