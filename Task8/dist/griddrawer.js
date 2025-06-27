@@ -13,11 +13,10 @@ export class GridDrawer {
         if (!ctx)
             throw new Error("No 2D context");
         this.ctx = ctx;
-        // this.canvas.width = cols.n* CELL_WIDTH
         this.canvas.width = window.innerWidth;
-        // this.canvas.height = rows.n* CELL_HEIGHT
         this.canvas.height = window.innerHeight;
-        // Get the visible area of the container
+        this.rows = rows; // <--- add this line
+        this.cols = cols; // <--- add this line
     }
     drawRows(rows, cols) {
         for (let i = 0; i <= rows.n; i++) {
@@ -133,5 +132,48 @@ export class GridDrawer {
             this.ctx.textBaseline = "middle";
             this.ctx.fillText(value != null ? String(value) : "", drawX + 4, drawY + h / 2);
         }
+    }
+    /**
+   * Draws a vertical preview line for column resizing
+   * @param x The x coordinate where to draw the line
+   */
+    drawPreviewLine(x) {
+        // First clear any existing preview line
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // Redraw the grid (without resizing yet)
+        this.drawRows(this.rows, this.cols);
+        this.drawCols(this.rows, this.cols);
+        this.columnheaders(this.rows, this.cols);
+        this.rowheaders(this.rows, this.cols);
+        // Draw the dashed preview line
+        this.ctx.beginPath();
+        this.ctx.setLineDash([5, 5]); // Create dashed line effect
+        this.ctx.moveTo(x, 0);
+        this.ctx.lineTo(x, this.canvas.height);
+        this.ctx.strokeStyle = '#000';
+        this.ctx.stroke();
+        this.ctx.setLineDash([]); // Reset line style
+    }
+    /**
+   * Redraws the entire visible area: cells, headers, and grid lines.
+   * Call this after any resize or edit.
+   */
+    redrawAll(rows, cols) {
+        // 1. Clear the whole canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // 2. Draw all data cells (skip headers in row 0 and col 0)
+        for (let row = 1; row < rows.n; row++) {
+            for (let col = 1; col < cols.n; col++) {
+                const cell = this.cellmanager.getCell(row, col);
+                const value = cell ? cell.value : '';
+                this.drawCell(row, col, value, rows, cols, false);
+            }
+        }
+        // 3. Draw headers
+        this.columnheaders(rows, cols);
+        this.rowheaders(rows, cols);
+        // 4. Draw grid lines
+        this.drawRows(rows, cols);
+        this.drawCols(rows, cols);
     }
 }

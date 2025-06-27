@@ -20,11 +20,13 @@ export class EventManager {
         this.resizingCol = null; // Which column is being resized
         this.startX = 0; // Where the drag started (for calculations)
         this.startWidth = 0; // Initial width of the column
+        /** Position of the preview line when resizing */
+        this.previewLineX = null;
         this.container = document.querySelector('.container');
         this.attachCanvasEvents();
         this.attachInputEvents();
         this.redraw();
-        this.attachmouseevents();
+        this.attachMouseEvents();
     }
     redraw() {
         this.container.addEventListener('scroll', () => {
@@ -43,37 +45,55 @@ export class EventManager {
             }
         });
     }
-    attachmouseevents() {
+    attachMouseEvents() {
         this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
-        this.canvas.addEventListener('mousedown', (event) => this.handleMousedown(event));
-        window.addEventListener('mouseup', (event) => this.handleMouseup(event));
-        window.addEventListener('mousemove', (event) => this.handleMousedrag(event)); // Listen on window for drag outside canvas
+        this.canvas.addEventListener('mousedown', (event) => this.handleMouseDown(event));
+        window.addEventListener('mouseup', (event) => this.handleMouseUp(event));
+        window.addEventListener('mousemove', (event) => this.handleMouseDrag(event));
     }
-    handleMousedown(event) {
+    handleMouseDown(event) {
         if (this.hoveredColBorder !== null) {
             this.resizingCol = this.hoveredColBorder;
             this.startX = event.clientX;
             this.startWidth = this.cols.widths[this.resizingCol];
-            console.log(this.resizingCol);
-            console.log(this.startWidth);
+            // Calculate initial preview line position
+            let sum = 0;
+            for (let i = 0; i <= this.resizingCol; i++) {
+                sum += this.cols.widths[i];
+            }
+            this.previewLineX = sum;
         }
     }
-    handleMousedrag(event) {
+    handleMouseDrag(event) {
         if (this.resizingCol !== null) {
             const dx = event.clientX - this.startX;
-            const newWidth = Math.max(10, this.startWidth + dx); // Minimum width = 20
-            this.cols.setWidth(this.resizingCol, newWidth);
-            this.grid.drawCols(this.rows, this.cols); // Redraw columns
-            this.grid.columnheaders(this.rows, this.cols); // Redraw headers
-            this.grid.drawRows(this.rows, this.cols);
-            this.grid.rowheaders(this.rows, this.cols);
-            // Optional: Redraw affected cells
+            const newWidth = Math.max(10, this.startWidth + dx);
+            // Calculate where the preview line should be
+            let sum = 0;
+            for (let i = 0; i < this.resizingCol; i++) {
+                sum += this.cols.widths[i];
+            }
+            this.previewLineX = sum + newWidth;
+            // Only draw the preview line, don't resize yet
+            this.grid.drawPreviewLine(this.previewLineX);
         }
     }
-    handleMouseup(event) {
-        if (this.resizingCol !== null) {
-            this.resizingCol = null;
+    handleMouseUp(event) {
+        if (this.resizingCol !== null && this.previewLineX !== null) {
+            // Calculate the final width based on preview position
+            let sum = 0;
+            for (let i = 0; i < this.resizingCol; i++) {
+                sum += this.cols.widths[i];
+            }
+            const finalWidth = this.previewLineX - sum;
+            // Actually resize the column
+            this.cols.setWidth(this.resizingCol, finalWidth);
+            // Clear preview line
+            this.previewLineX = null;
+            // Redraw everything once
+            this.grid.redrawAll(this.rows, this.cols);
         }
+        this.resizingCol = null;
     }
     handleMouseMove(event) {
         const rect = this.canvas.getBoundingClientRect();
