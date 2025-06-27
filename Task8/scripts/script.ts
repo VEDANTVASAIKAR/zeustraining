@@ -34,3 +34,16 @@ console.log(cols.widths);
 let container = document.querySelector('.container') as HTMLElement ;
 
 
+const overlay = document.getElementById("overlay") as HTMLCanvasElement;
+
+// Make sure both canvases always match the window size
+function resizeCanvases() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+  overlay.width = width;
+  overlay.height = height;
+}
+window.addEventListener('resize', resizeCanvases);
+resizeCanvases();

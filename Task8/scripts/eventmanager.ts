@@ -83,16 +83,13 @@ export class EventManager {
         if (this.resizingCol !== null) {
             const dx = event.clientX - this.startX;
             const newWidth = Math.max(10, this.startWidth + dx);
-            
-            // Calculate where the preview line should be
             let sum = 0;
             for (let i = 0; i < this.resizingCol; i++) {
                 sum += this.cols.widths[i];
             }
             this.previewLineX = sum + newWidth;
-            
-            // Only draw the preview line, don't resize yet
-            this.grid.drawPreviewLine(this.previewLineX);
+            // 🟢 Only draw preview line on overlay
+            this.grid.drawPreviewLineOverlay(this.previewLineX);
         }
     }
 
@@ -111,8 +108,11 @@ export class EventManager {
             this.cols.setWidth(this.resizingCol, finalWidth);
 
             // Disable the preview line
-            this.previewLineX = null;
+            // this.previewLineX = null;
             this.grid.ctx.clearRect(0, 0, this.grid.canvas.width, this.grid.canvas.height);
+
+            // 🟢 Clear the overlay (removes preview line)
+            this.grid.clearOverlay();
 
             // Redraw everything
             this.grid.drawRows(this.rows, this.cols);

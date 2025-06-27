@@ -11,6 +11,7 @@ display: flex;
  #scrollable{
   height: 30000000px;
   width: 30000000px;
+  position: relative;
  }
 .container {
   flex: 1 1 auto;
@@ -19,13 +20,20 @@ display: flex;
   overflow: auto;
   /* position: relative; */
 }
-#canvas {
-  /* position: absolute;
+#canvas, #overlay {
+  position: absolute;
   top: 0;
-  left: 0; */
-  /* width and height will be set by JS to match the visible area */
+  left: 0;
   z-index: 1;
-  pointer-events: auto;
+  pointer-events: none;
+}
+#canvas {
+  z-index: 1;
+  pointer-events: auto; /* canvas should receive events */
+}
+#overlay {
+  z-index: 2; /* overlay on top */
+  pointer-events: none; /* overlay does NOT block mouse events */
 }
 /* #input{
   position: absolute;

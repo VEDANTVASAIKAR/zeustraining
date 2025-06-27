@@ -13,6 +13,8 @@ export class GridDrawer {
   container: HTMLElement;
   rows: Rows; // <--- add this line
   cols: Cols; // <--- add this line
+  overlay: HTMLCanvasElement;
+  overlayCtx: CanvasRenderingContext2D;
 
   /**
    * @param canvasId - The ID of the canvas element
@@ -20,10 +22,16 @@ export class GridDrawer {
   constructor(canvasId: string, rows: Rows, cols: Cols, cellmanager: CellManager) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
     this.container = document.querySelector('.container') as HTMLElement;
+    this.overlay = document.getElementById('overlay') as HTMLCanvasElement;
+
+    
+
     const ctx = this.canvas.getContext("2d");
+    const overlayCtx = this.overlay.getContext("2d");
     this.cellmanager = cellmanager;
-    if (!ctx) throw new Error("No 2D context");
+    if (!ctx || !overlayCtx) throw new Error("No 2D context");
     this.ctx = ctx;
+    this.overlayCtx = overlayCtx;
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
     this.rows = rows; // <--- add this line
@@ -182,27 +190,21 @@ drawCell(
       );
     }
   }
-  /**
- * Draws a vertical preview line for column resizing
- * @param x The x coordinate where to draw the line
- */
-drawPreviewLine(x: number) {
-      
-      
-      // Redraw the grid (without resizing yet)
-      this.drawRows(this.rows, this.cols);
-      this.drawCols(this.rows, this.cols);
-      this.columnheaders(this.rows, this.cols);
-      this.rowheaders(this.rows, this.cols);
-      
-      // Draw the dashed preview line
-      this.ctx.beginPath();
-      this.ctx.setLineDash([5, 5]); // Create dashed line effect
-      this.ctx.moveTo(x, 0);
-      this.ctx.lineTo(x, this.canvas.height);
-      this.ctx.strokeStyle = '#000';
-      this.ctx.stroke();
-      this.ctx.setLineDash([]); // Reset line style
+  drawPreviewLineOverlay(x: number) {
+    this.overlayCtx.clearRect(0, 0, this.overlay.width, this.overlay.height);
+    this.overlayCtx.beginPath();
+    this.overlayCtx.setLineDash([5, 5]);
+    this.overlayCtx.moveTo(x, 0);
+    this.overlayCtx.lineTo(x, this.overlay.height);
+    this.overlayCtx.strokeStyle = '#000';
+    this.overlayCtx.lineWidth = 2;
+    this.overlayCtx.stroke();
+    this.overlayCtx.setLineDash([]);
+  }
+
+  /** Clears the overlay canvas */
+  clearOverlay() {
+    this.overlayCtx.clearRect(0, 0, this.overlay.width, this.overlay.height);
   }
   
 

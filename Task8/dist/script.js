@@ -19,3 +19,15 @@ const cellInput = document.getElementById("cellInput");
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager);
 console.log(cols.widths);
 let container = document.querySelector('.container');
+const overlay = document.getElementById("overlay");
+// Make sure both canvases always match the window size
+function resizeCanvases() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+    overlay.width = width;
+    overlay.height = height;
+}
+window.addEventListener('resize', resizeCanvases);
+resizeCanvases();
