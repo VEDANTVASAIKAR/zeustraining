@@ -145,8 +145,6 @@ export class GridDrawer {
    * @param x The x coordinate where to draw the line
    */
     drawPreviewLine(x) {
-        // First clear any existing preview line
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         // Redraw the grid (without resizing yet)
         this.drawRows(this.rows, this.cols);
         this.drawCols(this.rows, this.cols);

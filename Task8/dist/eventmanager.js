@@ -18,6 +18,7 @@ export class EventManager {
         this.hoveredRowBorder = null;
         // Add in EventManager class
         this.resizingCol = null; // Which column is being resized
+        this.resizingRow = null;
         this.startX = 0; // Where the drag started (for calculations)
         this.startWidth = 0; // Initial width of the column
         /** Position of the preview line when resizing */
@@ -98,6 +99,11 @@ export class EventManager {
             this.grid.drawCols(this.rows, this.cols);
             this.grid.columnheaders(this.rows, this.cols);
             this.grid.rowheaders(this.rows, this.cols);
+            // 🟢 ADD: Redraw all cell contents!
+            // This will draw all cells with data after resizing.
+            for (const [key, cell] of this.cellManager.cellMap.entries()) {
+                this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
+            }
         }
         // Reset the resizingCol state
         this.resizingCol = null;

@@ -16,6 +16,7 @@ export class EventManager {
     hoveredRowBorder: number | null = null;
     // Add in EventManager class
     resizingCol: number | null = null; // Which column is being resized
+    resizingRow : number | null = null ;
     startX: number = 0;                // Where the drag started (for calculations)
     startWidth: number = 0;            // Initial width of the column
     /** Position of the preview line when resizing */
@@ -95,7 +96,7 @@ export class EventManager {
         }
     }
 
-handleMouseUp(event: MouseEvent) {
+    handleMouseUp(event: MouseEvent) {
         // Only do this if a column is being resized and a preview line exists
         if (this.resizingCol !== null && this.previewLineX !== null) {
             // Calculate the sum of all column widths before the one being resized
@@ -118,6 +119,12 @@ handleMouseUp(event: MouseEvent) {
             this.grid.drawCols(this.rows, this.cols);
             this.grid.columnheaders(this.rows, this.cols);
             this.grid.rowheaders(this.rows, this.cols);
+
+            // 🟢 ADD: Redraw all cell contents!
+            // This will draw all cells with data after resizing.
+            for (const [key, cell] of this.cellManager.cellMap.entries()) {
+                this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
+            }
         }
         // Reset the resizingCol state
         this.resizingCol = null;
