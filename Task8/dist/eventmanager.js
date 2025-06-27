@@ -21,6 +21,9 @@ export class EventManager {
         this.resizingRow = null;
         this.startX = 0; // Where the drag started (for calculations)
         this.startWidth = 0; // Initial width of the column
+        this.startY = 0;
+        this.startHeight = 0;
+        this.previewLineY = null;
         /** Position of the preview line when resizing */
         this.previewLineX = null;
         this.container = document.querySelector('.container');
@@ -64,6 +67,17 @@ export class EventManager {
             }
             this.previewLineX = sum;
         }
+        if (this.hoveredRowBorder !== null) {
+            this.resizingRow = this.hoveredRowBorder;
+            this.startY = event.clientY;
+            this.startHeight = this.rows.heights[this.resizingRow];
+            // Calculate initial preview line position
+            let sum = 0;
+            for (let i = 0; i <= this.resizingRow; i++) {
+                sum += this.rows.heights[i];
+            }
+            this.previewLineY = sum;
+        }
     }
     handleMouseDrag(event) {
         if (this.resizingCol !== null) {
@@ -76,6 +90,17 @@ export class EventManager {
             this.previewLineX = sum + newWidth;
             // 🟢 Only draw preview line on overlay
             this.grid.drawPreviewLineOverlay(this.previewLineX);
+        }
+        if (this.resizingRow !== null) {
+            const dy = event.clientY - this.startY;
+            const newHeight = Math.max(10, this.startHeight + dy);
+            let sum = 0;
+            for (let i = 0; i < this.resizingRow; i++) {
+                sum += this.rows.heights[i];
+            }
+            this.previewLineY = sum + newHeight;
+            // Draw preview line horizontally on overlay
+            this.grid.drawPreviewLineOverlayRow(this.previewLineY);
         }
     }
     handleMouseUp(event) {
@@ -108,6 +133,24 @@ export class EventManager {
         }
         // Reset the resizingCol state
         this.resizingCol = null;
+        if (this.resizingRow !== null && this.previewLineY !== null) {
+            let sum = 0;
+            for (let i = 0; i < this.resizingRow; i++) {
+                sum += this.rows.heights[i];
+            }
+            const finalHeight = this.previewLineY - sum;
+            this.rows.setHeight(this.resizingRow, finalHeight);
+            this.grid.ctx.clearRect(0, 0, this.grid.canvas.width, this.grid.canvas.height);
+            this.grid.clearOverlay();
+            this.grid.drawRows(this.rows, this.cols);
+            this.grid.drawCols(this.rows, this.cols);
+            this.grid.columnheaders(this.rows, this.cols);
+            this.grid.rowheaders(this.rows, this.cols);
+            for (const [key, cell] of this.cellManager.cellMap.entries()) {
+                this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
+            }
+        }
+        this.resizingRow = null;
     }
     handleMouseMove(event) {
         const rect = this.canvas.getBoundingClientRect();

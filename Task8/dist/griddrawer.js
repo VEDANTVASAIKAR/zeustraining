@@ -154,6 +154,17 @@ export class GridDrawer {
         this.overlayCtx.stroke();
         this.overlayCtx.setLineDash([]);
     }
+    drawPreviewLineOverlayRow(y) {
+        this.overlayCtx.clearRect(0, 0, this.overlay.width, this.overlay.height);
+        this.overlayCtx.beginPath();
+        this.overlayCtx.setLineDash([5, 5]);
+        this.overlayCtx.moveTo(0, y);
+        this.overlayCtx.lineTo(this.overlay.width, y);
+        this.overlayCtx.strokeStyle = '#000';
+        this.overlayCtx.lineWidth = 2;
+        this.overlayCtx.stroke();
+        this.overlayCtx.setLineDash([]);
+    }
     /** Clears the overlay canvas */
     clearOverlay() {
         this.overlayCtx.clearRect(0, 0, this.overlay.width, this.overlay.height);
