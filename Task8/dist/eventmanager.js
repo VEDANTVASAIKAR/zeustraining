@@ -26,6 +26,7 @@ export class EventManager {
         this.previewLineY = null;
         /** Position of the preview line when resizing */
         this.previewLineX = null;
+        this.resizingColLeft = null;
         this.container = document.querySelector('.container');
         this.attachCanvasEvents();
         this.attachInputEvents();
@@ -65,7 +66,8 @@ export class EventManager {
             for (let i = 0; i <= this.resizingCol; i++) {
                 sum += this.cols.widths[i];
             }
-            this.previewLineX = sum;
+            this.resizingColLeft = sum;
+            this.previewLineX = sum + this.startWidth;
         }
         if (this.hoveredRowBorder !== null) {
             this.resizingRow = this.hoveredRowBorder;
@@ -80,20 +82,24 @@ export class EventManager {
         }
     }
     handleMouseDrag(event) {
-        if (this.resizingCol !== null) {
+        if (this.resizingCol !== null && this.resizingColLeft !== null) {
             const dx = event.clientX - this.startX;
             const newWidth = Math.max(10, this.startWidth + dx);
+            this.cols.setWidth(this.resizingCol, newWidth);
+            this.grid.columnheaders(this.rows, this.cols); // Redraw headers
             let sum = 0;
             for (let i = 0; i < this.resizingCol; i++) {
                 sum += this.cols.widths[i];
             }
-            this.previewLineX = sum + newWidth;
+            this.previewLineX = this.resizingColLeft + newWidth;
             // 🟢 Only draw preview line on overlay
             this.grid.drawPreviewLineOverlay(this.previewLineX);
         }
         if (this.resizingRow !== null) {
             const dy = event.clientY - this.startY;
             const newHeight = Math.max(10, this.startHeight + dy);
+            this.rows.setHeight(this.resizingRow, newHeight);
+            this.grid.rowheaders(this.rows, this.cols); // Redraw headers
             let sum = 0;
             for (let i = 0; i < this.resizingRow; i++) {
                 sum += this.rows.heights[i];
@@ -105,27 +111,27 @@ export class EventManager {
     }
     handleMouseUp(event) {
         // Only do this if a column is being resized and a preview line exists
-        if (this.resizingCol !== null && this.previewLineX !== null) {
+        if (this.resizingCol !== null && this.previewLineX !== null && this.resizingColLeft !== null) {
             // Calculate the sum of all column widths before the one being resized
             let sum = 0;
             for (let i = 0; i < this.resizingCol; i++) {
                 sum += this.cols.widths[i];
             }
             // The new width is the preview line position minus the sum of previous widths
-            const finalWidth = this.previewLineX - sum;
+            const finalWidth = this.previewLineX - this.resizingColLeft;
             // Update the width in the cols object
             this.cols.setWidth(this.resizingCol, finalWidth);
             // Disable the preview line
             // this.previewLineX = null;
             this.grid.ctx.clearRect(0, 0, this.grid.canvas.width, this.grid.canvas.height);
-            // 🟢 Clear the overlay (removes preview line)
+            //  Clear the overlay (removes preview line)
             this.grid.clearOverlay();
             // Redraw everything
             this.grid.drawRows(this.rows, this.cols);
             this.grid.drawCols(this.rows, this.cols);
             this.grid.columnheaders(this.rows, this.cols);
             this.grid.rowheaders(this.rows, this.cols);
-            // 🟢 ADD: Redraw all cell contents!
+            //  ADD: Redraw all cell contents!
             // This will draw all cells with data after resizing.
             for (const [key, cell] of this.cellManager.cellMap.entries()) {
                 this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
@@ -133,6 +139,7 @@ export class EventManager {
         }
         // Reset the resizingCol state
         this.resizingCol = null;
+        this.resizingColLeft = null;
         if (this.resizingRow !== null && this.previewLineY !== null) {
             let sum = 0;
             for (let i = 0; i < this.resizingRow; i++) {

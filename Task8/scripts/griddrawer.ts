@@ -51,7 +51,7 @@ export class GridDrawer {
   }
   drawCols(rows: Rows, cols: Cols) {
     let x = 0;
-    for (let i = 0; i <= cols.n; i++) {
+    for (let i = 0+1; i <= cols.n; i++) {
       // Draw vertical line at the left of each column
       const line = new Line(x + 0.5, 0, x + 0.5, rows.heights.reduce((a,b) => a+b, 0));
       line.draw(this.ctx);
@@ -61,8 +61,8 @@ export class GridDrawer {
     }
   }
     columnheaders(rows: Rows, cols: Cols){
-    for (let j=0;j< cols.n; j++){
-      let label = getExcelColumnLabel(j)
+    for (let j=1;j< cols.n; j++){
+      let label = getExcelColumnLabel(j-1)
       this.cellmanager.setCell(0,j,label)
       this.drawCell(0,j,label,rows,cols,true)
     }     
