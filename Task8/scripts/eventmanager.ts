@@ -50,6 +50,7 @@ export class EventManager {
 
     attachCanvasEvents() {
         this.canvas.addEventListener("click", (event) => this.handleCanvasClick(event));
+        this.canvas.addEventListener("dblclick", (event) => this.handledblClick(event));
     }
 
     attachInputEvents() {
@@ -64,8 +65,17 @@ export class EventManager {
     attachMouseEvents() {
         this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
         this.canvas.addEventListener('mousedown', (event) => this.handleMouseDown(event));
+        this.canvas.addEventListener('keydown', (event) => this.handlekeydown(event));
         window.addEventListener('mouseup', (event) => this.handleMouseUp(event));
         window.addEventListener('mousemove', (event) => this.handleMouseDrag(event));
+    }
+
+    handlekeydown(event : KeyboardEvent){
+        this.cellInput.focus();
+    }
+
+    handledblClick(event : MouseEvent){
+        this.cellInput.focus();
     }
 
     handleMouseDown(event: MouseEvent) {
@@ -205,7 +215,7 @@ export class EventManager {
         for (let col = 0; col < this.cols.n; col++) {
             sum += this.cols.widths[col];
             if (Math.abs(x - sum) < threshold) {
-                this.canvas.style.cursor = "col-resize";
+                this.canvas.style.cursor = "ew-resize";
                 this.hoveredColBorder = col;
                 foundBorder = true;
                 break;
@@ -219,7 +229,7 @@ export class EventManager {
         for (let row = 0; row < this.rows.n; row++) {
             sum += this.rows.heights[row];
             if (Math.abs(y - sum) < threshold) {
-                this.canvas.style.cursor = "row-resize";
+                this.canvas.style.cursor = "ns-resize";
                 this.hoveredRowBorder = row;
                 foundBorder = true;
                 break;
@@ -229,7 +239,7 @@ export class EventManager {
 
     // --- Default cursor if not on any border ---
     if (!foundBorder) {
-        this.canvas.style.cursor = "default";
+        this.canvas.style.cursor = "cell";
         this.hoveredColBorder = null;
         this.hoveredRowBorder = null;
     }
@@ -262,7 +272,7 @@ export class EventManager {
         // Prefill input with existing value
         const cell = this.cellManager.getCell(row, col);
         this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
-        this.cellInput.focus();
+        // this.cellInput.focus();
     }
 
     saveCell() {

@@ -51,7 +51,7 @@ export class GridDrawer {
   }
   drawCols(rows: Rows, cols: Cols) {
     let x = 0;
-    for (let i = 0+1; i <= cols.n; i++) {
+    for (let i = 0; i <= cols.n; i++) {
       // Draw vertical line at the left of each column
       const line = new Line(x + 0.5, 0, x + 0.5, rows.heights.reduce((a,b) => a+b, 0));
       line.draw(this.ctx);
@@ -164,7 +164,8 @@ drawCell(
     const drawY = y - this.container.scrollTop;
 
     // Only clear the inside area of the cell, leaving a 1px margin for grid borders
-    this.ctx.clearRect(drawX + 1, drawY + 1, w - 2, h - 2);
+    // this.ctx.clearRect(drawX + 1, drawY + 1, w - 2, h - 2);
+    this.ctx.clearRect(drawX , drawY , w , h );
 
     // Draw the borders again to keep the grid sharp
     this.ctx.strokeStyle = "black";
