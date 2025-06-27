@@ -16,6 +16,10 @@ export class EventManager {
         this.hoveredColBorder = null;
         /** @type {number | null} The index of the row border currently hovered for resizing */
         this.hoveredRowBorder = null;
+        // Add in EventManager class
+        this.resizingCol = null; // Which column is being resized
+        this.startX = 0; // Where the drag started (for calculations)
+        this.startWidth = 0; // Initial width of the column
         this.container = document.querySelector('.container');
         this.attachCanvasEvents();
         this.attachInputEvents();
@@ -41,6 +45,35 @@ export class EventManager {
     }
     attachmouseevents() {
         this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
+        this.canvas.addEventListener('mousedown', (event) => this.handleMousedown(event));
+        window.addEventListener('mouseup', (event) => this.handleMouseup(event));
+        window.addEventListener('mousemove', (event) => this.handleMousedrag(event)); // Listen on window for drag outside canvas
+    }
+    handleMousedown(event) {
+        if (this.hoveredColBorder !== null) {
+            this.resizingCol = this.hoveredColBorder;
+            this.startX = event.clientX;
+            this.startWidth = this.cols.widths[this.resizingCol];
+            console.log(this.resizingCol);
+            console.log(this.startWidth);
+        }
+    }
+    handleMousedrag(event) {
+        if (this.resizingCol !== null) {
+            const dx = event.clientX - this.startX;
+            const newWidth = Math.max(10, this.startWidth + dx); // Minimum width = 20
+            this.cols.setWidth(this.resizingCol, newWidth);
+            this.grid.drawCols(this.rows, this.cols); // Redraw columns
+            this.grid.columnheaders(this.rows, this.cols); // Redraw headers
+            this.grid.drawRows(this.rows, this.cols);
+            this.grid.rowheaders(this.rows, this.cols);
+            // Optional: Redraw affected cells
+        }
+    }
+    handleMouseup(event) {
+        if (this.resizingCol !== null) {
+            this.resizingCol = null;
+        }
     }
     handleMouseMove(event) {
         const rect = this.canvas.getBoundingClientRect();
