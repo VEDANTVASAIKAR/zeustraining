@@ -1,5 +1,4 @@
 import { Line } from "./line.js";
-import { CELL_WIDTH, CELL_HEIGHT } from "./constants.js";
 import { getExcelColumnLabel } from "./utils.js";
 export class GridDrawer {
     /**
@@ -19,17 +18,39 @@ export class GridDrawer {
         this.cols = cols; // <--- add this line
     }
     drawRows(rows, cols) {
+        let y = 0;
         for (let i = 0; i <= rows.n; i++) {
-            const y = i * CELL_HEIGHT;
-            const line = new Line(0, y + 0.5, cols.n * CELL_WIDTH, y + 0.5);
+            // Draw horizontal line at the top of each row
+            const line = new Line(0, y + 0.5, cols.widths.reduce((a, b) => a + b, 0), y + 0.5);
             line.draw(this.ctx);
+            if (i < rows.n) {
+                y += rows.heights[i];
+            }
         }
     }
     drawCols(rows, cols) {
+        let x = 0;
         for (let i = 0; i <= cols.n; i++) {
-            const x = i * CELL_WIDTH;
-            const line = new Line(x + 0.5, 0, x + 0.5, rows.n * CELL_HEIGHT);
+            // Draw vertical line at the left of each column
+            const line = new Line(x + 0.5, 0, x + 0.5, rows.heights.reduce((a, b) => a + b, 0));
             line.draw(this.ctx);
+            if (i < cols.n) {
+                x += cols.widths[i];
+            }
+        }
+    }
+    columnheaders(rows, cols) {
+        for (let j = 0; j < cols.n; j++) {
+            let label = getExcelColumnLabel(j);
+            this.cellmanager.setCell(0, j, label);
+            this.drawCell(0, j, label, rows, cols, true);
+        }
+    }
+    rowheaders(rows, cols) {
+        for (let i = 1; i <= rows.n; i++) {
+            let label = i;
+            this.cellmanager.setCell(i, 0, label);
+            this.drawCell(i, 0, label, rows, cols, true);
         }
     }
     rendervisible(rows, cols) {
@@ -82,20 +103,6 @@ export class GridDrawer {
         //   const line = new Line(x +0.5, 0, x+0.5, rows.n * CELL_HEIGHT);
         //   line.draw(this.ctx);
         // }
-    }
-    columnheaders(rows, cols) {
-        for (let j = 0; j < cols.n; j++) {
-            let label = getExcelColumnLabel(j);
-            this.cellmanager.setCell(0, j, label);
-            this.drawCell(0, j, label, rows, cols, true);
-        }
-    }
-    rowheaders(rows, cols) {
-        for (let i = 1; i <= rows.n; i++) {
-            let label = i;
-            this.cellmanager.setCell(i, 0, label);
-            this.drawCell(i, 0, label, rows, cols, true);
-        }
     }
     /**
      * Draws a single cell value, preserving the grid borders by only clearing/painting inside the borders.
@@ -153,28 +160,5 @@ export class GridDrawer {
         this.ctx.strokeStyle = '#000';
         this.ctx.stroke();
         this.ctx.setLineDash([]); // Reset line style
-    }
-    /**
-    /**
-     * Draws the entire grid: cells, headers, and grid lines.
-     * This should be the only function you call to fully redraw after changes.
-     */
-    drawGrid(rows, cols) {
-        // 1. Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        // 2. Draw all cells (skip headers in row 0 and col 0)
-        for (let row = 1; row < rows.n; row++) {
-            for (let col = 1; col < cols.n; col++) {
-                const cell = this.cellmanager.getCell(row, col);
-                const value = cell ? cell.value : '';
-                this.drawCell(row, col, value, rows, cols, false);
-            }
-        }
-        // 3. Draw column headers and row headers
-        this.columnheaders(rows, cols);
-        this.rowheaders(rows, cols);
-        // 4. Draw grid lines
-        this.drawRows(rows, cols);
-        this.drawCols(rows, cols);
     }
 }

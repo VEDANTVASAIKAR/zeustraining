@@ -31,18 +31,40 @@ export class GridDrawer {
   }
 
   drawRows(rows: Rows, cols: Cols) {
+    let y = 0;
     for (let i = 0; i <= rows.n; i++) {
-      const y = i * CELL_HEIGHT;
-      const line = new Line(0, y + 0.5, cols.n * CELL_WIDTH, y+0.5);
+      // Draw horizontal line at the top of each row
+      const line = new Line(0, y + 0.5, cols.widths.reduce((a,b) => a+b, 0), y + 0.5);
       line.draw(this.ctx);
+      if (i < rows.n) {
+        y += rows.heights[i];
+      }
     }
   }
   drawCols(rows: Rows, cols: Cols) {
-    
+    let x = 0;
     for (let i = 0; i <= cols.n; i++) {
-      const x = i * CELL_WIDTH;
-      const line = new Line(x +0.5, 0, x+0.5, rows.n * CELL_HEIGHT);
+      // Draw vertical line at the left of each column
+      const line = new Line(x + 0.5, 0, x + 0.5, rows.heights.reduce((a,b) => a+b, 0));
       line.draw(this.ctx);
+      if (i < cols.n) {
+        x += cols.widths[i];
+      }
+    }
+  }
+    columnheaders(rows: Rows, cols: Cols){
+    for (let j=0;j< cols.n; j++){
+      let label = getExcelColumnLabel(j)
+      this.cellmanager.setCell(0,j,label)
+      this.drawCell(0,j,label,rows,cols,true)
+    }     
+  }
+
+  rowheaders(rows:Rows,cols:Cols){
+    for(let i=1;i<= rows.n;i++){
+      let label = i;
+      this.cellmanager.setCell(i,0,label);
+      this.drawCell(i,0,label,rows,cols,true)
     }
   }
 
@@ -104,22 +126,6 @@ export class GridDrawer {
       //   line.draw(this.ctx);
       // }
 
-  }
-
-  columnheaders(rows: Rows, cols: Cols){
-    for (let j=0;j< cols.n; j++){
-      let label = getExcelColumnLabel(j)
-      this.cellmanager.setCell(0,j,label)
-      this.drawCell(0,j,label,rows,cols,true)
-    }     
-  }
-
-  rowheaders(rows:Rows,cols:Cols){
-    for(let i=1;i<= rows.n;i++){
-      let label = i;
-      this.cellmanager.setCell(i,0,label);
-      this.drawCell(i,0,label,rows,cols,true)
-    }
   }
 
 /**
@@ -199,31 +205,6 @@ drawPreviewLine(x: number) {
       this.ctx.stroke();
       this.ctx.setLineDash([]); // Reset line style
   }
-  /**
-  /**
-   * Draws the entire grid: cells, headers, and grid lines.
-   * This should be the only function you call to fully redraw after changes.
-   */
-  drawGrid(rows: Rows, cols: Cols) {
-      // 1. Clear canvas
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-      // 2. Draw all cells (skip headers in row 0 and col 0)
-      for (let row = 1; row < rows.n; row++) {
-          for (let col = 1; col < cols.n; col++) {
-              const cell = this.cellmanager.getCell(row, col);
-              const value = cell ? cell.value : '';
-              this.drawCell(row, col, value, rows, cols, false);
-          }
-      }
-
-      // 3. Draw column headers and row headers
-      this.columnheaders(rows, cols);
-      this.rowheaders(rows, cols);
-
-      // 4. Draw grid lines
-      this.drawRows(rows, cols);
-      this.drawCols(rows, cols);
-  }
+  
 
 }

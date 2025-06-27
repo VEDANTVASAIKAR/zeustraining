@@ -95,24 +95,30 @@ export class EventManager {
         }
     }
 
-    handleMouseUp(event: MouseEvent) {
+handleMouseUp(event: MouseEvent) {
+        // Only do this if a column is being resized and a preview line exists
         if (this.resizingCol !== null && this.previewLineX !== null) {
-            // Calculate the final width based on preview position
+            // Calculate the sum of all column widths before the one being resized
             let sum = 0;
             for (let i = 0; i < this.resizingCol; i++) {
                 sum += this.cols.widths[i];
             }
+            // The new width is the preview line position minus the sum of previous widths
             const finalWidth = this.previewLineX - sum;
             
-            // Actually resize the column
+            // Update the width in the cols object
             this.cols.setWidth(this.resizingCol, finalWidth);
-            
-            // Clear preview line
+
+            // Disable the preview line
             this.previewLineX = null;
             
-            // Redraw everything once
-            this.grid.drawGrid(this.rows, this.cols);
+            // Redraw everything
+            this.grid.drawRows(this.rows, this.cols);
+            this.grid.drawCols(this.rows, this.cols);
+            this.grid.columnheaders(this.rows, this.cols);
+            this.grid.rowheaders(this.rows, this.cols);
         }
+        // Reset the resizingCol state
         this.resizingCol = null;
     }
 

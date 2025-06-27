@@ -9,11 +9,10 @@ const rows = new Rows(500);
 const cols = new Cols(100);
 const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols, cellManager);
-// grid.drawRows(rows, cols);
-// grid.drawCols(rows, cols);
-grid.drawGrid(rows, cols);
-// grid.columnheaders(rows,cols)
-// grid.rowheaders(rows,cols)
+grid.drawRows(rows, cols);
+grid.drawCols(rows, cols);
+grid.columnheaders(rows, cols);
+grid.rowheaders(rows, cols);
 const canvas = document.getElementById("canvas");
 const cellInput = document.getElementById("cellInput");
 // pass grid and cellManager to event manager
