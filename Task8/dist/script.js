@@ -5,20 +5,8 @@ import { CellManager } from "./cellmanager.js";
 import { EventManager } from "./eventmanager.js";
 let selectedRow = null;
 let selectedCol = null;
-const rows = new Rows(500);
-const cols = new Cols(100);
-const cellManager = new CellManager();
-const grid = new GridDrawer("canvas", rows, cols, cellManager);
-grid.drawRows(rows, cols);
-grid.drawCols(rows, cols);
-grid.columnheaders(rows, cols);
-grid.rowheaders(rows, cols);
-const canvas = document.getElementById("canvas");
-const cellInput = document.getElementById("cellInput");
-// pass grid and cellManager to event manager
-const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager);
-console.log(cols.widths);
 let container = document.querySelector('.container');
+const canvas = document.getElementById("canvas");
 const overlay = document.getElementById("overlay");
 // Make sure both canvases always match the window size
 function resizeCanvases() {
@@ -31,3 +19,15 @@ function resizeCanvases() {
 }
 window.addEventListener('resize', resizeCanvases);
 resizeCanvases();
+const rows = new Rows(500);
+const cols = new Cols(100);
+const cellManager = new CellManager();
+const grid = new GridDrawer("canvas", rows, cols, cellManager);
+grid.drawRows(rows, cols);
+grid.drawCols(rows, cols);
+grid.columnheaders(rows, cols);
+grid.rowheaders(rows, cols);
+const cellInput = document.getElementById("cellInput");
+// pass grid and cellManager to event manager
+const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager);
+console.log(cols.widths);

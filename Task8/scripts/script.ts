@@ -9,6 +9,21 @@ import { EventManager } from "./eventmanager.js";
 let selectedRow: number | null = null;
 let selectedCol: number | null = null;
 
+let container = document.querySelector('.container') as HTMLElement ;
+
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+const overlay = document.getElementById("overlay") as HTMLCanvasElement;
+// Make sure both canvases always match the window size
+function resizeCanvases() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+  overlay.width = width;
+  overlay.height = height;
+}
+window.addEventListener('resize', resizeCanvases);
+resizeCanvases();
 
 const rows = new Rows(500);
 const cols = new Cols(100); 
@@ -23,7 +38,7 @@ grid.drawCols(rows, cols);
 grid.columnheaders(rows,cols)
 grid.rowheaders(rows,cols)
 
-const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+
 const cellInput = document.getElementById("cellInput") as HTMLInputElement;
 
 // pass grid and cellManager to event manager
@@ -31,19 +46,5 @@ const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellM
 
 console.log(cols.widths);
 
-let container = document.querySelector('.container') as HTMLElement ;
 
 
-const overlay = document.getElementById("overlay") as HTMLCanvasElement;
-
-// Make sure both canvases always match the window size
-function resizeCanvases() {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  canvas.width = width;
-  canvas.height = height;
-  overlay.width = width;
-  overlay.height = height;
-}
-window.addEventListener('resize', resizeCanvases);
-resizeCanvases();
