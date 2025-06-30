@@ -10,8 +10,6 @@ export class EventManager {
         this.cols = cols;
         this.grid = grid;
         this.cellManager = cellManager;
-        this.selectedRow = null;
-        this.selectedCol = null;
         /** @type {number | null} The index of the column border currently hovered for resizing */
         this.hoveredColBorder = null;
         /** @type {number | null} The index of the row border currently hovered for resizing */
@@ -27,11 +25,16 @@ export class EventManager {
         /** Position of the preview line when resizing */
         this.previewLineX = null;
         this.resizingColLeft = null;
+        // Initialize selection to cell A1 (row 1, col 1 since row 0 and col 0 are headers)
+        this.selectedRow = 1;
+        this.selectedCol = 1;
         this.container = document.querySelector('.container');
         this.attachCanvasEvents();
         this.attachInputEvents();
         this.redraw();
         this.attachMouseEvents();
+        // Position the input in cell A1 immediately
+        this.positionInputAtCurrentSelection();
     }
     redraw() {
         this.container.addEventListener('scroll', () => {
@@ -48,6 +51,22 @@ export class EventManager {
         this.cellInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
                 this.saveCell();
+            }
+        });
+        this.canvas.addEventListener("keydown", (e) => {
+            // Check if a cell is selected (ensure selectedRow and selectedCol are not null)
+            if (this.selectedRow === null || this.selectedCol === null)
+                return;
+            // Only focus and populate input on typing keys
+            // Ignore control keys, navigation keys, function keys, etc.
+            if (e.key.length === 1 && // Single character keys (letters, numbers, symbols)
+                !e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey) {
+                // Focus the input
+                this.cellInput.focus();
+                // Prevent the key from also being added by the browser's default behavior
+                e.preventDefault();
             }
         });
     }
@@ -68,14 +87,15 @@ export class EventManager {
         if (this.hoveredColBorder !== null) {
             this.resizingCol = this.hoveredColBorder;
             this.startX = event.clientX;
+            console.log(event.clientX);
             this.startWidth = this.cols.widths[this.resizingCol];
             // Calculate initial preview line position
             let sum = 0;
-            for (let i = 0; i <= this.resizingCol; i++) {
+            for (let i = 0; i < this.resizingCol; i++) { // Use < instead of <=
                 sum += this.cols.widths[i];
             }
-            this.resizingColLeft = sum;
-            this.previewLineX = sum + this.startWidth;
+            this.resizingColLeft = sum; // This is now the left edge of column
+            this.previewLineX = sum + this.cols.widths[this.resizingCol]; // Right edge position
         }
         if (this.hoveredRowBorder !== null) {
             this.resizingRow = this.hoveredRowBorder;
@@ -144,6 +164,7 @@ export class EventManager {
             for (const [key, cell] of this.cellManager.cellMap.entries()) {
                 this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
             }
+            this.updateInputBoxIfVisible();
         }
         // Reset the resizingCol state
         this.resizingCol = null;
@@ -164,6 +185,7 @@ export class EventManager {
             for (const [key, cell] of this.cellManager.cellMap.entries()) {
                 this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
             }
+            this.updateInputBoxIfVisible();
         }
         this.resizingRow = null;
     }
@@ -215,22 +237,12 @@ export class EventManager {
         const y = event.clientY - rect.top;
         const col = findIndexFromCoord(x, this.cols.widths);
         const row = findIndexFromCoord(y, this.rows.heights);
-        if (row < 0 || col < 0)
+        // avoid editing headers
+        if (row <= 0 || col <= 0)
             return;
         this.selectedRow = row;
         this.selectedCol = col;
-        const cellLeft = this.cols.widths.slice(0, col).reduce((a, b) => a + b, 0);
-        const cellTop = this.rows.heights.slice(0, row).reduce((a, b) => a + b, 0);
-        this.cellInput.style.display = "block";
-        this.cellInput.style.position = "absolute";
-        this.cellInput.style.left = cellLeft + "px";
-        this.cellInput.style.top = cellTop + "px";
-        this.cellInput.style.width = this.cols.widths[col] + "px";
-        this.cellInput.style.height = this.rows.heights[row] + "px";
-        // Prefill input with existing value
-        const cell = this.cellManager.getCell(row, col);
-        this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
-        // this.cellInput.focus();
+        this.updateInputBoxIfVisible();
     }
     saveCell() {
         console.log(this.cellInput.value.length);
@@ -243,5 +255,29 @@ export class EventManager {
             this.grid.drawCell(this.selectedRow, this.selectedCol, this.cellInput.value, this.rows, this.cols);
         }
         this.cellInput.style.display = "none";
+    }
+    /**
+     * Updates the input box position and size if it's currently visible
+     */
+    updateInputBoxIfVisible() {
+        if (this.selectedRow !== null && this.selectedCol !== null) {
+            this.positionInputAtCurrentSelection();
+        }
+    }
+    /**
+ * Positions the input box at the currently selected cell
+ */
+    positionInputAtCurrentSelection() {
+        const cellLeft = this.cols.widths.slice(0, this.selectedCol).reduce((a, b) => a + b, 0);
+        const cellTop = this.rows.heights.slice(0, this.selectedRow).reduce((a, b) => a + b, 0);
+        this.cellInput.style.display = "block";
+        this.cellInput.style.position = "absolute";
+        this.cellInput.style.left = cellLeft + "px";
+        this.cellInput.style.top = cellTop + "px";
+        this.cellInput.style.width = this.cols.widths[this.selectedCol] + "px";
+        this.cellInput.style.height = this.rows.heights[this.selectedRow] + "px";
+        // Prefill input with existing value
+        const cell = this.cellManager.getCell(this.selectedRow, this.selectedCol);
+        this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
     }
 }

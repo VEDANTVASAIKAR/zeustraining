@@ -3,6 +3,7 @@ import { Rows } from "./rows.js";
 import { Cols } from "./cols.js";
 import { CellManager } from "./cellmanager.js";
 import { EventManager } from "./eventmanager.js";
+import { selectionManager } from "./selectionmanager.js";
 let selectedRow = null;
 let selectedCol = null;
 let container = document.querySelector('.container');
@@ -30,4 +31,5 @@ grid.rowheaders(rows, cols);
 const cellInput = document.getElementById("cellInput");
 // pass grid and cellManager to event manager
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager);
+const SelectionManager = new selectionManager(grid, rows, cols, cellManager, canvas);
 console.log(cols.widths);

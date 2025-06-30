@@ -60,11 +60,11 @@ export class GridDrawer {
       }
     }
   }
-    columnheaders(rows: Rows, cols: Cols){
+  columnheaders(rows: Rows, cols: Cols){
     for (let j=1;j< cols.n; j++){
       let label = getExcelColumnLabel(j-1)
       this.cellmanager.setCell(0,j,label)
-      this.drawCell(0,j,label,rows,cols,true)
+      this.drawCell(0,j,label,rows,cols)
     }     
   }
 
@@ -72,7 +72,7 @@ export class GridDrawer {
     for(let i=1;i<= rows.n;i++){
       let label = i;
       this.cellmanager.setCell(i,0,label);
-      this.drawCell(i,0,label,rows,cols,true)
+      this.drawCell(i,0,label,rows,cols)
     }
   }
 
@@ -136,23 +136,27 @@ export class GridDrawer {
 
   }
 
-/**
- * Draws a single cell value, preserving the grid borders by only clearing/painting inside the borders.
- * This prevents overlapping text and keeps grid lines sharp even after edits or redraws.
- * @param {number} row The row index of the cell
- * @param {number} col The column index of the cell
- * @param {string|number|null} value The value to draw in the cell
- * @param {Rows} rows The Rows manager (for calculating cell heights)
- * @param {Cols} cols The Cols manager (for calculating cell widths)
- */
-drawCell(
+  /**
+   * Draws a single cell value, preserving the grid borders by only clearing/painting inside the borders.
+   * This prevents overlapping text and keeps grid lines sharp even after edits or redraws.
+   * @param {number} row The row index of the cell
+   * @param {number} col The column index of the cell
+   * @param {string|number|null} value The value to draw in the cell
+   * @param {Rows} rows The Rows manager (for calculating cell heights)
+   * @param {Cols} cols The Cols manager (for calculating cell widths)
+   */
+  drawCell(
     row: number,
     col: number,
     value: string | number | null,
     rows: Rows,
     cols: Cols,
-    isheader : boolean = false
+    
   ) {
+
+    // Automatically determine if this is a header cell
+    const isHeader = row === 0 || col === 0;
+
     // Virtual grid position in the giant sheet
     const x = cols.widths.slice(0, col).reduce((a, b) => a + b, 0);
     const y = rows.heights.slice(0, row).reduce((a, b) => a + b, 0);
@@ -175,20 +179,25 @@ drawCell(
     this.ctx.fillStyle = "#000";
     this.ctx.font = "12px Arial";
     this.ctx.textAlign = "left";
-    if(isheader){
-      this.ctx.textBaseline = "top";
-      this.ctx.fillText(
-        value != null ? String(value) : "",
-        drawX + w/2,
-        drawY + h / 2
-      );
-    }else{
-      this.ctx.textBaseline = "middle";
-      this.ctx.fillText(
-        value != null ? String(value) : "",
-        drawX + 4,
-        drawY + h/2
-      );
+    if(isHeader) {
+        this.ctx.textAlign = "center"; // Center the text for headers
+        this.ctx.textBaseline = "middle"; // Changed from "top" to "middle" for better centering
+        this.ctx.fillStyle = "rgba(245,245,245,1)";
+        this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w, h);
+        this.ctx.fillStyle = "#000";
+        this.ctx.fillText(
+            value != null ? String(value) : "",
+            drawX + w/2,
+            drawY + h/2
+        );
+    } else {
+        this.ctx.textAlign = "left";
+        this.ctx.textBaseline = "middle";
+        this.ctx.fillText(
+            value != null ? String(value) : "",
+            drawX + 4,
+            drawY + h/2
+        );
     }
   }
   drawPreviewLineOverlay(x: number) {

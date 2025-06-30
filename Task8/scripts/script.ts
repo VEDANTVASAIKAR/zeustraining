@@ -5,6 +5,7 @@ import { CELL_WIDTH, CELL_HEIGHT } from "./constants.js";
 import { findIndexFromCoord } from "./utils.js"; 
 import { CellManager } from "./cellmanager.js";
 import { EventManager } from "./eventmanager.js";
+import { selectionManager } from "./selectionmanager.js";
 
 let selectedRow: number | null = null;
 let selectedCol: number | null = null;
@@ -43,6 +44,7 @@ const cellInput = document.getElementById("cellInput") as HTMLInputElement;
 
 // pass grid and cellManager to event manager
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager);
+const SelectionManager = new selectionManager(grid,rows,cols,cellManager,canvas)
 
 console.log(cols.widths);
 
