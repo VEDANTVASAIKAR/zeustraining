@@ -24,6 +24,8 @@ const rows = new Rows(500);
 const cols = new Cols(100);
 const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols, cellManager);
+// Initial rendering
+grid.rendervisible(rows, cols);
 grid.drawRows(rows, cols);
 grid.drawCols(rows, cols);
 grid.columnheaders(rows, cols);

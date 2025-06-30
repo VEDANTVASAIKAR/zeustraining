@@ -37,9 +37,34 @@ export class EventManager {
         this.positionInputAtCurrentSelection();
     }
     redraw() {
-        this.container.addEventListener('scroll', () => {
-            console.log("Scroll event fired!"); // Add this line
-            this.grid.rendervisible(this.rows, this.cols);
+        // Use requestAnimationFrame to throttle scroll events
+        let ticking = false;
+        // Initial render when the page loads
+        this.grid.rendervisible(this.rows, this.cols);
+        this.container.addEventListener('scroll', (e) => {
+            console.log("Scroll event detected");
+            // Prevent default scroll behavior if needed
+            // e.preventDefault();
+            // Only schedule a new rendering if we're not already in the middle of one
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    console.log("Rendering grid after scroll");
+                    this.grid.rendervisible(this.rows, this.cols);
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+        // Also re-render on window resize
+        window.addEventListener('resize', () => {
+            console.log("Window resize detected");
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    this.grid.rendervisible(this.rows, this.cols);
+                    ticking = false;
+                });
+                ticking = true;
+            }
         });
     }
     attachCanvasEvents() {
