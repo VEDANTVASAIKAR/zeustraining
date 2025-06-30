@@ -46,7 +46,6 @@ export class EventManager {
         this.canvas.addEventListener("click", (event) => this.handleCanvasClick(event));
         this.canvas.addEventListener("dblclick", (event) => this.handledblClick(event));
     }
-    // Add to your attachInputEvents() method in EventManager class
     attachInputEvents() {
         this.cellInput.addEventListener("blur", () => this.saveCell());
         this.cellInput.addEventListener("keydown", (e) => {
@@ -56,15 +55,16 @@ export class EventManager {
                 if (this.selectedRow !== null) {
                     this.selectedRow++;
                     this.positionInputAtCurrentSelection();
+                    // Notify SelectionManager about new selection
+                    this.notifySelectionChange();
                 }
                 e.preventDefault();
             }
         });
         this.canvas.addEventListener("keydown", (e) => {
-            // Check if a cell is selected (ensure selectedRow and selectedCol are not null)
+            // Check if a cell is selected
             if (this.selectedRow === null || this.selectedCol === null)
                 return;
-            // Handle arrow key navigation
             let moved = false;
             switch (e.key) {
                 case "ArrowUp":
@@ -98,6 +98,7 @@ export class EventManager {
                     }
                     this.selectedCol++;
                     moved = true;
+                    this.cellInput.style.display === "none";
                     break;
                 default:
                     // Only focus and populate input on typing keys
@@ -105,10 +106,10 @@ export class EventManager {
                         !e.ctrlKey &&
                         !e.altKey &&
                         !e.metaKey &&
-                        e.key != 'ArrowUp' &&
-                        e.key != 'ArrowRight' &&
-                        e.key != 'ArrowLeft' &&
-                        e.key != 'ArrowDown') {
+                        e.key !== 'ArrowUp' &&
+                        e.key !== 'ArrowRight' &&
+                        e.key !== 'ArrowLeft' &&
+                        e.key !== 'ArrowDown') {
                         // Focus the input
                         this.cellInput.focus();
                         // Prevent the key from also being added by the browser's default behavior
@@ -117,10 +118,29 @@ export class EventManager {
             }
             // If moved with arrow keys, update the input position
             if (moved) {
+                // CRITICAL: Hide the input during keyboard navigation
+                this.cellInput.style.display = "none";
+                // Update the input position (but keep it hidden)
                 this.positionInputAtCurrentSelection();
+                // Notify SelectionManager about the selection change
+                this.notifySelectionChange();
                 e.preventDefault();
             }
         });
+    }
+    /**
+     * Notifies SelectionManager about changes to the selected cell
+     */
+    notifySelectionChange() {
+        // Create a custom event with selection details
+        const event = new CustomEvent('cell-selection-changed', {
+            detail: {
+                row: this.selectedRow,
+                col: this.selectedCol
+            }
+        });
+        // Dispatch the event on the canvas element
+        this.canvas.dispatchEvent(event);
     }
     attachMouseEvents() {
         this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));

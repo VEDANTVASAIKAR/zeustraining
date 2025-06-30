@@ -36,6 +36,27 @@ export class selectionManager {
         this.canvas = canvas;
         this.ctx = this.canvas.getContext("2d");
         this.attachCanvasEvents();
+
+        //Listen for keyboard navigation events from EventManager
+        this.canvas.addEventListener("cell-selection-changed", (event: any) => {
+            const { row, col } = event.detail;
+            
+            // Use the same logic as click handling, but with provided row/col
+            if (row < 1 || col < 1) return;
+            
+            this.clearPreviousSelection();
+            
+            // Highlight the row header (cell in column 0 of selected row)
+            this.paintCell(row, 0, row, this.rows, this.cols);
+            
+            // Highlight the column header (cell in row 0 of selected column)
+            const columnLabel = getExcelColumnLabel(col - 1);
+            this.paintCell(0, col, columnLabel, this.rows, this.cols);
+            
+            // Update tracking variables for next time
+            this.previousSelectedRow = row;
+            this.previousSelectedCol = col;
+        });
     }
 
     /**
