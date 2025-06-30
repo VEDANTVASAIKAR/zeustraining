@@ -39,6 +39,8 @@ grid.drawCols(rows, cols);
 grid.columnheaders(rows,cols)
 grid.rowheaders(rows,cols)
 
+const Inputdiv = document.getElementById("inputt") as HTMLElement;
+console.log(Inputdiv.innerHTML);
 
 const cellInput = document.getElementById("cellInput") as HTMLInputElement;
 

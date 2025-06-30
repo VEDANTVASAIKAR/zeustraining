@@ -29,10 +29,11 @@ export class EventManager {
     constructor(
         public canvas: HTMLCanvasElement,
         public cellInput: HTMLInputElement,
+        public inputdiv : HTMLElement,
         public rows: Rows,
         public cols: Cols,
         public grid: GridDrawer,
-        public cellManager: CellManager
+        public cellManager: CellManager,
         
     ) {
         // Initialize selection to cell A1 (row 1, col 1 since row 0 and col 0 are headers)
@@ -419,14 +420,19 @@ export class EventManager {
         }
     }
 
-        /**
+    /**
      * Positions the input box at the currently selected cell
+     * @param {boolean} makeVisible Whether to make the input visible (default: true)
      */
-    positionInputAtCurrentSelection() {
+    positionInputAtCurrentSelection(makeVisible: boolean = true) {
         const cellLeft = this.cols.widths.slice(0, this.selectedCol).reduce((a, b) => a + b, 0);
         const cellTop = this.rows.heights.slice(0, this.selectedRow).reduce((a, b) => a + b, 0);
         
-        this.cellInput.style.display = "block";
+        // Only set display: block if makeVisible is true
+        if (makeVisible) {
+            this.cellInput.style.display = "block";
+        }
+        
         this.cellInput.style.position = "absolute";
         this.cellInput.style.left = cellLeft + "px";
         this.cellInput.style.top = cellTop + "px";

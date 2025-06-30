@@ -28,6 +28,8 @@ grid.drawRows(rows, cols);
 grid.drawCols(rows, cols);
 grid.columnheaders(rows, cols);
 grid.rowheaders(rows, cols);
+const Inputdiv = document.getElementById("inputt");
+console.log(Inputdiv.innerHTML);
 const cellInput = document.getElementById("cellInput");
 // pass grid and cellManager to event manager
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager);

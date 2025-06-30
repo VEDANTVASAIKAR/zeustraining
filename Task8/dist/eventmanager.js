@@ -98,7 +98,6 @@ export class EventManager {
                     }
                     this.selectedCol++;
                     moved = true;
-                    this.cellInput.style.display === "none";
                     break;
                 default:
                     // Only focus and populate input on typing keys
@@ -337,12 +336,16 @@ export class EventManager {
         }
     }
     /**
- * Positions the input box at the currently selected cell
- */
-    positionInputAtCurrentSelection() {
+     * Positions the input box at the currently selected cell
+     * @param {boolean} makeVisible Whether to make the input visible (default: true)
+     */
+    positionInputAtCurrentSelection(makeVisible = true) {
         const cellLeft = this.cols.widths.slice(0, this.selectedCol).reduce((a, b) => a + b, 0);
         const cellTop = this.rows.heights.slice(0, this.selectedRow).reduce((a, b) => a + b, 0);
-        this.cellInput.style.display = "block";
+        // Only set display: block if makeVisible is true
+        if (makeVisible) {
+            this.cellInput.style.display = "block";
+        }
         this.cellInput.style.position = "absolute";
         this.cellInput.style.left = cellLeft + "px";
         this.cellInput.style.top = cellTop + "px";
