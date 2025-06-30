@@ -46,26 +46,78 @@ export class EventManager {
         this.canvas.addEventListener("click", (event) => this.handleCanvasClick(event));
         this.canvas.addEventListener("dblclick", (event) => this.handledblClick(event));
     }
+    // Add to your attachInputEvents() method in EventManager class
     attachInputEvents() {
         this.cellInput.addEventListener("blur", () => this.saveCell());
         this.cellInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
                 this.saveCell();
+                // Move selection down after Enter (like Excel)
+                if (this.selectedRow !== null) {
+                    this.selectedRow++;
+                    this.positionInputAtCurrentSelection();
+                }
+                e.preventDefault();
             }
         });
         this.canvas.addEventListener("keydown", (e) => {
             // Check if a cell is selected (ensure selectedRow and selectedCol are not null)
             if (this.selectedRow === null || this.selectedCol === null)
                 return;
-            // Only focus and populate input on typing keys
-            // Ignore control keys, navigation keys, function keys, etc.
-            if (e.key.length === 1 && // Single character keys (letters, numbers, symbols)
-                !e.ctrlKey &&
-                !e.altKey &&
-                !e.metaKey) {
-                // Focus the input
-                this.cellInput.focus();
-                // Prevent the key from also being added by the browser's default behavior
+            // Handle arrow key navigation
+            let moved = false;
+            switch (e.key) {
+                case "ArrowUp":
+                    if (this.selectedRow > 1) { // Don't go above row 1 (row 0 is header)
+                        if (this.cellInput.style.display === "block") {
+                            this.saveCell();
+                        }
+                        this.selectedRow--;
+                        moved = true;
+                    }
+                    break;
+                case "ArrowDown":
+                    if (this.cellInput.style.display === "block") {
+                        this.saveCell();
+                    }
+                    this.selectedRow++;
+                    moved = true;
+                    break;
+                case "ArrowLeft":
+                    if (this.selectedCol > 1) { // Don't go left of column 1 (column 0 is header)
+                        if (this.cellInput.style.display === "block") {
+                            this.saveCell();
+                        }
+                        this.selectedCol--;
+                        moved = true;
+                    }
+                    break;
+                case "ArrowRight":
+                    if (this.cellInput.style.display === "block") {
+                        this.saveCell();
+                    }
+                    this.selectedCol++;
+                    moved = true;
+                    break;
+                default:
+                    // Only focus and populate input on typing keys
+                    if (e.key.length === 1 && // Single character keys (letters, numbers, symbols)
+                        !e.ctrlKey &&
+                        !e.altKey &&
+                        !e.metaKey &&
+                        e.key != 'ArrowUp' &&
+                        e.key != 'ArrowRight' &&
+                        e.key != 'ArrowLeft' &&
+                        e.key != 'ArrowDown') {
+                        // Focus the input
+                        this.cellInput.focus();
+                        // Prevent the key from also being added by the browser's default behavior
+                        e.preventDefault();
+                    }
+            }
+            // If moved with arrow keys, update the input position
+            if (moved) {
+                this.positionInputAtCurrentSelection();
                 e.preventDefault();
             }
         });
@@ -78,7 +130,7 @@ export class EventManager {
         window.addEventListener('mousemove', (event) => this.handleMouseDrag(event));
     }
     handlekeydown(event) {
-        this.cellInput.focus();
+        // this.cellInput.focus();
     }
     handledblClick(event) {
         this.cellInput.focus();
