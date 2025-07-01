@@ -1,4 +1,3 @@
-import { Line } from "./line.js";
 import { getExcelColumnLabel } from "./utils.js";
 /**
  * GridDrawer class is responsible for all canvas rendering operations
@@ -43,38 +42,6 @@ export class GridDrawer {
         this.cols = cols;
     }
     /**
-     * Draws all horizontal grid lines
-     * @param rows - Row manager instance
-     * @param cols - Column manager instance
-     */
-    drawRows(rows, cols) {
-        let y = 0;
-        for (let i = 0; i <= rows.n; i++) {
-            // Draw horizontal line at the top of each row
-            const line = new Line(0, y + 0.5, cols.widths.reduce((a, b) => a + b, 0), y + 0.5);
-            line.draw(this.ctx);
-            if (i < rows.n) {
-                y += rows.heights[i];
-            }
-        }
-    }
-    /**
-     * Draws all vertical grid lines
-     * @param rows - Row manager instance
-     * @param cols - Column manager instance
-     */
-    drawCols(rows, cols) {
-        let x = 0;
-        for (let i = 0; i <= cols.n; i++) {
-            // Draw vertical line at the left of each column
-            const line = new Line(x + 0.5, 0, x + 0.5, rows.heights.reduce((a, b) => a + b, 0));
-            line.draw(this.ctx);
-            if (i < cols.n) {
-                x += cols.widths[i];
-            }
-        }
-    }
-    /**
      * Draws all column headers (A, B, C, etc.)
      * @param rows - Row manager instance
      * @param cols - Column manager instance
@@ -92,6 +59,9 @@ export class GridDrawer {
      * @param cols - Column manager instance
      */
     rowheaders(rows, cols) {
+        // Get current scroll position from container
+        const scrollLeft = this.container.scrollLeft;
+        const scrollTop = this.container.scrollTop;
         for (let i = 1; i <= rows.n; i++) {
             let label = i;
             this.cellmanager.setCell(i, 0, label);
@@ -155,7 +125,7 @@ export class GridDrawer {
         console.log(`Rendering rows ${startRow} to ${endRow}, columns ${startCol} to ${endCol}`);
         // Draw grid lines for the entire visible area
         this.ctx.beginPath();
-        this.ctx.strokeStyle = "black";
+        this.ctx.strokeStyle = "#e0e0e0";
         // Draw horizontal lines for visible rows
         let yPos = 0;
         for (let i = 0; i <= endRow; i++) {
@@ -191,7 +161,7 @@ export class GridDrawer {
                 const value = cell ? cell.value : null;
                 // Draw only cells that have data
                 if (cell) {
-                    this.drawVisibleCell(row, col, value, rows, cols, scrollLeft, scrollTop);
+                    this.drawCell(row, col, value, rows, cols);
                 }
             }
         }
@@ -217,7 +187,7 @@ export class GridDrawer {
             this.ctx.clearRect(drawX, drawY, w, h);
             this.ctx.fillStyle = "rgba(245,245,245,1)";
             this.ctx.fillRect(drawX, drawY, w, h);
-            this.ctx.strokeStyle = "black";
+            this.ctx.strokeStyle = "#e0e0e0";
             this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
             // Draw row number
             this.ctx.fillStyle = "#000";
@@ -248,7 +218,7 @@ export class GridDrawer {
             this.ctx.clearRect(drawX, drawY, w, h);
             this.ctx.fillStyle = "rgba(245,245,245,1)";
             this.ctx.fillRect(drawX, drawY, w, h);
-            this.ctx.strokeStyle = "black";
+            this.ctx.strokeStyle = "#e0e0e0";
             this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
             // Draw column label
             this.ctx.fillStyle = "#000";
@@ -264,7 +234,7 @@ export class GridDrawer {
         this.ctx.clearRect(0, 0, cornerW, cornerH);
         this.ctx.fillStyle = "rgba(245,245,245,1)";
         this.ctx.fillRect(0, 0, cornerW, cornerH);
-        this.ctx.strokeStyle = "black";
+        this.ctx.strokeStyle = "#e0e0e0";
         this.ctx.strokeRect(0.5, 0.5, cornerW, cornerH);
     }
     /**
@@ -294,7 +264,7 @@ export class GridDrawer {
         this.ctx.fillStyle = "rgba(245,245,245,0.95)";
         this.ctx.fillRect(drawX, drawY, w, h);
         // Draw border
-        this.ctx.strokeStyle = "black";
+        this.ctx.strokeStyle = "#e0e0e0";
         this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
         // Draw text (row number)
         this.ctx.fillStyle = "#000";
@@ -330,7 +300,7 @@ export class GridDrawer {
         this.ctx.fillStyle = "rgba(245,245,245,0.95)";
         this.ctx.fillRect(drawX, drawY, w, h);
         // Draw border
-        this.ctx.strokeStyle = "black";
+        this.ctx.strokeStyle = "#e0e0e0";
         this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
         // Draw text (column label)
         this.ctx.fillStyle = "#000";
@@ -352,70 +322,8 @@ export class GridDrawer {
         this.ctx.fillStyle = "rgba(245,245,245,1)";
         this.ctx.fillRect(0, 0, w, h);
         // Draw border
-        this.ctx.strokeStyle = "black";
+        this.ctx.strokeStyle = "#e0e0e0";
         this.ctx.strokeRect(0.5, 0.5, w, h);
-    }
-    /**
-     * Draws a single cell with proper scroll position adjustment
-     * @param row - Row index
-     * @param col - Column index
-     * @param value - Cell value
-     * @param rows - Rows manager
-     * @param cols - Cols manager
-     * @param scrollLeft - Horizontal scroll position
-     * @param scrollTop - Vertical scroll position
-     */
-    drawVisibleCell(row, col, value, rows, cols, scrollLeft, scrollTop) {
-        const isHeader = row === 0 || col === 0;
-        // Calculate position in virtual grid
-        let x = 0;
-        for (let i = 0; i < col; i++) {
-            x += cols.widths[i];
-        }
-        let y = 0;
-        for (let i = 0; i < row; i++) {
-            y += rows.heights[i];
-        }
-        // Get cell dimensions
-        const w = cols.widths[col];
-        const h = rows.heights[row];
-        // Adjust for scroll position
-        const drawX = x - scrollLeft;
-        const drawY = y - scrollTop;
-        // Skip cells that are completely outside viewport
-        if (drawX + w < 0 || drawY + h < 0 ||
-            drawX > this.canvas.width || drawY > this.canvas.height) {
-            return;
-        }
-        // Clear cell area
-        this.ctx.clearRect(drawX, drawY, w, h);
-        // Fill header background if needed
-        if (isHeader) {
-            this.ctx.fillStyle = "rgba(245,245,245,1)";
-            this.ctx.fillRect(drawX, drawY, w, h);
-        }
-        // Draw cell border
-        this.ctx.strokeStyle = "black";
-        this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
-        // Draw cell text
-        this.ctx.fillStyle = "#000";
-        this.ctx.font = "12px Arial";
-        if (isHeader) {
-            // Center text for headers
-            this.ctx.textAlign = "center";
-            this.ctx.textBaseline = "middle";
-            this.ctx.fillText(value != null ? String(value) : "", drawX + w / 2, drawY + h / 2);
-        }
-        else {
-            // Left-align text for regular cells
-            this.ctx.textAlign = "left";
-            this.ctx.textBaseline = "middle";
-            this.ctx.fillText(value != null ? String(value) : "", drawX + 4, drawY + h / 2);
-        }
-        // Log for debugging specific cells
-        if ((row === 0 && col === 0) || (row === 1 && col === 1)) {
-            console.log(`Drew cell R${row}C${col} at (${drawX},${drawY}) size ${w}x${h}`);
-        }
     }
     /**
      * Draws a single cell with its value
@@ -439,7 +347,7 @@ export class GridDrawer {
         // Clear the cell area
         this.ctx.clearRect(drawX, drawY, w, h);
         // Draw cell border
-        this.ctx.strokeStyle = "black";
+        this.ctx.strokeStyle = "#e0e0e0";
         this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
         // Handle header cells differently (with background)
         if (isHeader) {

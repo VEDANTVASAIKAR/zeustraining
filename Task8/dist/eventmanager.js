@@ -36,6 +36,8 @@ export class EventManager {
         this.attachMouseEvents();
         // Position the input in cell A1 immediately
         this.positionInputAtCurrentSelection();
+        this.notifySelectionChange();
+        this.canvas.focus();
     }
     redraw() {
         // Use requestAnimationFrame to throttle scroll events
@@ -44,6 +46,15 @@ export class EventManager {
         this.grid.rendervisible(this.rows, this.cols);
         this.container.addEventListener('scroll', (e) => {
             console.log("Scroll");
+            // Check if input is visible (user is editing)
+            const isEditing = this.cellInput.style.display === 'block';
+            // Only update the input box if it's visible
+            if (isEditing) {
+                console.log(`${this.cellInput.value}`);
+                console.log(this.selectedCol);
+                console.log(this.selectedRow);
+                this.cellManager.setCell(this.selectedRow, this.selectedCol, this.cellInput.value);
+            }
             // update input box position if visible
             if (this.cellInput.style.display == 'block') {
                 this.updateInputBoxIfVisible();
@@ -257,15 +268,11 @@ export class EventManager {
             // Update the width in the cols object
             this.cols.setWidth(this.resizingCol, finalWidth);
             // Disable the preview line
-            // this.previewLineX = null;
             this.grid.ctx.clearRect(0, 0, this.grid.canvas.width, this.grid.canvas.height);
             //  Clear the overlay (removes preview line)
             this.grid.clearOverlay();
             // Redraw everything
-            this.grid.drawRows(this.rows, this.cols);
-            this.grid.drawCols(this.rows, this.cols);
-            this.grid.columnheaders(this.rows, this.cols);
-            this.grid.rowheaders(this.rows, this.cols);
+            this.grid.rendervisible(this.rows, this.cols);
             //  ADD: Redraw all cell contents!
             // This will draw all cells with data after resizing.
             for (const [key, cell] of this.cellManager.cellMap.entries()) {
@@ -285,10 +292,7 @@ export class EventManager {
             this.rows.setHeight(this.resizingRow, finalHeight);
             this.grid.ctx.clearRect(0, 0, this.grid.canvas.width, this.grid.canvas.height);
             this.grid.clearOverlay();
-            this.grid.drawRows(this.rows, this.cols);
-            this.grid.drawCols(this.rows, this.cols);
-            this.grid.columnheaders(this.rows, this.cols);
-            this.grid.rowheaders(this.rows, this.cols);
+            this.grid.rendervisible(this.rows, this.cols);
             for (const [key, cell] of this.cellManager.cellMap.entries()) {
                 this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
             }
@@ -350,11 +354,26 @@ export class EventManager {
         // avoid editing headers
         if (row <= 0 || col <= 0)
             return;
+        // Check if clicking on an already selected cell with visible input
+        const isSameCell = (row === this.selectedRow && col === this.selectedCol);
+        if (isSameCell && this.cellInput.style.display === "block") {
+            // Prevent the browser's default focus behavior for the input
+            event.preventDefault();
+            event.stopPropagation();
+            // Important: Explicitly keep focus on the canvas
+            this.canvas.focus();
+            return;
+        }
         this.selectedRow = row;
         this.selectedCol = col;
         this.updateInputBoxIfVisible();
+        // Keep focus on the canvas instead of the input
+        this.canvas.focus();
     }
     saveCell() {
+        // Get current scroll position from container
+        const scrollLeft = this.container.scrollLeft;
+        const scrollTop = this.container.scrollTop;
         console.log(this.cellInput.value.length);
         if (this.selectedRow !== null &&
             this.selectedCol !== null
@@ -384,10 +403,6 @@ export class EventManager {
         // Log the absolute position in grid
         console.log(`Cell absolute position: left=${cellLeft}, top=${cellTop}`);
         console.log(`Current scroll: left=${this.container.scrollLeft}, top=${this.container.scrollTop}`);
-        // ADJUST FOR SCROLL POSITION
-        // const adjustedLeft = cellLeft - this.container.scrollLeft;
-        // const adjustedTop = cellTop - this.container.scrollTop;
-        // console.log(`Adjusted position: left=${adjustedLeft}, top=${adjustedTop}`);
         if (makeVisible) {
             this.cellInput.style.display = "block";
         }
@@ -400,5 +415,15 @@ export class EventManager {
         console.log(`Input box style: left=${this.cellInput.style.left}, top=${this.cellInput.style.top}, width=${this.cellInput.style.width}, height=${this.cellInput.style.height}`);
         const cell = this.cellManager.getCell(this.selectedRow, this.selectedCol);
         this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
+        // Add this - intercept clicks on the input element itself
+        this.cellInput.addEventListener('mousedown', (e) => {
+            // Check if it's not a double-click
+            if (e.detail === 1) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.canvas.focus();
+                return false;
+            }
+        }, { once: false });
     }
 }

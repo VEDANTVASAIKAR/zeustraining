@@ -197,7 +197,7 @@ export class selectionManager {
         this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
         
         // Draw the borders
-        this.ctx.strokeStyle = "black";
+        this.ctx.strokeStyle = "#e0e0e0";
         this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
         
         // Draw the text

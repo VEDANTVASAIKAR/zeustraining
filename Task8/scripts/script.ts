@@ -36,11 +36,6 @@ const grid = new GridDrawer("canvas", rows, cols,cellManager);
 // Initial rendering
 grid.rendervisible(rows, cols);
 
-grid.drawRows(rows, cols);
-grid.drawCols(rows, cols);
-
-grid.columnheaders(rows,cols)
-grid.rowheaders(rows,cols)
 
 const Inputdiv = document.getElementById("inputt") as HTMLElement;
 console.log(Inputdiv.innerHTML);

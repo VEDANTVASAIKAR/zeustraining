@@ -4,6 +4,7 @@ import { findIndexFromCoord } from "./utils.js";
 import { CellManager } from "./cellmanager.js";
 import { GridDrawer } from "./griddrawer.js";
 import { selectionManager } from "./selectionmanager.js";
+import { getExcelColumnLabel } from "./utils.js";
 /**
  * Manages all event listeners for the grid and input elements.
  */
@@ -34,7 +35,7 @@ export class EventManager {
         public cols: Cols,
         public grid: GridDrawer,
         public cellManager: CellManager,
-        public selectionManager?: selectionManager
+        public selectionManager: selectionManager
         
     ) {
         // Initialize selection to cell A1 (row 1, col 1 since row 0 and col 0 are headers)
@@ -47,6 +48,9 @@ export class EventManager {
         this.attachMouseEvents();
         // Position the input in cell A1 immediately
         this.positionInputAtCurrentSelection();
+        this.notifySelectionChange();
+        this.canvas.focus();
+        
     }
 
     redraw() {
@@ -58,6 +62,17 @@ export class EventManager {
     
     this.container.addEventListener('scroll', (e) => {
         console.log("Scroll");
+        // Check if input is visible (user is editing)
+        const isEditing = this.cellInput.style.display === 'block';
+
+        
+        // Only update the input box if it's visible
+        if (isEditing) {
+            console.log(`${this.cellInput.value}`);
+            console.log(this.selectedCol)
+            console.log(this.selectedRow)
+            this.cellManager.setCell(this.selectedRow,this.selectedCol,this.cellInput.value)
+        }
 
         // update input box position if visible
         if(this.cellInput.style.display == 'block'){
@@ -264,6 +279,7 @@ export class EventManager {
             }
             this.previewLineY = sum;
         }
+        
     }
 
     handleMouseDrag(event: MouseEvent) {
@@ -272,6 +288,7 @@ export class EventManager {
             const newWidth = Math.max(10, this.startWidth + dx);
             this.cols.setWidth(this.resizingCol, newWidth);
             this.grid.columnheaders(this.rows, this.cols); // Redraw headers
+            
             let sum = 0;
             for (let i = 0; i < this.resizingCol; i++) {
                 sum += this.cols.widths[i];
@@ -279,6 +296,7 @@ export class EventManager {
             this.previewLineX = this.resizingColLeft + newWidth;
             // 🟢 Only draw preview line on overlay
             this.grid.drawPreviewLineOverlay(this.previewLineX);
+        
             
 
         }
@@ -295,11 +313,14 @@ export class EventManager {
             this.previewLineY = sum + newHeight;
             // Draw preview line horizontally on overlay
             this.grid.drawPreviewLineOverlayRow(this.previewLineY);
+            
         }
         
         }
 
     handleMouseUp(event: MouseEvent) {
+        
+
         // Only do this if a column is being resized and a preview line exists
         if (this.resizingCol !== null && this.previewLineX !== null && this.resizingColLeft !== null) {
             // Calculate the sum of all column widths before the one being resized
@@ -320,10 +341,7 @@ export class EventManager {
             this.grid.clearOverlay();
 
             // Redraw everything
-            this.grid.drawRows(this.rows, this.cols);
-            this.grid.drawCols(this.rows, this.cols);
-            this.grid.columnheaders(this.rows, this.cols);
-            this.grid.rowheaders(this.rows, this.cols);
+            this.grid.rendervisible(this.rows,this.cols)
 
             //  ADD: Redraw all cell contents!
             // This will draw all cells with data after resizing.
@@ -345,10 +363,7 @@ export class EventManager {
             this.rows.setHeight(this.resizingRow, finalHeight);
             this.grid.ctx.clearRect(0, 0, this.grid.canvas.width, this.grid.canvas.height);
             this.grid.clearOverlay();
-            this.grid.drawRows(this.rows, this.cols);
-            this.grid.drawCols(this.rows, this.cols);
-            this.grid.columnheaders(this.rows, this.cols);
-            this.grid.rowheaders(this.rows, this.cols);
+            this.grid.rendervisible(this.rows,this.cols)
             for (const [key, cell] of this.cellManager.cellMap.entries()) {
                 this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
             }
@@ -356,7 +371,6 @@ export class EventManager {
         }
         this.resizingRow = null;
 
-        
     }
 
 
@@ -369,6 +383,7 @@ export class EventManager {
     const threshold = 5; // px distance to detect border for resizing
     const headerHeight = this.rows.heights[0];
     const headerWidth = this.cols.widths[0];
+    
 
     // Track if we found a border (for cursor)
     let foundBorder = false;
@@ -411,6 +426,7 @@ export class EventManager {
     
 
     handleCanvasClick(event: MouseEvent) {
+        
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
@@ -424,15 +440,33 @@ export class EventManager {
 
         // avoid editing headers
         if (row <= 0 || col <= 0) return;
+        
+
+        // Check if clicking on an already selected cell with visible input
+        const isSameCell = (row === this.selectedRow && col === this.selectedCol);
+        if (isSameCell && this.cellInput.style.display === "block") {
+            // Prevent the browser's default focus behavior for the input
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Important: Explicitly keep focus on the canvas
+            this.canvas.focus();
+            return;
+        }
 
         this.selectedRow = row;
         this.selectedCol = col;
 
         this.updateInputBoxIfVisible()
+
+        // Keep focus on the canvas instead of the input
+        this.canvas.focus();
     }
 
     saveCell() {
-
+        // Get current scroll position from container
+        const scrollLeft = this.container.scrollLeft;
+        const scrollTop = this.container.scrollTop;
         console.log(this.cellInput.value.length);
         
         if (
@@ -452,7 +486,8 @@ export class EventManager {
                 this.selectedCol,
                 this.cellInput.value,
                 this.rows,
-                this.cols
+                this.cols,
+                
             );
         }
         this.cellInput.style.display = "none";
@@ -496,6 +531,17 @@ export class EventManager {
         
         const cell = this.cellManager.getCell(this.selectedRow, this.selectedCol);
         this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
+
+        // Add this - intercept clicks on the input element itself
+        this.cellInput.addEventListener('mousedown', (e) => {
+            // Check if it's not a double-click
+            if (e.detail === 1) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.canvas.focus();
+                return false;
+            }
+        }, { once: false });
     }
 
 }

@@ -10,7 +10,7 @@ export class Line {
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
         ctx.lineWidth = 1;
-        ctx.strokeStyle = 'black';
+        ctx.strokeStyle = '#e0e0e0';
         ctx.stroke();
     }
 }
