@@ -4,60 +4,59 @@ html, body {
   padding: 0;
   overflow: hidden;
 }
-/* .main{
 
-display: flex;
-} */
- #scrollable{
+.main {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+}
+
+.excel-container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.container {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  position: relative;
+}
+
+#scrollable {
   height: 30000000px;
   width: 30000000px;
   position: relative;
- }
-.container {
-  flex: 1 1 auto;
-  min-width: 0;
-  height: 100vh;
-  overflow: auto;
-  /* position: relative; */
 }
-#canvas, #overlay {
+
+#canvas {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 1;
-  pointer-events: none;
-}
-#canvas {
-  z-index: 1;
   pointer-events: auto; /* canvas should receive events */
 }
+
 #overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
   z-index: 2; /* overlay on top */
   pointer-events: none; /* overlay does NOT block mouse events */
 }
-/* #input{
-  position: absolute;
-  display: none;
-  z-index: 10;
-  box-sizing: border-box;
-  border: 7px solid #0a753a; */
 
-/* } */
 #cellInput {
   position: absolute;
-  display: none;
   z-index: 10;
   font-size: 12px;
   padding: 2px;
   box-sizing: border-box;
   display: none;
-  /* border: 7px solid #0a753a; */
+  border: 2px solid #0a753a;
 }
 
 input[type=text]:focus {
   outline: none;
-  /* border: 2px solid #0a753a; */
-}
-input{
-  border: 2px solid #0a753a;
 }

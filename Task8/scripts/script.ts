@@ -23,11 +23,12 @@ function resizeCanvases() {
   overlay.width = width;
   overlay.height = height;
 }
-window.addEventListener('resize', resizeCanvases);
-resizeCanvases();
 
-const rows = new Rows(500);
-const cols = new Cols(100); 
+window.addEventListener('resize', resizeCanvases);
+resizeCanvases(); // Call immediately to set initial size
+
+const rows = new Rows(1000);
+const cols = new Cols(500); 
 
 const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols,cellManager);

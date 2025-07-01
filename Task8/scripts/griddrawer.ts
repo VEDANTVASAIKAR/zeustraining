@@ -59,6 +59,13 @@ export class GridDrawer {
     // Set canvas dimensions
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
+
+    // Attach scroll event to the container, not window
+    this.container.addEventListener('scroll', () => {
+      this.canvas.style.transform = `translate(${this.container.scrollLeft}px, ${this.container.scrollTop}px)`;
+      this.overlay.style.transform = `translate(${this.container.scrollLeft}px, ${this.container.scrollTop}px)`;
+    });
+  
     
     // Store references to row and column managers
     this.rows = rows;
@@ -338,85 +345,6 @@ export class GridDrawer {
     if ((row === 0 && col === 0) || (row === 1 && col === 1)) {
       console.log(`Drew cell R${row}C${col} at (${drawX},${drawY}) size ${w}x${h}`);
     }
-  }
-
-  /**
-   * Draws grid lines only for the visible part of the grid
-   * @param startRow - First visible row
-   * @param endRow - Last visible row
-   * @param startCol - First visible column
-   * @param endCol - Last visible column
-   * @param rows - Row manager instance
-   * @param cols - Column manager instance
-   */
-  drawVisibleGridLines(startRow: number, endRow: number, startCol: number, endCol: number, rows: Rows, cols: Cols) {
-    // Calculate position of the first visible row
-    let y = rows.heights.slice(0, startRow).reduce((a, b) => a + b, 0);
-    
-    // Draw horizontal grid lines for visible rows
-    for (let i = startRow; i <= endRow; i++) {
-      // Draw horizontal line at the top of each row
-      const line = new Line(
-        0 - this.container.scrollLeft, // Start from the left edge of the canvas, adjusted for scroll
-        y + 0.5 - this.container.scrollTop, // Position adjusted for scroll
-        cols.widths.reduce((a, b) => a + b, 0) - this.container.scrollLeft, // Full width
-        y + 0.5 - this.container.scrollTop // Position adjusted for scroll
-      );
-      line.draw(this.ctx);
-      
-      if (i < rows.n) {
-        y += rows.heights[i];
-      }
-    }
-    
-    // Calculate position of the first visible column
-    let x = cols.widths.slice(0, startCol).reduce((a, b) => a + b, 0);
-    
-    // Draw vertical grid lines for visible columns
-    for (let i = startCol; i <= endCol; i++) {
-      // Draw vertical line at the left of each column
-      const line = new Line(
-        x + 0.5 - this.container.scrollLeft, // Position adjusted for scroll
-        0 - this.container.scrollTop, // Start from the top edge of the canvas, adjusted for scroll
-        x + 0.5 - this.container.scrollLeft, // Position adjusted for scroll
-        rows.heights.reduce((a, b) => a + b, 0) - this.container.scrollTop // Full height
-      );
-      line.draw(this.ctx);
-      
-      if (i < cols.n) {
-        x += cols.widths[i];
-      }
-    }
-  }
-
-
-  /**
-   * Draws headers for the visible area
-   * @param startRow - First visible row
-   * @param endRow - Last visible row
-   * @param startCol - First visible column
-   * @param endCol - Last visible column
-   * @param rows - Row manager instance
-   * @param cols - Column manager instance
-   */
-  drawVisibleHeaders(startRow: number, endRow: number, startCol: number, endCol: number, rows: Rows, cols: Cols) {
-    // Draw row headers that are in the visible range
-    for (let row = startRow; row <= endRow; row++) {
-      if (row > 0) { // Skip the corner cell (0,0)
-        this.drawCell(row, 0, row, rows, cols);
-      }
-    }
-    
-    // Draw column headers that are in the visible range
-    for (let col = startCol; col <= endCol; col++) {
-      if (col > 0) { // Skip the corner cell (0,0)
-        const label = getExcelColumnLabel(col - 1);
-        this.drawCell(0, col, label, rows, cols);
-      }
-    }
-    
-    // Always draw the corner cell (0,0)
-    this.drawCell(0, 0, "", rows, cols);
   }
 
   /**

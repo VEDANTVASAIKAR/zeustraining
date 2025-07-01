@@ -61,8 +61,11 @@ export class selectionManager {
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        const col = findIndexFromCoord(x, this.cols.widths);
-        const row = findIndexFromCoord(y, this.rows.heights);
+        // Add scroll offset to get position in the virtual grid
+        const virtualX = x + this.container.scrollLeft;
+        const virtualY = y + this.container.scrollTop;
+        const col = findIndexFromCoord(virtualX, this.cols.widths);
+        const row = findIndexFromCoord(virtualY, this.rows.heights);
         // Skip if we clicked on a header or outside the grid
         if (row < 1 || col < 1)
             return;

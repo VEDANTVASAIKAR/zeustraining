@@ -48,17 +48,19 @@ export class EventManager {
     }
 
     redraw() {
-    // Use requestAnimationFrame to throttle scroll events
-    let ticking = false;
-    
-    // Initial render when the page loads
-    this.grid.rendervisible(this.rows, this.cols);
-    
-    this.container.addEventListener('scroll', (e) => {
-        console.log("Scroll event detected");
+        // Use requestAnimationFrame to throttle scroll events
+        let ticking = false;
         
-        // Prevent default scroll behavior if needed
-        // e.preventDefault();
+        // Initial render when the page loads
+        this.grid.rendervisible(this.rows, this.cols);
+        
+        this.container.addEventListener('scroll', (e) => {
+            console.log("Scroll");
+
+        // update input box position
+        if(this.cellInput.style.display == 'block'){
+            this.updateInputBoxIfVisible();
+        }
         
         // Only schedule a new rendering if we're not already in the middle of one
         if (!ticking) {
@@ -400,8 +402,12 @@ export class EventManager {
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
 
-        const col = findIndexFromCoord(x, this.cols.widths);
-        const row = findIndexFromCoord(y, this.rows.heights);
+        // Add scroll offset to get position in the virtual grid
+        const virtualX = x + this.container.scrollLeft;
+        const virtualY = y + this.container.scrollTop;
+
+        const col = findIndexFromCoord(virtualX, this.cols.widths);
+        const row = findIndexFromCoord(virtualY, this.rows.heights);
 
         // avoid editing headers
         if (row <= 0 || col <= 0) return;
@@ -456,15 +462,20 @@ export class EventManager {
     positionInputAtCurrentSelection(makeVisible: boolean = true) {
         const cellLeft = this.cols.widths.slice(0, this.selectedCol).reduce((a, b) => a + b, 0);
         const cellTop = this.rows.heights.slice(0, this.selectedRow).reduce((a, b) => a + b, 0);
-        
+ 
+        // ADJUST FOR SCROLL POSITION
+        const adjustedLeft = cellLeft - this.container.scrollLeft;
+        const adjustedTop = cellTop - this.container.scrollTop;
+
         // Only set display: block if makeVisible is true
         if (makeVisible) {
             this.cellInput.style.display = "block";
         }
         
+
         this.cellInput.style.position = "absolute";
-        this.cellInput.style.left = cellLeft + "px";
-        this.cellInput.style.top = cellTop + "px";
+        this.cellInput.style.left = adjustedLeft + "px";
+        this.cellInput.style.top = adjustedTop + "px";
         this.cellInput.style.width = this.cols.widths[this.selectedCol] + "px";
         this.cellInput.style.height = this.rows.heights[this.selectedRow] + "px";
         
