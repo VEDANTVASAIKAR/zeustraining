@@ -3,6 +3,7 @@ import { Cols } from "./cols.js";
 import { findIndexFromCoord } from "./utils.js";
 import { CellManager } from "./cellmanager.js";
 import { GridDrawer } from "./griddrawer.js";
+import { selectionManager } from "./selectionmanager.js";
 /**
  * Manages all event listeners for the grid and input elements.
  */
@@ -33,6 +34,7 @@ export class EventManager {
         public cols: Cols,
         public grid: GridDrawer,
         public cellManager: CellManager,
+        public selectionManager?: selectionManager
         
     ) {
         // Initialize selection to cell A1 (row 1, col 1 since row 0 and col 0 are headers)
@@ -48,28 +50,34 @@ export class EventManager {
     }
 
     redraw() {
-        // Use requestAnimationFrame to throttle scroll events
-        let ticking = false;
-        
-        // Initial render when the page loads
-        this.grid.rendervisible(this.rows, this.cols);
-        
-        this.container.addEventListener('scroll', (e) => {
-            console.log("Scroll");
+    // Use requestAnimationFrame to throttle scroll events
+    let ticking = false;
+    
+    // Initial render when the page loads
+    this.grid.rendervisible(this.rows, this.cols);
+    
+    this.container.addEventListener('scroll', (e) => {
+        console.log("Scroll");
 
-        // update input box position
+        // update input box position if visible
         if(this.cellInput.style.display == 'block'){
             this.updateInputBoxIfVisible();
         }
         
         // Only schedule a new rendering if we're not already in the middle of one
         if (!ticking) {
-        window.requestAnimationFrame(() => {
-            console.log("Rendering grid after scroll");
-            this.grid.rendervisible(this.rows, this.cols);
-            ticking = false;
-        });
-        ticking = true;
+            window.requestAnimationFrame(() => {
+                console.log("Rendering grid after scroll");
+                this.grid.rendervisible(this.rows, this.cols);
+                
+                // After rendering is complete, reapply any current selection highlighting
+                if (this.selectionManager) {
+                    this.selectionManager.reapplySelectionHighlighting();
+                }
+                
+                ticking = false;
+            });
+            ticking = true;
         }
     });
     
@@ -77,11 +85,17 @@ export class EventManager {
     window.addEventListener('resize', () => {
         console.log("Window resize detected");
         if (!ticking) {
-        window.requestAnimationFrame(() => {
-            this.grid.rendervisible(this.rows, this.cols);
-            ticking = false;
-        });
-        ticking = true;
+            window.requestAnimationFrame(() => {
+                this.grid.rendervisible(this.rows, this.cols);
+                
+                // Also reapply selection highlighting after resize
+                if (this.selectionManager) {
+                    this.selectionManager.reapplySelectionHighlighting();
+                }
+                
+                ticking = false;
+            });
+            ticking = true;
         }
     });
     }
@@ -462,24 +476,30 @@ export class EventManager {
     positionInputAtCurrentSelection(makeVisible: boolean = true) {
         const cellLeft = this.cols.widths.slice(0, this.selectedCol).reduce((a, b) => a + b, 0);
         const cellTop = this.rows.heights.slice(0, this.selectedRow).reduce((a, b) => a + b, 0);
- 
+        
+        // Log the absolute position in grid
+        console.log(`Cell absolute position: left=${cellLeft}, top=${cellTop}`);
+        console.log(`Current scroll: left=${this.container.scrollLeft}, top=${this.container.scrollTop}`);
+        
         // ADJUST FOR SCROLL POSITION
-        const adjustedLeft = cellLeft - this.container.scrollLeft;
-        const adjustedTop = cellTop - this.container.scrollTop;
-
-        // Only set display: block if makeVisible is true
+        // const adjustedLeft = cellLeft - this.container.scrollLeft;
+        // const adjustedTop = cellTop - this.container.scrollTop;
+        
+        // console.log(`Adjusted position: left=${adjustedLeft}, top=${adjustedTop}`);
+        
         if (makeVisible) {
             this.cellInput.style.display = "block";
         }
         
-
         this.cellInput.style.position = "absolute";
-        this.cellInput.style.left = adjustedLeft + "px";
-        this.cellInput.style.top = adjustedTop + "px";
+        this.cellInput.style.left = cellLeft + "px";
+        this.cellInput.style.top = cellTop + "px";
         this.cellInput.style.width = this.cols.widths[this.selectedCol] + "px";
         this.cellInput.style.height = this.rows.heights[this.selectedRow] + "px";
         
-        // Prefill input with existing value
+        // Verify the style values after setting
+        console.log(`Input box style: left=${this.cellInput.style.left}, top=${this.cellInput.style.top}, width=${this.cellInput.style.width}, height=${this.cellInput.style.height}`);
+        
         const cell = this.cellManager.getCell(this.selectedRow, this.selectedCol);
         this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
     }

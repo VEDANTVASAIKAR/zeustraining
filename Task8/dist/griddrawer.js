@@ -153,7 +153,7 @@ export class GridDrawer {
         endCol = Math.min(cols.n - 1, endCol + 1);
         // Log the visible range for debugging
         console.log(`Rendering rows ${startRow} to ${endRow}, columns ${startCol} to ${endCol}`);
-        // Draw grid structure (lines) - Draw them across the whole viewport
+        // Draw grid lines for the entire visible area
         this.ctx.beginPath();
         this.ctx.strokeStyle = "black";
         // Draw horizontal lines for visible rows
@@ -180,23 +180,180 @@ export class GridDrawer {
         }
         // Stroke all grid lines at once for better performance
         this.ctx.stroke();
-        // Draw cell content for visible cells
+        // --- First pass: Draw regular cells (non-headers) ---
         for (let row = startRow; row <= endRow; row++) {
             for (let col = startCol; col <= endCol; col++) {
-                // Get the cell or create header value as needed
+                // Skip header cells (row 0 or column 0) for now
+                if (row === 0 || col === 0)
+                    continue;
+                // Get the cell or check if it's empty
                 const cell = this.cellmanager.getCell(row, col);
-                const value = cell ? cell.value : (row === 0 ? getExcelColumnLabel(col - 1) :
-                    col === 0 ? row : null);
-                // Draw each cell individually
-                if (row === 0 || col === 0 || cell) {
+                const value = cell ? cell.value : null;
+                // Draw only cells that have data
+                if (cell) {
                     this.drawVisibleCell(row, col, value, rows, cols, scrollLeft, scrollTop);
                 }
             }
         }
-        // Make sure the corner cell (0,0) is always drawn
-        if (startRow === 0 && startCol === 0) {
-            this.drawVisibleCell(0, 0, "", rows, cols, scrollLeft, scrollTop);
+        // --- Second pass: Draw row headers (fixed left) ---
+        for (let row = startRow; row <= endRow; row++) {
+            if (row === 0)
+                continue; // Skip corner cell
+            // Calculate position in virtual grid for Y coordinate
+            let y = 0;
+            for (let i = 0; i < row; i++) {
+                y += rows.heights[i];
+            }
+            const w = cols.widths[0];
+            const h = rows.heights[row];
+            // Row headers are fixed at left (x=0) but scroll vertically
+            const drawX = 0;
+            const drawY = y - scrollTop;
+            // Skip if completely outside viewport
+            if (drawY + h < 0 || drawY > this.canvas.height) {
+                continue;
+            }
+            // Draw header cell
+            this.ctx.clearRect(drawX, drawY, w, h);
+            this.ctx.fillStyle = "rgba(245,245,245,1)";
+            this.ctx.fillRect(drawX, drawY, w, h);
+            this.ctx.strokeStyle = "black";
+            this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
+            // Draw row number
+            this.ctx.fillStyle = "#000";
+            this.ctx.font = "12px Arial";
+            this.ctx.textAlign = "center";
+            this.ctx.textBaseline = "middle";
+            this.ctx.fillText(String(row), drawX + w / 2, drawY + h / 2);
         }
+        // --- Third pass: Draw column headers (fixed top) ---
+        for (let col = startCol; col <= endCol; col++) {
+            if (col === 0)
+                continue; // Skip corner cell
+            // Calculate position in virtual grid for X coordinate
+            let x = 0;
+            for (let i = 0; i < col; i++) {
+                x += cols.widths[i];
+            }
+            const w = cols.widths[col];
+            const h = rows.heights[0];
+            // Column headers are fixed at top (y=0) but scroll horizontally
+            const drawX = x - scrollLeft;
+            const drawY = 0;
+            // Skip if completely outside viewport
+            if (drawX + w < 0 || drawX > this.canvas.width) {
+                continue;
+            }
+            // Draw header cell
+            this.ctx.clearRect(drawX, drawY, w, h);
+            this.ctx.fillStyle = "rgba(245,245,245,1)";
+            this.ctx.fillRect(drawX, drawY, w, h);
+            this.ctx.strokeStyle = "black";
+            this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
+            // Draw column label
+            this.ctx.fillStyle = "#000";
+            this.ctx.font = "12px Arial";
+            this.ctx.textAlign = "center";
+            this.ctx.textBaseline = "middle";
+            const label = getExcelColumnLabel(col - 1);
+            this.ctx.fillText(label, drawX + w / 2, drawY + h / 2);
+        }
+        // --- Finally: Draw corner cell (top-left) ---
+        const cornerW = cols.widths[0];
+        const cornerH = rows.heights[0];
+        this.ctx.clearRect(0, 0, cornerW, cornerH);
+        this.ctx.fillStyle = "rgba(245,245,245,1)";
+        this.ctx.fillRect(0, 0, cornerW, cornerH);
+        this.ctx.strokeStyle = "black";
+        this.ctx.strokeRect(0.5, 0.5, cornerW, cornerH);
+    }
+    /**
+     * Draws a row header in a fixed position regardless of horizontal scroll
+     */
+    drawFixedRowHeader(row, rows, cols, scrollTop) {
+        // Calculate position in virtual grid for Y coordinate
+        let y = 0;
+        for (let i = 0; i < row; i++) {
+            y += rows.heights[i];
+        }
+        // For row headers, X is always 0 (left edge)
+        const x = 0;
+        // Get dimensions
+        const w = cols.widths[0];
+        const h = rows.heights[row];
+        // Adjust only vertical position for scroll
+        const drawY = y - scrollTop;
+        const drawX = 0; // Fixed at left edge
+        // Skip if completely outside viewport
+        if (drawY + h < 0 || drawY > this.canvas.height) {
+            return;
+        }
+        // Clear cell area and draw with header styling
+        this.ctx.clearRect(drawX, drawY, w, h);
+        // Fill header background
+        this.ctx.fillStyle = "rgba(245,245,245,0.95)";
+        this.ctx.fillRect(drawX, drawY, w, h);
+        // Draw border
+        this.ctx.strokeStyle = "black";
+        this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
+        // Draw text (row number)
+        this.ctx.fillStyle = "#000";
+        this.ctx.font = "12px Arial";
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        this.ctx.fillText(String(row), drawX + w / 2, drawY + h / 2);
+    }
+    /**
+     * Draws a column header in a fixed position regardless of vertical scroll
+     */
+    drawFixedColumnHeader(col, rows, cols, scrollLeft) {
+        // Calculate position in virtual grid for X coordinate
+        let x = 0;
+        for (let i = 0; i < col; i++) {
+            x += cols.widths[i];
+        }
+        // For column headers, Y is always 0 (top edge)
+        const y = 0;
+        // Get dimensions
+        const w = cols.widths[col];
+        const h = rows.heights[0];
+        // Adjust only horizontal position for scroll
+        const drawX = x - scrollLeft;
+        const drawY = 0; // Fixed at top edge
+        // Skip if completely outside viewport
+        if (drawX + w < 0 || drawX > this.canvas.width) {
+            return;
+        }
+        // Clear cell area and draw with header styling
+        this.ctx.clearRect(drawX, drawY, w, h);
+        // Fill header background
+        this.ctx.fillStyle = "rgba(245,245,245,0.95)";
+        this.ctx.fillRect(drawX, drawY, w, h);
+        // Draw border
+        this.ctx.strokeStyle = "black";
+        this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
+        // Draw text (column label)
+        this.ctx.fillStyle = "#000";
+        this.ctx.font = "12px Arial";
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        const label = getExcelColumnLabel(col - 1);
+        this.ctx.fillText(label, drawX + w / 2, drawY + h / 2);
+    }
+    /**
+     * Draws the corner cell (top-left) that stays fixed regardless of scrolling
+     */
+    drawFixedCornerCell(rows, cols) {
+        const w = cols.widths[0];
+        const h = rows.heights[0];
+        // Always at the top-left corner (0,0)
+        this.ctx.clearRect(0, 0, w, h);
+        // Fill background
+        this.ctx.fillStyle = "rgba(245,245,245,1)";
+        this.ctx.fillRect(0, 0, w, h);
+        // Draw border
+        this.ctx.strokeStyle = "black";
+        this.ctx.strokeRect(0.5, 0.5, w, h);
     }
     /**
      * Draws a single cell with proper scroll position adjustment

@@ -48,8 +48,9 @@ console.log(Inputdiv.innerHTML);
 const cellInput = document.getElementById("cellInput") as HTMLInputElement;
 
 // pass grid and cellManager to event manager
-const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager);
 const SelectionManager = new selectionManager(grid,rows,cols,cellManager,canvas)
+
+const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager,SelectionManager);
 
 console.log(cols.widths);
 

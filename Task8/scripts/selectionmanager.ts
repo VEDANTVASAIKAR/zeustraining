@@ -41,7 +41,7 @@ export class selectionManager {
         this.canvas.addEventListener("cell-selection-changed", (event: any) => {
             const { row, col } = event.detail;
             
-            // Use the same logic as click handling, but with provided row/col
+            // Skip if selection is outside the grid or on headers
             if (row < 1 || col < 1) return;
             
             this.clearPreviousSelection();
@@ -68,11 +68,12 @@ export class selectionManager {
     }
 
     /**
-     * Clears previous selection highlighting
+     * Clears previous selection highlighting from both cells and headers
      */
     clearPreviousSelection() {
         // Clear previous row header if there was one
         if (this.previousSelectedRow !== null) {
+            // Clear the row header (cell in column 0 of selected row)
             this.griddrawer.drawCell(
                 this.previousSelectedRow, 
                 0, 
@@ -84,6 +85,7 @@ export class selectionManager {
         
         // Clear previous column header if there was one
         if (this.previousSelectedCol !== null) {
+            // Clear the column header (cell in row 0 of selected column)
             const columnLabel = getExcelColumnLabel(this.previousSelectedCol - 1);
             this.griddrawer.drawCell(
                 0, 
@@ -93,6 +95,10 @@ export class selectionManager {
                 this.cols
             );
         }
+        
+        // Reset previous selection variables
+        this.previousSelectedRow = null;
+        this.previousSelectedCol = null;
     }
     
     /**
@@ -146,22 +152,48 @@ export class selectionManager {
         rows: Rows,
         cols: Cols,
     ) {
-        // Virtual grid position in the giant sheet
-        const x = cols.widths.slice(0, col).reduce((a, b) => a + b, 0);
-        const y = rows.heights.slice(0, row).reduce((a, b) => a + b, 0);
+        // Calculate position in virtual grid
+        let x = 0;
+        for (let i = 0; i < col; i++) {
+        x += cols.widths[i];
+        }
+        
+        let y = 0;
+        for (let i = 0; i < row; i++) {
+        y += rows.heights[i];
+        }
+        
         const w = cols.widths[col];
         const h = rows.heights[row];
-
-        // OFFSET by scroll position!
-        const drawX = x - this.container.scrollLeft;
-        const drawY = y - this.container.scrollTop;
-
+        
+        // Position is handled differently for headers and regular cells
+        let drawX, drawY;
+        
+        if (row === 0 && col === 0) {
+            // Corner cell - always fixed at (0,0)
+            drawX = 0;
+            drawY = 0;
+        } else if (row === 0) {
+            // Column header - fixed at top but scrolls horizontally
+            drawX = x - this.container.scrollLeft;
+            drawY = 0;
+        } else if (col === 0) {
+            // Row header - fixed at left but scrolls vertically
+            drawX = 0;
+            drawY = y - this.container.scrollTop;
+        } else {
+            // Regular cell - scrolls both horizontally and vertically
+            drawX = x - this.container.scrollLeft;
+            drawY = y - this.container.scrollTop;
+        }
+        
         if (!this.ctx) {
             return;
         }
         
+        // Clear the cell area
         this.ctx.clearRect(drawX, drawY, w, h);
-
+        
         // Fill with highlight color
         this.ctx.fillStyle = "rgba(202,234,216,1)"; // Green highlight color
         this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
@@ -169,7 +201,7 @@ export class selectionManager {
         // Draw the borders
         this.ctx.strokeStyle = "black";
         this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
-
+        
         // Draw the text
         this.ctx.textAlign = "center";
         this.ctx.textBaseline = "middle";
@@ -180,5 +212,32 @@ export class selectionManager {
             drawX + w/2,
             drawY + h/2
         );
+    }
+
+    /**
+     * Reapplies the current selection highlighting after scroll events
+     */
+    reapplySelectionHighlighting() {
+        // If there's an active selection, rehighlight the headers
+        if (this.previousSelectedRow !== null && this.previousSelectedCol !== null) {
+            // Highlight row header
+            this.paintCell(
+                this.previousSelectedRow, 
+                0, 
+                this.previousSelectedRow, 
+                this.rows, 
+                this.cols
+            );
+            
+            // Highlight column header
+            const columnLabel = getExcelColumnLabel(this.previousSelectedCol - 1);
+            this.paintCell(
+                0, 
+                this.previousSelectedCol, 
+                columnLabel, 
+                this.rows, 
+                this.cols
+            );
+        }
     }
 }
