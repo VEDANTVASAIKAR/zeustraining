@@ -46,13 +46,13 @@ export class selectionManager {
         // Clear previous row header if there was one
         if (this.previousSelectedRow !== null) {
             // Clear the row header (cell in column 0 of selected row)
-            this.griddrawer.drawCell(this.previousSelectedRow, 0, this.previousSelectedRow, this.rows, this.cols);
+            this.griddrawer.drawFixedRowHeader(this.previousSelectedRow, this.rows, this.cols, this.container.scrollTop);
         }
         // Clear previous column header if there was one
         if (this.previousSelectedCol !== null) {
             // Clear the column header (cell in row 0 of selected column)
             const columnLabel = getExcelColumnLabel(this.previousSelectedCol - 1);
-            this.griddrawer.drawCell(0, this.previousSelectedCol, columnLabel, this.rows, this.cols);
+            this.griddrawer.drawFixedColumnHeader(this.previousSelectedCol, this.rows, this.cols, this.container.scrollLeft);
         }
         // Reset previous selection variables
         this.previousSelectedRow = null;

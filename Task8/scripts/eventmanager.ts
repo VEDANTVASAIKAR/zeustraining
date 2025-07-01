@@ -314,7 +314,6 @@ export class EventManager {
             this.cols.setWidth(this.resizingCol, finalWidth);
 
             // Disable the preview line
-            // this.previewLineX = null;
             this.grid.ctx.clearRect(0, 0, this.grid.canvas.width, this.grid.canvas.height);
 
             //  Clear the overlay (removes preview line)
@@ -481,11 +480,6 @@ export class EventManager {
         console.log(`Cell absolute position: left=${cellLeft}, top=${cellTop}`);
         console.log(`Current scroll: left=${this.container.scrollLeft}, top=${this.container.scrollTop}`);
         
-        // ADJUST FOR SCROLL POSITION
-        // const adjustedLeft = cellLeft - this.container.scrollLeft;
-        // const adjustedTop = cellTop - this.container.scrollTop;
-        
-        // console.log(`Adjusted position: left=${adjustedLeft}, top=${adjustedTop}`);
         
         if (makeVisible) {
             this.cellInput.style.display = "block";
