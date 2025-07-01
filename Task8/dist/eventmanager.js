@@ -205,15 +205,14 @@ export class EventManager {
         if (this.hoveredColBorder !== null) {
             this.resizingCol = this.hoveredColBorder;
             this.startX = event.clientX;
-            console.log(event.clientX);
             this.startWidth = this.cols.widths[this.resizingCol];
             // Calculate initial preview line position
             let sum = 0;
-            for (let i = 0; i < this.resizingCol; i++) { // Use < instead of <=
+            for (let i = 0; i < this.resizingCol; i++) {
                 sum += this.cols.widths[i];
             }
-            this.resizingColLeft = sum; // This is now the left edge of column
-            this.previewLineX = sum + this.cols.widths[this.resizingCol]; // Right edge position
+            this.resizingColLeft = sum;
+            this.previewLineX = sum + this.cols.widths[this.resizingCol];
         }
         if (this.hoveredRowBorder !== null) {
             this.resizingRow = this.hoveredRowBorder;
@@ -238,8 +237,10 @@ export class EventManager {
                 sum += this.cols.widths[i];
             }
             this.previewLineX = this.resizingColLeft + newWidth;
-            // 🟢 Only draw preview line on overlay
-            this.grid.drawPreviewLineOverlay(this.previewLineX);
+            console.log(this.previewLineX);
+            // Only draw preview line on overlay
+            const adjustedPreviewLineX = this.previewLineX - this.container.scrollLeft;
+            this.grid.drawPreviewLineOverlay(adjustedPreviewLineX);
         }
         if (this.resizingRow !== null) {
             const dy = event.clientY - this.startY;
@@ -251,8 +252,10 @@ export class EventManager {
                 sum += this.rows.heights[i];
             }
             this.previewLineY = sum + newHeight;
+            console.log(this.resizingRow);
             // Draw preview line horizontally on overlay
-            this.grid.drawPreviewLineOverlayRow(this.previewLineY);
+            const adjustedPreviewLineY = this.previewLineY - this.container.scrollTop;
+            this.grid.drawPreviewLineOverlayRow(adjustedPreviewLineY);
         }
     }
     handleMouseUp(event) {
@@ -300,10 +303,14 @@ export class EventManager {
         }
         this.resizingRow = null;
     }
+    // First, fix handleMouseMove to use virtual coordinates for detection
     handleMouseMove(event) {
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
+        // Calculate virtual coordinates with scroll offset
+        const virtualX = x + this.container.scrollLeft;
+        const virtualY = y + this.container.scrollTop;
         const threshold = 5; // px distance to detect border for resizing
         const headerHeight = this.rows.heights[0];
         const headerWidth = this.cols.widths[0];
@@ -314,7 +321,8 @@ export class EventManager {
             let sum = 0;
             for (let col = 0; col < this.cols.n; col++) {
                 sum += this.cols.widths[col];
-                if (Math.abs(x - sum) < threshold) {
+                // Using virtualX to account for scroll position
+                if (Math.abs(virtualX - sum) < threshold) {
                     this.canvas.style.cursor = "ew-resize";
                     this.hoveredColBorder = col;
                     foundBorder = true;
@@ -327,7 +335,8 @@ export class EventManager {
             let sum = 0;
             for (let row = 0; row < this.rows.n; row++) {
                 sum += this.rows.heights[row];
-                if (Math.abs(y - sum) < threshold) {
+                // Using virtualY to account for scroll position
+                if (Math.abs(virtualY - sum) < threshold) {
                     this.canvas.style.cursor = "ns-resize";
                     this.hoveredRowBorder = row;
                     foundBorder = true;
