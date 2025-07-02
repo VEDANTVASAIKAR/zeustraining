@@ -358,6 +358,18 @@ export class selectionManager {
         const col = findIndexFromCoord(virtualX, this.cols.widths);
         const row = findIndexFromCoord(virtualY, this.rows.heights);
         
+
+        // Check if click is on a header
+        if (row === 0 && col > 0) {
+            // Column header click - select entire column
+            this.selectEntireColumn(col);
+            return;
+        } else if (col === 0 && row > 0) {
+            // Row header click - select entire row
+            this.selectEntireRow(row);
+            return;
+        }
+
         // Ignore headers
         if (row < 1 || col < 1) return;
         
@@ -535,5 +547,65 @@ export class selectionManager {
         
         // Dispatch the event from the canvas
         this.canvas.dispatchEvent(event);
+    }
+
+    /**
+     * Selects an entire column
+     * @param col The column index to select
+     */
+    selectEntireColumn(col: number) {
+        console.log(`Selecting entire column ${col}`);
+        
+        // Clear any existing selection
+        this.griddrawer.rendervisible(this.rows, this.cols);
+        
+        // Create a selection from row 1 to the last row, for the specified column
+        this.activeSelection = {
+            startRow: 1,
+            startCol: col,
+            endRow: this.rows.n - 1, // Last row
+            endCol: col
+        };
+        
+        // Reapply the selection highlighting (which is already viewport-aware)
+        this.reapplySelectionHighlighting();
+        
+        // Dispatch selection changed event
+        this.dispatchSelectionChangeEvent();
+        
+        // Update statistics if needed
+        if (this.statistics) {
+            this.statistics.printvalues();
+        }
+    }
+
+    /**
+     * Selects an entire row
+     * @param row The row index to select
+     */
+    selectEntireRow(row: number) {
+        console.log(`Selecting entire row ${row}`);
+        
+        // Clear any existing selection
+        this.griddrawer.rendervisible(this.rows, this.cols);
+        
+        // Create a selection from column 1 to the last column, for the specified row
+        this.activeSelection = {
+            startRow: row,
+            startCol: 1,
+            endRow: row,
+            endCol: this.cols.n - 1 // Last column
+        };
+        
+        // Reapply the selection highlighting (which is already viewport-aware)
+        this.reapplySelectionHighlighting();
+        
+        // Dispatch selection changed event
+        this.dispatchSelectionChangeEvent();
+        
+        // Update statistics if needed
+        if (this.statistics) {
+            this.statistics.printvalues();
+        }
     }
 }    
