@@ -5,6 +5,7 @@ import { CellManager } from "./cellmanager.js";
 import { GridDrawer } from "./griddrawer.js";
 import { EventManager } from "./eventmanager.js";
 import { Cell } from "./cell.js";
+import { Statistics } from "./statistics.js";
 
 /**
  * Manages selection of cells and highlighting of corresponding headers
@@ -19,6 +20,7 @@ export class selectionManager {
     container: HTMLElement;
     private mouseMoveHandler: ((event: PointerEvent) => void) | null = null;
     public eventmanager : EventManager | null= null;
+    statistics : Statistics | null = null;
     selectionStartCell: { row: number, col: number } | null = null;
     selectionEndCell: { row: number, col: number } | null = null;
     activeSelection: {
@@ -38,6 +40,7 @@ export class selectionManager {
         cols: Cols, 
         cellmanager: CellManager, 
         canvas: HTMLCanvasElement,
+        statistics : Statistics | null = null
         
     ) {
         this.container = document.querySelector('.container') as HTMLElement;
@@ -47,6 +50,7 @@ export class selectionManager {
         this.cellmanager = cellmanager;
         this.canvas = canvas;
         this.ctx = this.canvas.getContext("2d");
+        this.statistics = statistics
     
         
         this.attachCanvasEvents();
@@ -425,6 +429,27 @@ export class selectionManager {
                 endRow: Math.max(this.selectionStartCell.row, this.selectionEndCell.row),
                 endCol: Math.max(this.selectionStartCell.col, this.selectionEndCell.col)
             };
+            // Dispatch the selection change event
+            this.dispatchSelectionChangeEvent();
         }
+
+        this.statistics?.printvalues()
+    }
+
+    /**
+     * Dispatches a selection-change event with the current selection details
+     */
+    dispatchSelectionChangeEvent() {
+        if (!this.activeSelection) return;
+        
+        // Create a custom event with selection details
+        const event = new CustomEvent('selection-changed', {
+            detail: {
+                selection: this.activeSelection
+            }
+        });
+        
+        // Dispatch the event from the canvas
+        this.canvas.dispatchEvent(event);
     }
 }    

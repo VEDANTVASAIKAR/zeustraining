@@ -3,9 +3,10 @@ import { findIndexFromCoord, getExcelColumnLabel } from "./utils.js";
  * Manages selection of cells and highlighting of corresponding headers
  */
 export class selectionManager {
-    constructor(griddrawer, rows, cols, cellmanager, canvas) {
+    constructor(griddrawer, rows, cols, cellmanager, canvas, statistics = null) {
         this.mouseMoveHandler = null;
         this.eventmanager = null;
+        this.statistics = null;
         this.selectionStartCell = null;
         this.selectionEndCell = null;
         this.activeSelection = null;
@@ -19,6 +20,7 @@ export class selectionManager {
         this.cellmanager = cellmanager;
         this.canvas = canvas;
         this.ctx = this.canvas.getContext("2d");
+        this.statistics = statistics;
         this.attachCanvasEvents();
     }
     seteventmanager(em) {
@@ -314,6 +316,24 @@ export class selectionManager {
                 endRow: Math.max(this.selectionStartCell.row, this.selectionEndCell.row),
                 endCol: Math.max(this.selectionStartCell.col, this.selectionEndCell.col)
             };
+            // Dispatch the selection change event
+            this.dispatchSelectionChangeEvent();
         }
+        this.statistics?.printvalues();
+    }
+    /**
+     * Dispatches a selection-change event with the current selection details
+     */
+    dispatchSelectionChangeEvent() {
+        if (!this.activeSelection)
+            return;
+        // Create a custom event with selection details
+        const event = new CustomEvent('selection-changed', {
+            detail: {
+                selection: this.activeSelection
+            }
+        });
+        // Dispatch the event from the canvas
+        this.canvas.dispatchEvent(event);
     }
 }

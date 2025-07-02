@@ -4,6 +4,7 @@ import { Cols } from "./cols.js";
 import { CellManager } from "./cellmanager.js";
 import { EventManager } from "./eventmanager.js";
 import { selectionManager } from "./selectionmanager.js";
+import { Statistics } from "./statistics.js";
 let selectedRow = null;
 let selectedCol = null;
 let container = document.querySelector('.container');
@@ -46,8 +47,9 @@ grid.rendervisible(rows, cols);
 const Inputdiv = document.getElementById("inputt");
 console.log(Inputdiv.innerHTML);
 const cellInput = document.getElementById("cellInput");
+const statistics = new Statistics(canvas, cellManager);
 // pass grid and cellManager to event manager
-const SelectionManager = new selectionManager(grid, rows, cols, cellManager, canvas);
+const SelectionManager = new selectionManager(grid, rows, cols, cellManager, canvas, statistics);
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager, SelectionManager);
 SelectionManager.seteventmanager(eventManager);
 console.log(cols.widths);
