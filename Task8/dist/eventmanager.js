@@ -31,7 +31,7 @@ export class EventManager {
         this.selectedCol = 1;
         this.container = document.querySelector('.container');
         this.attachCanvasEvents();
-        this.attachInputEvents();
+        // this.attachInputEvents();
         this.redraw();
         this.attachMouseEvents();
         // Position the input in cell A1 immediately
@@ -186,7 +186,7 @@ export class EventManager {
     attachMouseEvents() {
         this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
         this.canvas.addEventListener('mousedown', (event) => this.handleMouseDown(event));
-        this.canvas.addEventListener('keydown', (event) => this.handlekeydown(event));
+        // this.canvas.addEventListener('keydown', (event) => this.handlekeydown(event));
         window.addEventListener('mouseup', (event) => this.handleMouseUp(event));
         window.addEventListener('mousemove', (event) => this.handleMouseDrag(event));
     }

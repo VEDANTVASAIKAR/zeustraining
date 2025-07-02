@@ -54,7 +54,7 @@ export class selectionManager {
     
         
         this.attachCanvasEvents();
-        
+        this.initKeyboardEvents();
 
 
     }
@@ -70,6 +70,90 @@ export class selectionManager {
         this.canvas.addEventListener('pointerdown',(event) => this.handleMouseDown(event));
         document.addEventListener('pointerup',()=> this.handlePointerUp());
         console.log('Selection manager attached');
+    }
+
+
+    /**
+     * Initializes keyboard event listeners for range selection with Shift+Arrow
+     */
+    private initKeyboardEvents() {
+        // Add event listener for keydown on the canvas or document
+        this.canvas.addEventListener('keydown', (e) => this.handleKeyDown(e));
+    }
+
+    /**
+     * Handles keydown events for selection manipulation
+     * @param e The keyboard event
+     */
+    private handleKeyDown(e: KeyboardEvent) {
+        // Only handle if we have an active selection
+        if (!this.activeSelection) return;
+        
+        // Check if shift key is pressed with arrow keys
+        if (e.shiftKey) {
+            let newEndRow = this.activeSelection.endRow;
+            let newEndCol = this.activeSelection.endCol;
+            let handled = true;
+            
+            switch (e.key) {
+                case 'ArrowUp':
+                    newEndRow = Math.max(1, this.activeSelection.endRow - 1);
+                    break;
+                case 'ArrowDown':
+                    newEndRow = Math.min(this.rows.n - 1, this.activeSelection.endRow + 1);
+                    break;
+                case 'ArrowLeft':
+                    newEndCol = Math.max(1, this.activeSelection.endCol - 1);
+                    break;
+                case 'ArrowRight':
+                    newEndCol = Math.min(this.cols.n - 1, this.activeSelection.endCol + 1);
+                    break;
+                default:
+                    handled = false;
+                    break;
+            }
+            
+            // If we handled an arrow key, update the selection
+            if (handled) {
+                e.preventDefault(); // Prevent default scrolling behavior
+                
+                // Update the selection
+                this.extendSelection(newEndRow, newEndCol);
+            }
+        }
+    }
+
+    /**
+     * Extends the current selection to a new end point
+     * @param newEndRow The new end row for the selection
+     * @param newEndCol The new end column for the selection
+     */
+    private extendSelection(newEndRow: number, newEndCol: number) {
+        if (!this.activeSelection) return;
+        
+        // Store the new end point (keep the same start point)
+        this.activeSelection = {
+            startRow: this.activeSelection.startRow,
+            startCol: this.activeSelection.startCol,
+            endRow: newEndRow,
+            endCol: newEndCol
+        };
+        
+        // Clear and redraw the grid with the new selection
+        this.griddrawer.rendervisible(this.rows, this.cols);
+        
+        // Apply the new selection highlighting
+        this.paintSelectedCells(
+            Math.min(this.activeSelection.startRow, this.activeSelection.endRow),
+            Math.min(this.activeSelection.startCol, this.activeSelection.endCol),
+            Math.max(this.activeSelection.startRow, this.activeSelection.endRow),
+            Math.max(this.activeSelection.startCol, this.activeSelection.endCol)
+        );
+        
+        // Dispatch selection changed event if you have that feature
+        if (typeof this.dispatchSelectionChangeEvent === 'function') {
+            this.dispatchSelectionChangeEvent();
+        }
     }
 
     /**
