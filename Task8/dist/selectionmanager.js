@@ -4,6 +4,8 @@ import { findIndexFromCoord, getExcelColumnLabel } from "./utils.js";
  */
 export class selectionManager {
     constructor(griddrawer, rows, cols, cellmanager, canvas) {
+        this.mouseMoveHandler = null;
+        this.eventmanager = null;
         // Track the previously selected row and column to clear their highlighting
         this.previousSelectedRow = null;
         this.previousSelectedCol = null;
@@ -32,11 +34,16 @@ export class selectionManager {
             this.previousSelectedCol = col;
         });
     }
+    seteventmanager(em) {
+        this.eventmanager = em;
+    }
     /**
      * Attaches event listeners to the canvas
      */
     attachCanvasEvents() {
         this.canvas.addEventListener("click", (event) => this.handleCellClick(event));
+        this.canvas.addEventListener('pointerdown', (event) => this.handleMouseDown(event));
+        this.canvas.addEventListener('pointerup', () => this.handlePointerUp());
         console.log('Selection manager attached');
     }
     /**
@@ -158,5 +165,103 @@ export class selectionManager {
             const columnLabel = getExcelColumnLabel(this.previousSelectedCol - 1);
             this.paintCell(0, this.previousSelectedCol, columnLabel, this.rows, this.cols);
         }
+    }
+    handleMouseDown(event) {
+        this.eventmanager?.handleCanvasClick(event);
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        // Add scroll offset to get position in the virtual grid
+        const virtualX = x + this.container.scrollLeft;
+        const virtualY = y + this.container.scrollTop;
+        const col = findIndexFromCoord(virtualX, this.cols.widths);
+        const row = findIndexFromCoord(virtualY, this.rows.heights);
+        console.log(`${row},${col}`);
+        // const cell = this.cellmanager.getCell(row,col)
+        //  calculate actual pos of cell to draw
+        let topLeftX = 0;
+        for (let i = 0; i < col; i++) {
+            topLeftX += this.cols.widths[i];
+        }
+        let topLeftY = 0;
+        for (let i = 0; i < row; i++) {
+            topLeftY += this.rows.heights[i];
+        }
+        // Adjust for scroll to get the visible position on canvas
+        const visibleX = topLeftX - this.container.scrollLeft;
+        const visibleY = topLeftY - this.container.scrollTop;
+        // Create and store the handler reference
+        this.mouseMoveHandler = (event) => this.handleMouseDrag(event, visibleX, visibleY, row, col);
+        // Add the listener using the stored reference
+        this.container.addEventListener('pointermove', this.mouseMoveHandler);
+    }
+    handleMouseDrag(event, visibleX, visibleY, row, col) {
+        console.log('hiiii');
+        let startTopX = visibleX;
+        let startTopY = visibleY;
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        // Add scroll offset to get position in the virtual grid
+        const virtualX = x + this.container.scrollLeft;
+        const virtualY = y + this.container.scrollTop;
+        const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
+        const currentRow = findIndexFromCoord(virtualY, this.rows.heights);
+        console.log(`${currentRow},${currentCol}`);
+        let width = 0;
+        let height = 0;
+        // Calculate width based on the distance between columns
+        if (currentCol >= col) {
+            // Selection going right
+            for (let i = col; i <= currentCol; i++) {
+                width += this.cols.widths[i];
+            }
+        }
+        else {
+            // Selection going left
+            for (let i = currentCol; i <= col; i++) {
+                width += this.cols.widths[i];
+            }
+            // Adjust starting X position
+            startTopX = visibleX - width + this.cols.widths[col];
+        }
+        // Calculate height based on the distance between rows
+        if (currentRow >= row) {
+            // Selection going down
+            for (let i = row; i <= currentRow; i++) {
+                height += this.rows.heights[i];
+            }
+        }
+        else {
+            // Selection going up
+            for (let i = currentRow; i <= row; i++) {
+                height += this.rows.heights[i];
+            }
+            // Adjust starting Y position
+            startTopY = visibleY - height + this.rows.heights[row];
+        }
+        if (!this.ctx) {
+            return;
+        }
+        // Clear the previous drawing
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // Redraw the grid cells (you may need to call your grid's render method)
+        this.griddrawer.rendervisible(this.rows, this.cols);
+        // Excel-like selection styling
+        this.ctx.fillStyle = "rgba(231, 241, 236, 1)";
+        this.ctx.strokeStyle = "rgb(19, 126, 67,1)";
+        this.ctx.lineWidth = 2; // Border width
+        // Draw the filled rectangle
+        this.ctx.fillRect(startTopX, startTopY, width, height);
+        // Draw the border
+        this.ctx.strokeRect(startTopX, startTopY, width, height);
+    }
+    handlePointerUp() {
+        // Remove the event listener using the stored reference
+        if (this.mouseMoveHandler) {
+            this.container.removeEventListener('pointermove', this.mouseMoveHandler);
+            this.mouseMoveHandler = null;
+        }
+        console.log('upppppp');
     }
 }

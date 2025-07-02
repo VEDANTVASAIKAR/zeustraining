@@ -61,16 +61,16 @@ export class EventManager {
     this.grid.rendervisible(this.rows, this.cols);
     
     this.container.addEventListener('scroll', (e) => {
-        console.log("Scroll");
+        // console.log("Scroll");
         // Check if input is visible (user is editing)
         const isEditing = this.cellInput.style.display === 'block';
 
         
         // Only update the input box if it's visible
         if (isEditing) {
-            console.log(`${this.cellInput.value}`);
-            console.log(this.selectedCol)
-            console.log(this.selectedRow)
+            // console.log(`${this.cellInput.value}`);
+            // console.log(this.selectedCol)
+            // console.log(this.selectedRow)
             this.cellManager.setCell(this.selectedRow,this.selectedCol,this.cellInput.value)
         }
 
@@ -82,7 +82,7 @@ export class EventManager {
         // Only schedule a new rendering if we're not already in the middle of one
         if (!ticking) {
             window.requestAnimationFrame(() => {
-                console.log("Rendering grid after scroll");
+                // console.log("Rendering grid after scroll");
                 this.grid.rendervisible(this.rows, this.cols);
                 
                 // After rendering is complete, reapply any current selection highlighting
@@ -98,7 +98,7 @@ export class EventManager {
     
     // Also re-render on window resize
     window.addEventListener('resize', () => {
-        console.log("Window resize detected");
+        // console.log("Window resize detected");
         if (!ticking) {
             window.requestAnimationFrame(() => {
                 this.grid.rendervisible(this.rows, this.cols);
@@ -116,7 +116,7 @@ export class EventManager {
     }
 
     attachCanvasEvents() {
-        this.canvas.addEventListener("click", (event) => this.handleCanvasClick(event));
+        // this.canvas.addEventListener("pointerdown", (event) => this.handleCanvasClick(event));
         this.canvas.addEventListener("dblclick", (event) => this.handledblClick(event));
     }
 
@@ -294,7 +294,7 @@ export class EventManager {
             }
             this.previewLineX = this.resizingColLeft + newWidth;
 
-            console.log(this.previewLineX);
+            // console.log(this.previewLineX);
             
             // Only draw preview line on overlay
             const adjustedPreviewLineX = this.previewLineX - this.container.scrollLeft;
@@ -312,7 +312,7 @@ export class EventManager {
             }
             this.previewLineY = sum + newHeight;
 
-            console.log(this.resizingRow);
+            // console.log(this.resizingRow);
             
             // Draw preview line horizontally on overlay
             const adjustedPreviewLineY = this.previewLineY - this.container.scrollTop;
@@ -432,7 +432,7 @@ export class EventManager {
         }
     }
 
-    handleCanvasClick(event: MouseEvent) {
+    handleCanvasClick(event: PointerEvent) {
         
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
@@ -474,7 +474,7 @@ export class EventManager {
         // Get current scroll position from container
         const scrollLeft = this.container.scrollLeft;
         const scrollTop = this.container.scrollTop;
-        console.log(this.cellInput.value.length);
+        // console.log(this.cellInput.value.length);
         
         if (
             this.selectedRow !== null &&
@@ -519,8 +519,8 @@ export class EventManager {
         const cellTop = this.rows.heights.slice(0, this.selectedRow).reduce((a, b) => a + b, 0);
         
         // Log the absolute position in grid
-        console.log(`Cell absolute position: left=${cellLeft}, top=${cellTop}`);
-        console.log(`Current scroll: left=${this.container.scrollLeft}, top=${this.container.scrollTop}`);
+        // console.log(`Cell absolute position: left=${cellLeft}, top=${cellTop}`);
+        // console.log(`Current scroll: left=${this.container.scrollLeft}, top=${this.container.scrollTop}`);
         
         
         if (makeVisible) {
@@ -534,7 +534,7 @@ export class EventManager {
         this.cellInput.style.height = this.rows.heights[this.selectedRow] + "px";
         
         // Verify the style values after setting
-        console.log(`Input box style: left=${this.cellInput.style.left}, top=${this.cellInput.style.top}, width=${this.cellInput.style.width}, height=${this.cellInput.style.height}`);
+        // console.log(`Input box style: left=${this.cellInput.style.left}, top=${this.cellInput.style.top}, width=${this.cellInput.style.width}, height=${this.cellInput.style.height}`);
         
         const cell = this.cellManager.getCell(this.selectedRow, this.selectedCol);
         this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";

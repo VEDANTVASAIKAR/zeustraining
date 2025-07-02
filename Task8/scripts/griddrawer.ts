@@ -116,7 +116,7 @@ export class GridDrawer {
     const scrollLeft = this.container.scrollLeft;
     const scrollTop = this.container.scrollTop;
     
-    console.log(`Scroll position: top=${scrollTop}, left=${scrollLeft}`);
+    // console.log(`Scroll position: top=${scrollTop}, left=${scrollLeft}`);
     
     // Get viewport dimensions
     const viewportWidth = this.container.clientWidth;
@@ -173,7 +173,7 @@ export class GridDrawer {
     endCol = Math.min(cols.n - 1, endCol + 1);
     
     // Log the visible range for debugging
-    console.log(`Rendering rows ${startRow} to ${endRow}, columns ${startCol} to ${endCol}`);
+    // console.log(`Rendering rows ${startRow} to ${endRow}, columns ${startCol} to ${endCol}`);
     
     // Draw grid lines for the entire visible area
     this.ctx.beginPath();
