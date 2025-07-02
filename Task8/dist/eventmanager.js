@@ -36,7 +36,7 @@ export class EventManager {
         this.attachMouseEvents();
         // Position the input in cell A1 immediately
         this.positionInputAtCurrentSelection();
-        this.notifySelectionChange();
+        // this.notifySelectionChange();
         this.canvas.focus();
     }
     redraw() {
@@ -103,7 +103,7 @@ export class EventManager {
                     this.selectedRow++;
                     this.positionInputAtCurrentSelection();
                     // Notify SelectionManager about new selection
-                    this.notifySelectionChange();
+                    // this.notifySelectionChange();
                 }
                 e.preventDefault();
             }
@@ -178,24 +178,10 @@ export class EventManager {
                 // Update the input position (but keep it hidden)
                 this.positionInputAtCurrentSelection();
                 // Notify SelectionManager about the selection change
-                this.notifySelectionChange();
+                // this.notifySelectionChange();
                 e.preventDefault();
             }
         });
-    }
-    /**
-     * Notifies SelectionManager about changes to the selected cell
-     */
-    notifySelectionChange() {
-        // Create a custom event with selection details
-        const event = new CustomEvent('cell-selection-changed', {
-            detail: {
-                row: this.selectedRow,
-                col: this.selectedCol
-            }
-        });
-        // Dispatch the event on the canvas element
-        this.canvas.dispatchEvent(event);
     }
     attachMouseEvents() {
         this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
@@ -385,7 +371,7 @@ export class EventManager {
         this.selectedRow = row;
         this.selectedCol = col;
         this.updateInputBoxIfVisible();
-        this.notifySelectionChange();
+        // this.notifySelectionChange();
         // Keep focus on the canvas instead of the input
         this.canvas.focus();
     }

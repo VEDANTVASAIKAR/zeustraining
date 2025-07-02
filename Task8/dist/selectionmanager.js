@@ -19,22 +19,6 @@ export class selectionManager {
         this.canvas = canvas;
         this.ctx = this.canvas.getContext("2d");
         this.attachCanvasEvents();
-        //Listen for keyboard navigation events from EventManager
-        this.canvas.addEventListener("cell-selection-changed", (event) => {
-            const { row, col } = event.detail;
-            // Skip if selection is outside the grid or on headers
-            if (row < 1 || col < 1)
-                return;
-            this.clearPreviousSelection();
-            // Highlight the row header (cell in column 0 of selected row)
-            this.paintCell(row, 0, row, this.rows, this.cols);
-            // Highlight the column header (cell in row 0 of selected column)
-            const columnLabel = getExcelColumnLabel(col - 1);
-            this.paintCell(0, col, columnLabel, this.rows, this.cols);
-            // Update tracking variables for next time
-            this.previousSelectedRow = row;
-            this.previousSelectedCol = col;
-        });
     }
     seteventmanager(em) {
         this.eventmanager = em;
@@ -67,33 +51,6 @@ export class selectionManager {
         this.previousSelectedRow = null;
         this.previousSelectedCol = null;
     }
-    // /**
-    //  * Handles a single cell click event
-    //  * @param {MouseEvent} event - The mouse click event
-    //  */
-    // handleCellClick(event: MouseEvent) {
-    //     const rect = this.canvas.getBoundingClientRect();
-    //     const x = event.clientX - rect.left;
-    //     const y = event.clientY - rect.top;
-    //     // Add scroll offset to get position in the virtual grid
-    //     const virtualX = x + this.container.scrollLeft;
-    //     const virtualY = y + this.container.scrollTop;
-    //     const col = findIndexFromCoord(virtualX, this.cols.widths);
-    //     const row = findIndexFromCoord(virtualY, this.rows.heights);
-    //     // Skip if we clicked on a header or outside the grid
-    //     if (row < 1 || col < 1) return;
-    //     // Clear previous header highlighting
-    //     this.clearPreviousSelection();
-    //     // Highlight the row header (cell in column 0 of selected row)
-    //     this.paintCell(row, 0, row, this.rows, this.cols);
-    //     // Highlight the column header (cell in row 0 of selected column)
-    //     const columnLabel = getExcelColumnLabel(col - 1);
-    //     this.paintCell(0, col, columnLabel, this.rows, this.cols);
-    //     // Update tracking variables for next time
-    //     this.previousSelectedRow = row;
-    //     this.previousSelectedCol = col;
-    //     console.log(`Selected cell: Row ${row}, Col ${col}`);
-    // }
     /**
      * Paints a cell with highlight color and displays the value
      * @param {number} row - The row index of the cell
@@ -201,6 +158,7 @@ export class selectionManager {
     }
     handleMouseDown(event) {
         this.eventmanager?.handleCanvasClick(event);
+        // this.eventmanager?.notifySelectionChange();
         this.griddrawer.rendervisible(this.rows, this.cols);
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
@@ -210,6 +168,15 @@ export class selectionManager {
         const virtualY = y + this.container.scrollTop;
         const col = findIndexFromCoord(virtualX, this.cols.widths);
         const row = findIndexFromCoord(virtualY, this.rows.heights);
+        // handle single click highlighting
+        if (row < 1 || col < 1)
+            return;
+        this.clearPreviousSelection();
+        // Highlight the row header (cell in column 0 of selected row)
+        this.paintCell(row, 0, row, this.rows, this.cols);
+        // Highlight the column header (cell in row 0 of selected column)
+        const columnLabel = getExcelColumnLabel(col - 1);
+        this.paintCell(0, col, columnLabel, this.rows, this.cols);
         console.log(`${row},${col}`);
         // const cell = this.cellmanager.getCell(row,col)
         //  calculate actual pos of cell to draw
