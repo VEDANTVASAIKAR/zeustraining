@@ -21,6 +21,12 @@ export class selectionManager {
     public eventmanager : EventManager | null= null;
     selectionStartCell: { row: number, col: number } | null = null;
     selectionEndCell: { row: number, col: number } | null = null;
+    activeSelection: {
+    startRow: number;
+    startCol: number; 
+    endRow: number;
+    endCol: number;
+    } | null = null;
     
     // Track the previously selected row and column to clear their highlighting
     private previousSelectedRow: number | null = null;
@@ -211,83 +217,100 @@ export class selectionManager {
      * Reapplies the current selection highlighting after scroll events
      */
     reapplySelectionHighlighting() {
-        // If there's an active selection, rehighlight the headers
-        if (this.previousSelectedRow !== null && this.previousSelectedCol !== null) {
-            // Highlight row header
-            this.paintCell(
-                this.previousSelectedRow, 
-                0, 
-                this.previousSelectedRow, 
-                this.rows, 
-                this.cols
+        // If we have an active selection, redraw it completely
+        if (this.activeSelection) {
+            this.paintSelectedCells(
+                this.activeSelection.startRow,
+                this.activeSelection.startCol,
+                this.activeSelection.endRow,
+                this.activeSelection.endCol
             );
+            // Calculate the border position
+            let startX = 0;
+            for (let i = 0; i < this.activeSelection.startCol; i++) {
+                startX += this.cols.widths[i];
+            }
             
-            // Highlight column header
-            const columnLabel = getExcelColumnLabel(this.previousSelectedCol - 1);
-            this.paintCell(
-                0, 
-                this.previousSelectedCol, 
-                columnLabel, 
-                this.rows, 
-                this.cols
-            );
+            let startY = 0;
+            for (let i = 0; i < this.activeSelection.startRow; i++) {
+                startY += this.rows.heights[i];
+            }
+            
+            // Calculate width and height
+            let width = 0;
+            for (let i = this.activeSelection.startCol; i <= this.activeSelection.endCol; i++) {
+                width += this.cols.widths[i];
+            }
+            
+            let height = 0;
+            for (let i = this.activeSelection.startRow; i <= this.activeSelection.endRow; i++) {
+                height += this.rows.heights[i];
+            }
+            
+            // Adjust for scroll position to get visible coordinates
+            const startTopX = startX - this.container.scrollLeft;
+            const startTopY = startY - this.container.scrollTop;
+            
+            if (this.ctx) {
+                // Draw the border with the same style as in your drag function
+                this.ctx.strokeStyle = "rgb(19, 126, 67,1)";
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(startTopX, startTopY, width, height);
+            }
         }
     }
 
-    handleMouseDown(event : PointerEvent){
-        this.eventmanager?.handleCanvasClick(event);
-        // this.eventmanager?.notifySelectionChange();
-
-        this.griddrawer.rendervisible(this.rows, this.cols)
-
+    handleMouseDown(event: PointerEvent) {
+        // Get your existing coordinates
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-
-        // Add scroll offset to get position in the virtual grid
         const virtualX = x + this.container.scrollLeft;
         const virtualY = y + this.container.scrollTop;
-
         const col = findIndexFromCoord(virtualX, this.cols.widths);
         const row = findIndexFromCoord(virtualY, this.rows.heights);
-
-        // handle single click highlighting
+        
+        // Ignore headers
         if (row < 1 || col < 1) return;
         
-        this.clearPreviousSelection();
+        // Tell EventManager about the click (for input positioning)
+        this.eventmanager?.handleCanvasClick(event);
         
-        // Highlight the row header (cell in column 0 of selected row)
-        this.paintCell(row, 0, row, this.rows, this.cols);
+        // Redraw the grid to clear previous highlighting
+        this.griddrawer.rendervisible(this.rows, this.cols);
         
-        // Highlight the column header (cell in row 0 of selected column)
-        const columnLabel = getExcelColumnLabel(col - 1);
-        this.paintCell(0, col, columnLabel, this.rows, this.cols);
-
-        console.log(`${row},${col}`);
-
-        // const cell = this.cellmanager.getCell(row,col)
+        // Create a single cell selection immediately (this will be expanded if drag occurs)
+        this.activeSelection = {
+            startRow: row,
+            startCol: col,
+            endRow: row,
+            endCol: col
+        };
         
-        //  calculate actual pos of cell to draw
+        // Apply initial selection (single cell and its headers)
+        this.paintSelectedCells(row, col, row, col);
+        
+        // Store start position for potential dragging
+        this.selectionStartCell = { row, col };
+        
+        // Calculate visible position for drag feedback
         let topLeftX = 0;
-        for (let i=0; i< col;i ++){
-            topLeftX += this.cols.widths[i]
+        for (let i = 0; i < col; i++) {
+            topLeftX += this.cols.widths[i];
         }
-
+        
         let topLeftY = 0;
-        for (let i = 0;i<row;i++){
+        for (let i = 0; i < row; i++) {
             topLeftY += this.rows.heights[i];
         }
-
-        // Adjust for scroll to get the visible position on canvas
+        
+        // Adjust for scroll
         const visibleX = topLeftX - this.container.scrollLeft;
         const visibleY = topLeftY - this.container.scrollTop;
-
-        // Create and store the handler reference
-        this.mouseMoveHandler = (event) => this.handleMouseDrag(event, visibleX, visibleY, row, col);
         
-        // Add the listener using the stored reference
+        // Set up the drag handler
+        this.mouseMoveHandler = (event) => this.handleMouseDrag(event, visibleX, visibleY, row, col);
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
-
     }
 
     handleMouseDrag(event : PointerEvent , visibleX:number, visibleY :number,row : number, col :number){
@@ -388,12 +411,20 @@ export class selectionManager {
 
     }
 
-    handlePointerUp(){
-        // Remove the event listener using the stored reference
-    if (this.mouseMoveHandler) {
-        this.container.removeEventListener('pointermove', this.mouseMoveHandler);
-        this.mouseMoveHandler = null;
-    }        console.log('upppppp');
+    handlePointerUp() {
+        if (this.mouseMoveHandler) {
+            this.container.removeEventListener('pointermove', this.mouseMoveHandler);
+            this.mouseMoveHandler = null;
+        }
         
+        // Save the final selection
+        if (this.selectionStartCell && this.selectionEndCell) {
+            this.activeSelection = {
+                startRow: Math.min(this.selectionStartCell.row, this.selectionEndCell.row),
+                startCol: Math.min(this.selectionStartCell.col, this.selectionEndCell.col),
+                endRow: Math.max(this.selectionStartCell.row, this.selectionEndCell.row),
+                endCol: Math.max(this.selectionStartCell.col, this.selectionEndCell.col)
+            };
+        }
     }
-}
+}    
