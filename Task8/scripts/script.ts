@@ -14,18 +14,39 @@ let container = document.querySelector('.container') as HTMLElement ;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const overlay = document.getElementById("overlay") as HTMLCanvasElement;
-// Make sure both canvases always match the window size
-function resizeCanvases() {
+
+// Combined function that handles both resizing and DPI adjustment
+function resizeCanvasesWithDPI() {
   const width = window.innerWidth;
   const height = window.innerHeight;
-  canvas.width = width;
-  canvas.height = height;
-  overlay.width = width;
-  overlay.height = height;
+  const dpr = window.devicePixelRatio || 1;
+  
+  // Set the physical pixel dimensions
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  overlay.width = width * dpr;
+  overlay.height = height * dpr;
+  
+  // Set the CSS dimensions
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+  overlay.style.width = `${width}px`;
+  overlay.style.height = `${height}px`;
+  
+  // Scale the context
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.scale(dpr, dpr);
+  }
+  const overlayCtx = overlay.getContext('2d');
+  if (overlayCtx) {
+    overlayCtx.scale(dpr, dpr);
+  }
 }
 
-window.addEventListener('resize', resizeCanvases);
-resizeCanvases(); // Call immediately to set initial size
+// Use this single function for both initial setup and resize events
+window.addEventListener('resize', resizeCanvasesWithDPI);
+resizeCanvasesWithDPI(); // Call immediately to set initial size
 
 const rows = new Rows(1000);
 const cols = new Cols(500); 

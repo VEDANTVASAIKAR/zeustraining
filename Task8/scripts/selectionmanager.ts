@@ -39,6 +39,7 @@ export class selectionManager {
         this.cellmanager = cellmanager;
         this.canvas = canvas;
         this.ctx = this.canvas.getContext("2d");
+    
         
         this.attachCanvasEvents();
         
@@ -74,7 +75,7 @@ export class selectionManager {
     attachCanvasEvents() {
         this.canvas.addEventListener("click", (event) => this.handleCellClick(event));
         this.canvas.addEventListener('pointerdown',(event) => this.handleMouseDown(event));
-        this.canvas.addEventListener('pointerup',()=> this.handlePointerUp());
+        document.addEventListener('pointerup',()=> this.handlePointerUp());
         console.log('Selection manager attached');
     }
 
@@ -253,6 +254,8 @@ export class selectionManager {
     handleMouseDown(event : PointerEvent){
         this.eventmanager?.handleCanvasClick(event);
 
+        this.griddrawer.rendervisible(this.rows, this.cols)
+
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
@@ -353,7 +356,7 @@ export class selectionManager {
         // Excel-like selection styling
         this.ctx.fillStyle = "rgba(231, 241, 236, 1)";  
         this.ctx.strokeStyle = "rgb(19, 126, 67,1)";      
-        this.ctx.lineWidth = 2;                         // Border width
+        this.ctx.lineWidth = 1;                         // Border width
         
         // Draw the filled rectangle
         this.ctx.fillRect(startTopX, startTopY, width, height);

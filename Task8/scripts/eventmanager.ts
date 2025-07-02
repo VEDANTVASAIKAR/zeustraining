@@ -54,16 +54,16 @@ export class EventManager {
     }
 
     redraw() {
-    // Use requestAnimationFrame to throttle scroll events
-    let ticking = false;
-    
-    // Initial render when the page loads
-    this.grid.rendervisible(this.rows, this.cols);
-    
-    this.container.addEventListener('scroll', (e) => {
-        // console.log("Scroll");
-        // Check if input is visible (user is editing)
-        const isEditing = this.cellInput.style.display === 'block';
+        // Use requestAnimationFrame to throttle scroll events
+        let ticking = false;
+        
+        // Initial render when the page loads
+        this.grid.rendervisible(this.rows, this.cols);
+        
+        this.container.addEventListener('scroll', (e) => {
+            // console.log("Scroll");
+            // Check if input is visible (user is editing)
+            const isEditing = this.cellInput.style.display === 'block';
 
         
         // Only update the input box if it's visible
@@ -465,6 +465,8 @@ export class EventManager {
         this.selectedCol = col;
 
         this.updateInputBoxIfVisible()
+
+        this.notifySelectionChange();
 
         // Keep focus on the canvas instead of the input
         this.canvas.focus();

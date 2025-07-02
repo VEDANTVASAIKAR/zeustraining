@@ -376,6 +376,7 @@ export class EventManager {
         this.selectedRow = row;
         this.selectedCol = col;
         this.updateInputBoxIfVisible();
+        this.notifySelectionChange();
         // Keep focus on the canvas instead of the input
         this.canvas.focus();
     }
