@@ -19,6 +19,8 @@ export class selectionManager {
     container: HTMLElement;
     private mouseMoveHandler: ((event: PointerEvent) => void) | null = null;
     public eventmanager : EventManager | null= null;
+    selectionStartCell: { row: number, col: number } | null = null;
+    selectionEndCell: { row: number, col: number } | null = null;
     
     // Track the previously selected row and column to clear their highlighting
     private previousSelectedRow: number | null = null;
@@ -73,7 +75,7 @@ export class selectionManager {
      * Attaches event listeners to the canvas
      */
     attachCanvasEvents() {
-        this.canvas.addEventListener("click", (event) => this.handleCellClick(event));
+        // this.canvas.addEventListener("click", (event) => this.handleCellClick(event));
         this.canvas.addEventListener('pointerdown',(event) => this.handleMouseDown(event));
         document.addEventListener('pointerup',()=> this.handlePointerUp());
         console.log('Selection manager attached');
@@ -111,41 +113,41 @@ export class selectionManager {
         this.previousSelectedCol = null;
     }
     
-    /**
-     * Handles a single cell click event
-     * @param {MouseEvent} event - The mouse click event
-     */
-    handleCellClick(event: MouseEvent) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
+    // /**
+    //  * Handles a single cell click event
+    //  * @param {MouseEvent} event - The mouse click event
+    //  */
+    // handleCellClick(event: MouseEvent) {
+    //     const rect = this.canvas.getBoundingClientRect();
+    //     const x = event.clientX - rect.left;
+    //     const y = event.clientY - rect.top;
 
-        // Add scroll offset to get position in the virtual grid
-        const virtualX = x + this.container.scrollLeft;
-        const virtualY = y + this.container.scrollTop;
+    //     // Add scroll offset to get position in the virtual grid
+    //     const virtualX = x + this.container.scrollLeft;
+    //     const virtualY = y + this.container.scrollTop;
 
-        const col = findIndexFromCoord(virtualX, this.cols.widths);
-        const row = findIndexFromCoord(virtualY, this.rows.heights);
+    //     const col = findIndexFromCoord(virtualX, this.cols.widths);
+    //     const row = findIndexFromCoord(virtualY, this.rows.heights);
         
-        // Skip if we clicked on a header or outside the grid
-        if (row < 1 || col < 1) return;
+    //     // Skip if we clicked on a header or outside the grid
+    //     if (row < 1 || col < 1) return;
         
-        // Clear previous header highlighting
-        this.clearPreviousSelection();
+    //     // Clear previous header highlighting
+    //     this.clearPreviousSelection();
         
-        // Highlight the row header (cell in column 0 of selected row)
-        this.paintCell(row, 0, row, this.rows, this.cols);
+    //     // Highlight the row header (cell in column 0 of selected row)
+    //     this.paintCell(row, 0, row, this.rows, this.cols);
         
-        // Highlight the column header (cell in row 0 of selected column)
-        const columnLabel = getExcelColumnLabel(col - 1);
-        this.paintCell(0, col, columnLabel, this.rows, this.cols);
+    //     // Highlight the column header (cell in row 0 of selected column)
+    //     const columnLabel = getExcelColumnLabel(col - 1);
+    //     this.paintCell(0, col, columnLabel, this.rows, this.cols);
         
-        // Update tracking variables for next time
-        this.previousSelectedRow = row;
-        this.previousSelectedCol = col;
+    //     // Update tracking variables for next time
+    //     this.previousSelectedRow = row;
+    //     this.previousSelectedCol = col;
         
-        console.log(`Selected cell: Row ${row}, Col ${col}`);
-    }
+    //     console.log(`Selected cell: Row ${row}, Col ${col}`);
+    // }
 
     /**
      * Paints a cell with highlight color and displays the value
@@ -205,7 +207,13 @@ export class selectionManager {
         this.ctx.clearRect(drawX, drawY, w, h);
         
         // Fill with highlight color
-        this.ctx.fillStyle = "rgba(202,234,216,1)"; // Green highlight color
+        if (row === 0 || col === 0) {
+            // Header cells get stronger highlight
+            this.ctx.fillStyle = "rgba(202,234,216,1)";
+        } else {
+            // Regular selected cells get lighter highlight
+            this.ctx.fillStyle = "rgba(231,241,236,1)";  
+        }
         this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
         
         // Draw the borders
@@ -222,6 +230,35 @@ export class selectionManager {
             drawX + w/2,
             drawY + h/2
         );
+    }
+
+    //method to paint all cells in the selection
+    paintSelectedCells(startRow: number, startCol: number, endRow: number, endCol: number) {
+        // Loop through all cells in the selection range
+        for (let r = startRow; r <= endRow; r++) {
+            for (let c = startCol; c <= endCol; c++) {
+                // Get the cell value
+                const cell = this.cellmanager.getCell(r, c);
+                const value = cell ? cell.value : null;
+                
+                // Paint each cell with selection highlight
+                // Use a lighter highlight for interior cells than for headers
+                this.paintCell(r, c, value, this.rows, this.cols);
+            }
+        }
+        
+        // Additionally highlight the row headers for all selected rows
+        for (let r = startRow; r <= endRow; r++) {
+            // Paint row header with highlight
+            this.paintCell(r, 0, r, this.rows, this.cols);
+        }
+        
+        // Additionally highlight the column headers for all selected columns
+        for (let c = startCol; c <= endCol; c++) {
+            // Paint column header with highlight
+            const columnLabel = getExcelColumnLabel(c - 1);
+            this.paintCell(0, c, columnLabel, this.rows, this.cols);
+        }
     }
 
     /**
@@ -296,6 +333,9 @@ export class selectionManager {
     handleMouseDrag(event : PointerEvent , visibleX:number, visibleY :number,row : number, col :number){
         console.log('hiiii');
         
+        // The start cell is simply (row, col)
+        this.selectionStartCell = { row, col };
+
         let startTopX =visibleX;
         let startTopY =visibleY;
 
@@ -310,6 +350,26 @@ export class selectionManager {
         const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
         const currentRow = findIndexFromCoord(virtualY, this.rows.heights); 
         console.log(`${currentRow},${currentCol}`);
+
+        // The end cell is (currentRow, currentCol)
+        this.selectionEndCell = { row: currentRow, col: currentCol };
+
+        // Determine the actual rectangle corners (normalize coordinates)
+        const startRow = Math.min(row, currentRow);
+        const startCol = Math.min(col, currentCol);
+        const endRow = Math.max(row, currentRow);
+        const endCol = Math.max(col, currentCol);
+
+        // Clear and redraw the grid
+        if (!this.ctx) {
+            return;
+        }
+        
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.griddrawer.rendervisible(this.rows, this.cols);
+
+        // Paint all cells in the selection range
+        this.paintSelectedCells(startRow, startCol, endRow, endCol);
 
         let width : number = 0;
         let height :number =0 ;
@@ -347,11 +407,13 @@ export class selectionManager {
             return;
         }    
 
-        // Clear the previous drawing
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // // Clear the previous drawing
+        // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Redraw the grid cells (you may need to call your grid's render method)
-        this.griddrawer.rendervisible(this.rows,this.cols);
+        // // Redraw the grid cells (you may need to call your grid's render method)
+        // this.griddrawer.rendervisible(this.rows,this.cols);
+
+
         
         // Excel-like selection styling
         this.ctx.fillStyle = "rgba(231, 241, 236, 1)";  
@@ -359,7 +421,7 @@ export class selectionManager {
         this.ctx.lineWidth = 1;                         // Border width
         
         // Draw the filled rectangle
-        this.ctx.fillRect(startTopX, startTopY, width, height);
+        // this.ctx.fillRect(startTopX, startTopY, width, height);
         
         // Draw the border
         this.ctx.strokeRect(startTopX, startTopY, width, height);

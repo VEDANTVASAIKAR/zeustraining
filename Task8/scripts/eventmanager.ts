@@ -137,6 +137,21 @@ export class EventManager {
                 e.preventDefault();
             }
         });
+        // to save input while writing
+        this.cellInput.addEventListener("input", (e) => {
+            // Save the current value to the cell model without hiding the input
+            if (this.selectedRow !== null && this.selectedCol !== null) {
+                const currentValue = this.cellInput.value;
+                
+                // Update the cell value in the model
+                this.cellManager.setCell(
+                    this.selectedRow,
+                    this.selectedCol,
+                    currentValue
+                );
+                
+            }
+        });
 
         this.canvas.addEventListener("keydown", (e) => {
             // Check if a cell is selected
@@ -499,7 +514,7 @@ export class EventManager {
                 
             );
         }
-        this.cellInput.style.display = "none";
+        this.cellInput.style.display = "block";
         
     }
 
@@ -520,14 +535,13 @@ export class EventManager {
         const cellLeft = this.cols.widths.slice(0, this.selectedCol).reduce((a, b) => a + b, 0);
         const cellTop = this.rows.heights.slice(0, this.selectedRow).reduce((a, b) => a + b, 0);
         
-        // Log the absolute position in grid
         // console.log(`Cell absolute position: left=${cellLeft}, top=${cellTop}`);
         // console.log(`Current scroll: left=${this.container.scrollLeft}, top=${this.container.scrollTop}`);
         
         
-        if (makeVisible) {
-            this.cellInput.style.display = "block";
-        }
+        
+        this.cellInput.style.display = "block";
+        
         
         this.cellInput.style.position = "absolute";
         this.cellInput.style.left = cellLeft + "px";
