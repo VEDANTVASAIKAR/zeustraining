@@ -10,6 +10,7 @@ export class selectionManager {
         this.selectionStartCell = null;
         this.selectionEndCell = null;
         this.activeSelection = null;
+        this.cellInput = null;
         // Track the previously selected row and column to clear their highlighting
         this.previousSelectedRow = null;
         this.previousSelectedCol = null;
@@ -21,6 +22,7 @@ export class selectionManager {
         this.canvas = canvas;
         this.ctx = this.canvas.getContext("2d");
         this.statistics = statistics;
+        this.cellInput = document.getElementById("cellInput");
         this.attachCanvasEvents();
         this.initKeyboardEvents();
     }
@@ -42,6 +44,17 @@ export class selectionManager {
     initKeyboardEvents() {
         // Add event listener for keydown on the canvas or document
         this.canvas.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        // to save input while writing
+        this.cellInput?.addEventListener("input", (e) => {
+            // Save the current value to the cell model without hiding the input
+            if (this.activeSelection?.startRow !== null && this.activeSelection?.startCol !== null) {
+                const currentValue = this.cellInput?.value;
+                if (this.activeSelection && currentValue) {
+                    // Update the cell value in the model
+                    this.cellmanager.setCell(this.activeSelection?.startRow, this.activeSelection?.startCol, currentValue);
+                }
+            }
+        });
     }
     /**
      * Handles keydown events for selection manipulation
@@ -51,6 +64,81 @@ export class selectionManager {
         // Only handle if we have an active selection
         if (!this.activeSelection)
             return;
+        // handle arrow navigation
+        if (e.key && !e.shiftKey) {
+            let currentselectedrow = this.activeSelection.startRow;
+            let currentselectedcol = this.activeSelection.startCol;
+            console.log(currentselectedrow);
+            console.log(currentselectedcol);
+            let moved = false;
+            switch (e.key) {
+                case 'ArrowUp':
+                    // dont go above header
+                    if (currentselectedrow > 1) {
+                        currentselectedrow -= 1;
+                        moved = true;
+                    }
+                    break;
+                case 'ArrowDown':
+                    // allow moving down 
+                    currentselectedrow += 1;
+                    moved = true;
+                    break;
+                case 'ArrowLeft':
+                    // dont go left of the header
+                    if (currentselectedcol > 1) {
+                        currentselectedcol -= 1;
+                        moved = true;
+                    }
+                    break;
+                case 'ArrowRight':
+                    // allow moving right
+                    currentselectedcol += 1;
+                    moved = true;
+                    break;
+                case 'Enter':
+                    if (!e.shiftKey) {
+                        currentselectedrow += 1;
+                        moved = true;
+                    }
+                    break;
+                // Only focus and populate input on typing keys
+                default: if (e.key.length === 1 && // Single character keys (letters, numbers, symbols)
+                    !e.ctrlKey &&
+                    !e.altKey &&
+                    !e.metaKey &&
+                    e.key !== 'ArrowUp' &&
+                    e.key !== 'ArrowRight' &&
+                    e.key !== 'ArrowLeft' &&
+                    e.key !== 'ArrowDown') {
+                    // Focus the input
+                    this.cellInput?.focus();
+                    // Prevent the key from also being added by the browser's default behavior
+                    e.preventDefault();
+                }
+            }
+            // Update selection based on whether Shift is held
+            this.activeSelection = {
+                startRow: currentselectedrow,
+                startCol: currentselectedcol,
+                endRow: currentselectedrow,
+                endCol: currentselectedcol
+            };
+            if (moved) {
+                // Hide the input during keyboard navigation if it's visible
+                // if (this.cellInput && this.cellInput.style.display === 'block') {
+                //     // Save current value first
+                //     if (this.eventmanager) {
+                //         this.eventmanager.saveCell();
+                //     }
+                //     this.cellInput.style.display = 'none';
+                // }
+                // Update visual selection
+                this.extendSelection(currentselectedrow, currentselectedcol);
+                this.eventmanager?.positionInput(currentselectedrow, currentselectedcol);
+                e.preventDefault();
+            }
+        }
         // Check if shift key is pressed with arrow keys
         if (e.shiftKey) {
             let newEndRow = this.activeSelection.endRow;
@@ -432,6 +520,7 @@ export class selectionManager {
             endRow: this.rows.n - 1, // Last row
             endCol: col
         };
+        this.eventmanager?.positionInput(this.activeSelection.startRow, this.activeSelection.startCol);
         // Reapply the selection highlighting (which is already viewport-aware)
         this.reapplySelectionHighlighting();
         // Dispatch selection changed event
@@ -456,6 +545,7 @@ export class selectionManager {
             endRow: row,
             endCol: this.cols.n - 1 // Last column
         };
+        this.eventmanager?.positionInput(this.activeSelection.startRow, this.activeSelection.startCol);
         // Reapply the selection highlighting (which is already viewport-aware)
         this.reapplySelectionHighlighting();
         // Dispatch selection changed event

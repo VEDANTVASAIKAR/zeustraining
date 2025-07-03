@@ -428,4 +428,30 @@ export class EventManager {
             }
         }, { once: false });
     }
+    positionInput(selectedRow, selectedCol) {
+        const cellLeft = this.cols.widths.slice(0, selectedCol).reduce((a, b) => a + b, 0);
+        const cellTop = this.rows.heights.slice(0, selectedRow).reduce((a, b) => a + b, 0);
+        // console.log(`Cell absolute position: left=${cellLeft}, top=${cellTop}`);
+        // console.log(`Current scroll: left=${this.container.scrollLeft}, top=${this.container.scrollTop}`);
+        this.cellInput.style.display = "block";
+        this.cellInput.style.position = "absolute";
+        this.cellInput.style.left = cellLeft + "px";
+        this.cellInput.style.top = cellTop + "px";
+        this.cellInput.style.width = this.cols.widths[this.selectedCol] + "px";
+        this.cellInput.style.height = this.rows.heights[this.selectedRow] + "px";
+        // Verify the style values after setting
+        // console.log(`Input box style: left=${this.cellInput.style.left}, top=${this.cellInput.style.top}, width=${this.cellInput.style.width}, height=${this.cellInput.style.height}`);
+        const cell = this.cellManager.getCell(this.selectedRow, this.selectedCol);
+        this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
+        // Add this - intercept clicks on the input element itself
+        this.cellInput.addEventListener('mousedown', (e) => {
+            // Check if it's not a double-click
+            if (e.detail === 1) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.canvas.focus();
+                return false;
+            }
+        }, { once: false });
+    }
 }
