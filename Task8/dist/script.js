@@ -38,7 +38,7 @@ function resizeCanvasesWithDPI() {
 // Use this single function for both initial setup and resize events
 window.addEventListener('resize', resizeCanvasesWithDPI);
 resizeCanvasesWithDPI(); // Call immediately to set initial size
-const rows = new Rows(1000);
+const rows = new Rows(100);
 const cols = new Cols(500);
 const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols, cellManager);

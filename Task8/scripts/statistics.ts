@@ -62,6 +62,8 @@ export class Statistics {
         let cells = this.getSelectedCells()
         for (let i =0; i< cells.length;i++){
             // console.log(cells[i].value);
+            // console.log(i);
+            
             
         }
     }

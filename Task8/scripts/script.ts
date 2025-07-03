@@ -49,7 +49,7 @@ function resizeCanvasesWithDPI() {
 window.addEventListener('resize', resizeCanvasesWithDPI);
 resizeCanvasesWithDPI(); // Call immediately to set initial size
 
-const rows = new Rows(1000);
+const rows = new Rows(100);
 const cols = new Cols(500); 
 
 const cellManager = new CellManager();

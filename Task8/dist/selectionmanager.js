@@ -10,6 +10,7 @@ export class selectionManager {
         this.selectionStartCell = null;
         this.selectionEndCell = null;
         this.activeSelection = null;
+        this.selectionarr = [];
         this.cellInput = null;
         // Track the previously selected row and column to clear their highlighting
         this.previousSelectedRow = null;
@@ -98,8 +99,6 @@ export class selectionManager {
         if (e.key && !e.shiftKey) {
             let currentselectedrow = this.activeSelection.startRow;
             let currentselectedcol = this.activeSelection.startCol;
-            console.log(currentselectedrow);
-            console.log(currentselectedcol);
             let moved = false;
             switch (e.key) {
                 case 'ArrowUp':
@@ -375,6 +374,23 @@ export class selectionManager {
         const row = findIndexFromCoord(virtualY, this.rows.heights);
         // Check if click is on a header
         if (row === 0 && col > 0) {
+            if (event.ctrlKey) {
+                console.log(('ucediucgwkeg'));
+                // Create a selection range for the full column you just clicked
+                const colSelection = {
+                    startRow: 1,
+                    startCol: col,
+                    endRow: this.rows.n - 1,
+                    endCol: col
+                };
+                this.selectionarr.push(colSelection);
+                // this.activeSelection = colSelection;
+            }
+            else {
+                // Normal click: clear all previous multi-selection
+                this.selectionarr = [];
+            }
+            console.log(this.selectionarr.length);
             this.eventmanager?.positionInput(1, col);
             // Store the starting column for potential column drag selection
             this.selectionStartCell = { row: 0, col: col };
@@ -399,6 +415,21 @@ export class selectionManager {
             return;
         }
         else if (col === 0 && row > 0) {
+            if (event.ctrlKey) {
+                // CTRL+Click: Add this row to selection array
+                const rowSelection = {
+                    startRow: row,
+                    startCol: 1,
+                    endRow: row,
+                    endCol: this.cols.n - 1
+                };
+                this.selectionarr.push(rowSelection);
+                // this.activeSelection = rowSelection;
+            }
+            else {
+                // Normal click: Clear previous, select only this row
+                this.selectionarr = [];
+            }
             this.eventmanager?.positionInput(row, 1);
             // Store the starting row for potential row drag selection
             this.selectionStartCell = { row: row, col: 0 };
@@ -428,6 +459,7 @@ export class selectionManager {
         // Ignore headers
         if (row < 1 || col < 1)
             return;
+        this.selectionarr = [];
         // Tell EventManager about the click (for input positioning)
         this.eventmanager?.handleCanvasClick(event);
         // Redraw the grid to clear previous highlighting
@@ -556,35 +588,35 @@ export class selectionManager {
             this.container.removeEventListener('pointermove', this.mouseMoveHandler);
             this.mouseMoveHandler = null;
         }
-        // Handle column header drag selection specifically
-        if (this.selectionStartCell?.row === 0 && this.selectionEndCell?.row === 0) {
-            // We've completed a column selection drag
-            if (this.selectionStartCell.col > 0 && this.selectionEndCell.col > 0) {
-                // Finalize the column selection
-                this.selectMultipleColumns(this.selectionStartCell.col, this.selectionEndCell.col);
-            }
-        }
-        // Handle row header drag selection
-        else if (this.selectionStartCell?.col === 0 && this.selectionEndCell?.col === 0) {
-            // We've completed a row selection drag
-            if (this.selectionStartCell.row > 0 && this.selectionEndCell.row > 0) {
-                // Finalize the row selection
-                this.selectMultipleRows(this.selectionStartCell.row, this.selectionEndCell.row);
-            }
-        }
+        // // Handle column header drag selection specifically
+        // if (this.selectionStartCell?.row === 0 && this.selectionEndCell?.row === 0) {
+        //     // We've completed a column selection drag
+        //     if (this.selectionStartCell.col > 0 && this.selectionEndCell.col > 0) {
+        //         // Finalize the column selection
+        //         this.selectMultipleColumns(this.selectionStartCell.col, this.selectionEndCell.col);
+        //     }
+        // }
+        // // Handle row header drag selection
+        // else if (this.selectionStartCell?.col === 0 && this.selectionEndCell?.col === 0) {
+        //     // We've completed a row selection drag
+        //     if (this.selectionStartCell.row > 0 && this.selectionEndCell.row > 0) {
+        //         // Finalize the row selection
+        //         this.selectMultipleRows(this.selectionStartCell.row, this.selectionEndCell.row);
+        //     }
+        // }
         // Save the final selection
-        if (this.selectionStartCell && this.selectionEndCell) {
-            // this.activeSelection = {
-            //     startRow: Math.min(this.selectionStartCell.row, this.selectionEndCell.row),
-            //     startCol: Math.min(this.selectionStartCell.col, this.selectionEndCell.col),
-            //     endRow: Math.max(this.selectionStartCell.row, this.selectionEndCell.row),
-            //     endCol: Math.max(this.selectionStartCell.col, this.selectionEndCell.col)
-            //     // endRow: this.selectionEndCell.row,
-            //     // endCol: this.selectionEndCell.col
-            // };
-            // Dispatch the selection change event
-            // this.dispatchSelectionChangeEvent();
-        }
+        // if (this.selectionStartCell && this.selectionEndCell) {
+        // this.activeSelection = {
+        //     startRow: Math.min(this.selectionStartCell.row, this.selectionEndCell.row),
+        //     startCol: Math.min(this.selectionStartCell.col, this.selectionEndCell.col),
+        //     endRow: Math.max(this.selectionStartCell.row, this.selectionEndCell.row),
+        //     endCol: Math.max(this.selectionStartCell.col, this.selectionEndCell.col)
+        //     // endRow: this.selectionEndCell.row,
+        //     // endCol: this.selectionEndCell.col
+        // };
+        // Dispatch the selection change event
+        // this.dispatchSelectionChangeEvent();
+        // }
         this.statistics?.printvalues();
     }
     /**
@@ -603,56 +635,6 @@ export class selectionManager {
         this.canvas.dispatchEvent(event);
     }
     /**
-     * Selects an entire column
-     * @param col The column index to select
-     */
-    selectEntireColumn(col) {
-        console.log(`Selecting entire column ${col}`);
-        // Clear any existing selection
-        this.griddrawer.rendervisible(this.rows, this.cols);
-        // Create a selection from row 1 to the last row, for the specified column
-        this.activeSelection = {
-            startRow: 1,
-            startCol: col,
-            endRow: this.rows.n - 1, // Last row
-            endCol: col
-        };
-        this.eventmanager?.positionInput(this.activeSelection.startRow, this.activeSelection.startCol);
-        // Reapply the selection highlighting (which is already viewport-aware)
-        this.reapplySelectionHighlighting();
-        // Dispatch selection changed event
-        this.dispatchSelectionChangeEvent();
-        // Update statistics if needed
-        if (this.statistics) {
-            this.statistics.printvalues();
-        }
-    }
-    /**
-     * Selects an entire row
-     * @param row The row index to select
-     */
-    selectEntireRow(row) {
-        console.log(`Selecting entire row ${row}`);
-        // Clear any existing selection
-        this.griddrawer.rendervisible(this.rows, this.cols);
-        // Create a selection from column 1 to the last column, for the specified row
-        this.activeSelection = {
-            startRow: row,
-            startCol: 1,
-            endRow: row,
-            endCol: this.cols.n - 1 // Last column
-        };
-        this.eventmanager?.positionInput(this.activeSelection.startRow, this.activeSelection.startCol);
-        // Reapply the selection highlighting (which is already viewport-aware)
-        this.reapplySelectionHighlighting();
-        // Dispatch selection changed event
-        this.dispatchSelectionChangeEvent();
-        // Update statistics if needed
-        if (this.statistics) {
-            this.statistics.printvalues();
-        }
-    }
-    /**
      * Handles multiple column selection via drag
      * @param startCol The starting column index
      * @param endCol The ending column index
@@ -667,6 +649,13 @@ export class selectionManager {
         const lastCol = Math.max(startCol, endCol);
         // Clear any existing selection
         this.griddrawer.rendervisible(this.rows, this.cols);
+        if (this.selectionarr) {
+            for (let selection of this.selectionarr) {
+                // Paint this range
+                console.log(selection);
+                this.paintSelectedCells(selection.startRow, selection.startCol, selection.endRow, selection.endCol);
+            }
+        }
         // Create a selection that spans all rows, but only the selected columns
         this.activeSelection = {
             startRow: 1,
@@ -700,6 +689,9 @@ export class selectionManager {
         const lastRow = Math.max(startRow, endRow);
         // Clear any existing selection
         this.griddrawer.rendervisible(this.rows, this.cols);
+        for (const selection of this.selectionarr) {
+            this.paintSelectedCells(selection.startRow, selection.startCol, selection.endRow, selection.endCol);
+        }
         // Create a selection that spans all columns, but only the selected rows
         this.activeSelection = {
             startRow: firstRow,
