@@ -448,7 +448,7 @@ export class selectionManager {
     /**
      * Reapplies the current selection highlighting after scroll events
      */
-    reapplySelectionHighlighting() {
+     reapplySelectionHighlighting() {
         // If we have an active selection, redraw it completely
         if (this.activeSelection) {
             this.paintSelectedCells(
@@ -505,14 +505,65 @@ export class selectionManager {
 
         // Check if click is on a header
         if (row === 0 && col > 0) {
+            this.eventmanager?.positionInput(1, col);
+
+            // Store the starting column for potential column drag selection
+            this.selectionStartCell = { row: 0, col: col };
+            // Set up special column selection drag handler
+            this.mouseMoveHandler = (moveEvent) => {
+                const moveRect = this.canvas.getBoundingClientRect();
+                const moveX = moveEvent.clientX - moveRect.left + this.container.scrollLeft;
+                const currentCol = findIndexFromCoord(moveX, this.cols.widths);
+                
+                // Only process if we're still in the header row
+                if (currentCol > 0) {
+                    // Update selection to span from start column to current column
+                    this.selectMultipleColumns(col, currentCol);
+                    
+                    // Store the current position for when the drag ends
+                    this.selectionEndCell = { row: 0, col: currentCol };
+                }
+            };
+            
+            // Attach the drag handler
+            this.container.addEventListener('pointermove', this.mouseMoveHandler);
+
             // Column header click - select entire column
-            this.selectEntireColumn(col);
+            this.selectMultipleColumns(col, col);
+            // this.selectEntireColumn(col);
             return;
+
         } else if (col === 0 && row > 0) {
+            this.eventmanager?.positionInput(row, 1);
+            // Store the starting row for potential row drag selection
+            this.selectionStartCell = { row: row, col: 0 };
+            
+            // Set up special row selection drag handler
+            this.mouseMoveHandler = (moveEvent) => {
+                const moveRect = this.canvas.getBoundingClientRect();
+                const moveY = moveEvent.clientY - moveRect.top + this.container.scrollTop;
+                const currentRow = findIndexFromCoord(moveY, this.rows.heights);
+                
+                // Only process if we're still in the header column
+                if (currentRow > 0) {
+                    // Update selection to span from start row to current row
+                    this.selectMultipleRows(row, currentRow);
+                    
+                    // Store the current position for when the drag ends
+                    this.selectionEndCell = { row: currentRow, col: 0 };
+                }
+            };
+            
+            // Attach the drag handler
+            this.container.addEventListener('pointermove', this.mouseMoveHandler);
+
             // Row header click - select entire row
-            this.selectEntireRow(row);
+            this.selectMultipleRows(row, row);
+            // this.selectEntireRow(row);
             return;
         }
+        // Ignore corner cell click (top-left)
+        if (row === 0 && col === 0) return;
 
         // Ignore headers
         if (row < 1 || col < 1) return;
@@ -565,6 +616,10 @@ export class selectionManager {
 
     handleMouseDrag(event : PointerEvent , visibleX:number, visibleY :number,row : number, col :number){
         console.log('hiiii');
+        if(event.ctrlKey){
+            console.log('hiiiiii');
+            
+        }
         
         // The start cell is simply (row, col)
         this.selectionStartCell = { row, col };
@@ -674,7 +729,22 @@ export class selectionManager {
             this.container.removeEventListener('pointermove', this.mouseMoveHandler);
             this.mouseMoveHandler = null;
         }
-        
+        // Handle column header drag selection specifically
+        if (this.selectionStartCell?.row === 0 && this.selectionEndCell?.row === 0) {
+            // We've completed a column selection drag
+            if (this.selectionStartCell.col > 0 && this.selectionEndCell.col > 0) {
+                // Finalize the column selection
+                this.selectMultipleColumns(this.selectionStartCell.col, this.selectionEndCell.col);
+            }
+        }
+        // Handle row header drag selection
+        else if (this.selectionStartCell?.col === 0 && this.selectionEndCell?.col === 0) {
+            // We've completed a row selection drag
+            if (this.selectionStartCell.row > 0 && this.selectionEndCell.row > 0) {
+                // Finalize the row selection
+                this.selectMultipleRows(this.selectionStartCell.row, this.selectionEndCell.row);
+            }
+        }
         // Save the final selection
         if (this.selectionStartCell && this.selectionEndCell) {
             // this.activeSelection = {
@@ -710,27 +780,38 @@ export class selectionManager {
     }
 
     /**
-     * Selects an entire column
-     * @param col The column index to select
+     * Handles multiple column selection via drag
+     * @param startCol The starting column index
+     * @param endCol The ending column index
      */
-    selectEntireColumn(col: number) {
-        console.log(`Selecting entire column ${col}`);
+    selectMultipleColumns(startCol: number, endCol: number) {
+        console.log(`Selecting columns ${startCol} to ${endCol}`);
+        
+        // Make sure we're only working with valid column indices
+        startCol = Math.max(1, startCol); // Don't include header column (col 0)
+        endCol = Math.max(1, endCol);
+        
+        // Normalize the range (in case of dragging right-to-left)
+        const firstCol = Math.min(startCol, endCol);
+        const lastCol = Math.max(startCol, endCol);
         
         // Clear any existing selection
         this.griddrawer.rendervisible(this.rows, this.cols);
         
-        // Create a selection from row 1 to the last row, for the specified column
+        // Create a selection that spans all rows, but only the selected columns
         this.activeSelection = {
             startRow: 1,
-            startCol: col,
+            startCol: firstCol,
             endRow: this.rows.n - 1, // Last row
-            endCol: col
+            endCol: lastCol
         };
-
-        this.eventmanager?.positionInput(this.activeSelection.startRow,this.activeSelection.startCol);
         
-        // Reapply the selection highlighting (which is already viewport-aware)
+        
+        // Reapply the selection highlighting
         this.reapplySelectionHighlighting();
+        
+        // Position the input at the first cell for potential editing
+        // this.eventmanager?.positionInput(1, firstCol);
         
         // Dispatch selection changed event
         this.dispatchSelectionChangeEvent();
@@ -742,25 +823,37 @@ export class selectionManager {
     }
 
     /**
-     * Selects an entire row
-     * @param row The row index to select
+     * Handles multiple row selection via drag
+     * @param startRow The starting row index
+     * @param endRow The ending row index
      */
-    selectEntireRow(row: number) {
-        console.log(`Selecting entire row ${row}`);
+    selectMultipleRows(startRow: number, endRow: number) {
+        console.log(`Selecting rows ${startRow} to ${endRow}`);
+        
+        // Make sure we're only working with valid row indices
+        startRow = Math.max(1, startRow); // Don't include header row (row 0)
+        endRow = Math.max(1, endRow);
+        
+        // Normalize the range (in case of dragging bottom-to-top)
+        const firstRow = Math.min(startRow, endRow);
+        const lastRow = Math.max(startRow, endRow);
         
         // Clear any existing selection
         this.griddrawer.rendervisible(this.rows, this.cols);
         
-        // Create a selection from column 1 to the last column, for the specified row
+        // Create a selection that spans all columns, but only the selected rows
         this.activeSelection = {
-            startRow: row,
+            startRow: firstRow,
             startCol: 1,
-            endRow: row,
+            endRow: lastRow,
             endCol: this.cols.n - 1 // Last column
         };
-        this.eventmanager?.positionInput(this.activeSelection.startRow,this.activeSelection.startCol);
-        // Reapply the selection highlighting (which is already viewport-aware)
+        
+        // Reapply the selection highlighting
         this.reapplySelectionHighlighting();
+        
+        // Position the input at the first cell for potential editing
+        // this.eventmanager?.positionInput(firstRow, 1);
         
         // Dispatch selection changed event
         this.dispatchSelectionChangeEvent();
