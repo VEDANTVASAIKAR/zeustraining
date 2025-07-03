@@ -105,80 +105,7 @@ export class EventManager {
                     // Notify SelectionManager about new selection
                     // this.notifySelectionChange();
                 }
-                e.preventDefault();
-            }
-        });
-        // to save input while writing
-        this.cellInput.addEventListener("input", (e) => {
-            // Save the current value to the cell model without hiding the input
-            if (this.selectedRow !== null && this.selectedCol !== null) {
-                const currentValue = this.cellInput.value;
-                // Update the cell value in the model
-                this.cellManager.setCell(this.selectedRow, this.selectedCol, currentValue);
-            }
-        });
-        this.canvas.addEventListener("keydown", (e) => {
-            // Check if a cell is selected
-            if (this.selectedRow === null || this.selectedCol === null)
-                return;
-            let moved = false;
-            switch (e.key) {
-                case "ArrowUp":
-                    if (this.selectedRow > 1) { // Don't go above row 1 (row 0 is header)
-                        if (this.cellInput.style.display === "block") {
-                            this.saveCell();
-                        }
-                        this.selectedRow--;
-                        moved = true;
-                    }
-                    break;
-                case "ArrowDown":
-                    if (this.cellInput.style.display === "block") {
-                        this.saveCell();
-                    }
-                    this.selectedRow++;
-                    moved = true;
-                    break;
-                case "ArrowLeft":
-                    if (this.selectedCol > 1) { // Don't go left of column 1 (column 0 is header)
-                        if (this.cellInput.style.display === "block") {
-                            this.saveCell();
-                        }
-                        this.selectedCol--;
-                        moved = true;
-                    }
-                    break;
-                case "ArrowRight":
-                    if (this.cellInput.style.display === "block") {
-                        this.saveCell();
-                    }
-                    this.selectedCol++;
-                    moved = true;
-                    break;
-                default:
-                    // Only focus and populate input on typing keys
-                    if (e.key.length === 1 && // Single character keys (letters, numbers, symbols)
-                        !e.ctrlKey &&
-                        !e.altKey &&
-                        !e.metaKey &&
-                        e.key !== 'ArrowUp' &&
-                        e.key !== 'ArrowRight' &&
-                        e.key !== 'ArrowLeft' &&
-                        e.key !== 'ArrowDown') {
-                        // Focus the input
-                        this.cellInput.focus();
-                        // Prevent the key from also being added by the browser's default behavior
-                        e.preventDefault();
-                    }
-            }
-            // If moved with arrow keys, update the input position
-            if (moved) {
-                // CRITICAL: Hide the input during keyboard navigation
-                this.cellInput.style.display = "none";
-                // Update the input position (but keep it hidden)
-                this.positionInputAtCurrentSelection();
-                // Notify SelectionManager about the selection change
-                // this.notifySelectionChange();
+                this.grid.rendervisible(this.rows, this.cols);
                 e.preventDefault();
             }
         });
@@ -186,12 +113,8 @@ export class EventManager {
     attachMouseEvents() {
         this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
         this.canvas.addEventListener('mousedown', (event) => this.handleMouseDown(event));
-        // this.canvas.addEventListener('keydown', (event) => this.handlekeydown(event));
         window.addEventListener('mouseup', (event) => this.handleMouseUp(event));
         window.addEventListener('mousemove', (event) => this.handleMouseDrag(event));
-    }
-    handlekeydown(event) {
-        // this.cellInput.focus();
     }
     handledblClick(event) {
         this.cellInput.focus();

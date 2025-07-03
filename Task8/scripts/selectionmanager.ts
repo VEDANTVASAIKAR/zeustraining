@@ -81,6 +81,44 @@ export class selectionManager {
     private initKeyboardEvents() {
         // Add event listener for keydown on the canvas or document
         this.canvas.addEventListener('keydown', (e) => this.handleKeyDown(e));
+
+        // this.cellInput?.addEventListener("keydown", (e) => {
+        //     if (e.key === "Enter") {
+        //         console.log('evecvesvcev');
+        //         const currentValue = this.cellInput?.value;
+        //             if(this.activeSelection && currentValue){
+        //             // Update the cell value in the model
+        //             this.cellmanager.setCell(
+        //                 this.activeSelection?.startRow,
+        //                 this.activeSelection?.startCol,
+        //                 currentValue
+        //             );
+        //             if(this.activeSelection){
+        //                 let currentselectedrow = this.activeSelection.startRow;
+        //                 let currentselectedcol = this.activeSelection.startCol
+
+        //                 currentselectedrow += 1
+        //                 // Update selection based on whether Shift is held
+        //                 this.activeSelection = {
+        //                     startRow: currentselectedrow,
+        //                     startCol: currentselectedcol,
+        //                     endRow: currentselectedrow,
+        //                     endCol: currentselectedcol
+        //                 };
+        //                 this.extendSelection(currentselectedrow+1, currentselectedcol+1);
+        //                 this.eventmanager?.positionInput(currentselectedrow,currentselectedcol);
+        //                 e.preventDefault();
+
+        //             }
+                
+                
+        //             this.griddrawer.rendervisible(this.rows,this.cols)
+                
+        //             }
+        //         }        
+        // });
+
+
         // to save input while writing
         this.cellInput?.addEventListener("input", (e) => {
             // Save the current value to the cell model without hiding the input
@@ -148,12 +186,6 @@ export class selectionManager {
                     moved = true;
                     break;
 
-                case 'Enter':
-                    if (!e.shiftKey) {
-                        currentselectedrow += 1;
-                        moved = true;
-                    }
-                    break;
                     
                     // Only focus and populate input on typing keys
                 default : if (
@@ -498,6 +530,12 @@ export class selectionManager {
             endRow: row,
             endCol: col
         };
+        console.log((this.activeSelection));
+        console.log(this.selectionStartCell);
+        console.log(this.selectionEndCell);
+        
+        
+        
         
         // Apply initial selection (single cell and its headers)
         this.paintSelectedCells(row, col, row, col);
@@ -600,13 +638,21 @@ export class selectionManager {
         }
         if (!this.ctx) {
             return;
-        }    
-
-        // // Clear the previous drawing
-        // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }  
+        console.log(currentRow);
+        console.log(currentCol);
         
-        // // Redraw the grid cells (you may need to call your grid's render method)
-        // this.griddrawer.rendervisible(this.rows,this.cols);
+         if (this.selectionStartCell && this.selectionEndCell) {
+            this.activeSelection = {
+                startRow: startRow,
+                startCol: startCol,
+                endRow: currentRow,
+                endCol: currentCol
+            };
+            // Dispatch the selection change event
+            this.dispatchSelectionChangeEvent();
+        }
+
 
 
         
@@ -631,14 +677,16 @@ export class selectionManager {
         
         // Save the final selection
         if (this.selectionStartCell && this.selectionEndCell) {
-            this.activeSelection = {
-                startRow: Math.min(this.selectionStartCell.row, this.selectionEndCell.row),
-                startCol: Math.min(this.selectionStartCell.col, this.selectionEndCell.col),
-                endRow: Math.max(this.selectionStartCell.row, this.selectionEndCell.row),
-                endCol: Math.max(this.selectionStartCell.col, this.selectionEndCell.col)
-            };
+            // this.activeSelection = {
+            //     startRow: Math.min(this.selectionStartCell.row, this.selectionEndCell.row),
+            //     startCol: Math.min(this.selectionStartCell.col, this.selectionEndCell.col),
+            //     endRow: Math.max(this.selectionStartCell.row, this.selectionEndCell.row),
+            //     endCol: Math.max(this.selectionStartCell.col, this.selectionEndCell.col)
+            //     // endRow: this.selectionEndCell.row,
+            //     // endCol: this.selectionEndCell.col
+            // };
             // Dispatch the selection change event
-            this.dispatchSelectionChangeEvent();
+            // this.dispatchSelectionChangeEvent();
         }
 
         this.statistics?.printvalues()
