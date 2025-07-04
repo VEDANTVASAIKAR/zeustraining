@@ -351,24 +351,80 @@ export class EventManager {
             }
         }, { once: false });
     }
+    // positionInput(selectedRow : number, selectedCol :number) {
+    //     const cellLeft = this.cols.widths.slice(0, selectedCol).reduce((a, b) => a + b, 0);
+    //     const cellTop = this.rows.heights.slice(0, selectedRow).reduce((a, b) => a + b, 0);
+    //     // console.log(`Cell absolute position: left=${cellLeft}, top=${cellTop}`);
+    //     // console.log(`Current scroll: left=${this.container.scrollLeft}, top=${this.container.scrollTop}`);
+    //     this.cellInput.style.display = "block";
+    //     this.cellInput.style.position = "absolute";
+    //     this.cellInput.style.left = cellLeft + "px";
+    //     this.cellInput.style.top = cellTop + "px";
+    //     this.cellInput.style.width = this.cols.widths[this.selectedCol] + "px";
+    //     this.cellInput.style.height = this.rows.heights[this.selectedRow] + "px";
+    //     // Verify the style values after setting
+    //     // console.log(`Input box style: left=${this.cellInput.style.left}, top=${this.cellInput.style.top}, width=${this.cellInput.style.width}, height=${this.cellInput.style.height}`);
+    //     const cell = this.cellManager.getCell(this.selectedRow, this.selectedCol);
+    //     this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
+    //     // Add this - intercept clicks on the input element itself
+    //     this.cellInput.addEventListener('mousedown', (e) => {
+    //         // Check if it's not a double-click
+    //         if (e.detail === 1) {
+    //             e.preventDefault();
+    //             e.stopPropagation();
+    //             this.canvas.focus();
+    //             return false;
+    //         }
+    //     }, { once: false });
+    // }
+    /**
+ * Positions the input box at the given cell, keeps it visible, and adjusts for scroll.
+ * @param selectedRow The row index (1-based, must not be 0)
+ * @param selectedCol The column index (1-based, must not be 0)
+ */
     positionInput(selectedRow, selectedCol) {
+        // 1. Clamp indices so we never go above headers
+        selectedRow = Math.max(1, selectedRow);
+        selectedCol = Math.max(1, selectedCol);
+        // 2. Compute cell absolute position in grid
         const cellLeft = this.cols.widths.slice(0, selectedCol).reduce((a, b) => a + b, 0);
         const cellTop = this.rows.heights.slice(0, selectedRow).reduce((a, b) => a + b, 0);
-        // console.log(`Cell absolute position: left=${cellLeft}, top=${cellTop}`);
-        // console.log(`Current scroll: left=${this.container.scrollLeft}, top=${this.container.scrollTop}`);
+        const cellWidth = this.cols.widths[selectedCol];
+        const cellHeight = this.rows.heights[selectedRow];
+        // 3. Scroll if needed to make cell visible
+        const visibleLeft = this.container.scrollLeft;
+        const visibleTop = this.container.scrollTop;
+        const visibleRight = visibleLeft + this.container.clientWidth;
+        const visibleBottom = visibleTop + this.container.clientHeight;
+        const cellRight = cellLeft + cellWidth;
+        const cellBottom = cellTop + cellHeight;
+        if (cellLeft < visibleLeft) {
+            this.container.scrollLeft = cellLeft;
+        }
+        else if (cellRight > visibleRight) {
+            this.container.scrollLeft = cellRight - this.container.clientWidth;
+        }
+        if (cellTop < visibleTop) {
+            this.container.scrollTop = cellTop;
+        }
+        else if (cellBottom > visibleBottom) {
+            this.container.scrollTop = cellBottom - this.container.clientHeight;
+        }
+        // 4. Calculate the position relative to the visible viewport (subtract scroll)
+        const adjustedLeft = cellLeft - this.container.scrollLeft;
+        const adjustedTop = cellTop - this.container.scrollTop;
+        // 5. Show and position the input
         this.cellInput.style.display = "block";
         this.cellInput.style.position = "absolute";
-        this.cellInput.style.left = cellLeft + "px";
-        this.cellInput.style.top = cellTop + "px";
-        this.cellInput.style.width = this.cols.widths[this.selectedCol] + "px";
-        this.cellInput.style.height = this.rows.heights[this.selectedRow] + "px";
-        // Verify the style values after setting
-        // console.log(`Input box style: left=${this.cellInput.style.left}, top=${this.cellInput.style.top}, width=${this.cellInput.style.width}, height=${this.cellInput.style.height}`);
-        const cell = this.cellManager.getCell(this.selectedRow, this.selectedCol);
+        this.cellInput.style.left = adjustedLeft + "px";
+        this.cellInput.style.top = adjustedTop + "px";
+        this.cellInput.style.width = cellWidth + "px";
+        this.cellInput.style.height = cellHeight + "px";
+        // 6. Set input value for the cell
+        const cell = this.cellManager.getCell(selectedRow, selectedCol);
         this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
-        // Add this - intercept clicks on the input element itself
+        // 7. Prevent input click from stealing canvas focus
         this.cellInput.addEventListener('mousedown', (e) => {
-            // Check if it's not a double-click
             if (e.detail === 1) {
                 e.preventDefault();
                 e.stopPropagation();

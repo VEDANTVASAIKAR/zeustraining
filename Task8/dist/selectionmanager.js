@@ -37,7 +37,7 @@ export class selectionManager {
         // this.canvas.addEventListener("click", (event) => this.handleCellClick(event));
         this.canvas.addEventListener('pointerdown', (event) => this.handleMouseDown(event));
         document.addEventListener('pointerup', () => this.handlePointerUp());
-        console.log('Selection manager attached');
+        // console.log('Selection manager attached');
     }
     /**
      * Initializes keyboard event listeners for range selection with Shift+Arrow
@@ -326,6 +326,7 @@ export class selectionManager {
             const columnLabel = getExcelColumnLabel(c - 1);
             this.paintCell(0, c, columnLabel, this.rows, this.cols);
         }
+        this.statistics?.max();
     }
     /**
      * Reapplies the current selection highlighting after scroll events
@@ -390,7 +391,7 @@ export class selectionManager {
                 // Normal click: clear all previous multi-selection
                 this.selectionarr = [];
             }
-            console.log(this.selectionarr.length);
+            // console.log(this.selectionarr.length);
             this.eventmanager?.positionInput(1, col);
             // Store the starting column for potential column drag selection
             this.selectionStartCell = { row: 0, col: col };
@@ -471,9 +472,9 @@ export class selectionManager {
             endRow: row,
             endCol: col
         };
-        console.log((this.activeSelection));
-        console.log(this.selectionStartCell);
-        console.log(this.selectionEndCell);
+        // console.log((this.activeSelection));
+        // console.log(this.selectionStartCell);
+        // console.log(this.selectionEndCell);
         // Apply initial selection (single cell and its headers)
         this.paintSelectedCells(row, col, row, col);
         // Store start position for potential dragging
@@ -495,9 +496,9 @@ export class selectionManager {
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
     }
     handleMouseDrag(event, visibleX, visibleY, row, col) {
-        console.log('hiiii');
+        // console.log('hiiii');
         if (event.ctrlKey) {
-            console.log('hiiiiii');
+            // console.log('hiiiiii');
         }
         // The start cell is simply (row, col)
         this.selectionStartCell = { row, col };
@@ -511,7 +512,7 @@ export class selectionManager {
         const virtualY = y + this.container.scrollTop;
         const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
         const currentRow = findIndexFromCoord(virtualY, this.rows.heights);
-        console.log(`${currentRow},${currentCol}`);
+        // console.log(`${currentRow},${currentCol}`);
         // The end cell is (currentRow, currentCol)
         this.selectionEndCell = { row: currentRow, col: currentCol };
         // Determine the actual rectangle corners (normalize coordinates)
@@ -562,8 +563,8 @@ export class selectionManager {
         if (!this.ctx) {
             return;
         }
-        console.log(currentRow);
-        console.log(currentCol);
+        // console.log(currentRow);
+        // console.log(currentCol);
         if (this.selectionStartCell && this.selectionEndCell) {
             this.activeSelection = {
                 startRow: startRow,
@@ -618,6 +619,11 @@ export class selectionManager {
         // this.dispatchSelectionChangeEvent();
         // }
         this.statistics?.printvalues();
+        this.statistics?.sum();
+        this.statistics?.min();
+        this.statistics?.max();
+        this.statistics?.avg();
+        this.statistics?.count();
     }
     /**
      * Dispatches a selection-change event with the current selection details
@@ -640,7 +646,7 @@ export class selectionManager {
      * @param endCol The ending column index
      */
     selectMultipleColumns(startCol, endCol) {
-        console.log(`Selecting columns ${startCol} to ${endCol}`);
+        // console.log(`Selecting columns ${startCol} to ${endCol}`);
         // Make sure we're only working with valid column indices
         startCol = Math.max(1, startCol); // Don't include header column (col 0)
         endCol = Math.max(1, endCol);
@@ -652,7 +658,7 @@ export class selectionManager {
         if (this.selectionarr) {
             for (let selection of this.selectionarr) {
                 // Paint this range
-                console.log(selection);
+                // console.log(selection);
                 this.paintSelectedCells(selection.startRow, selection.startCol, selection.endRow, selection.endCol);
             }
         }
@@ -671,7 +677,11 @@ export class selectionManager {
         this.dispatchSelectionChangeEvent();
         // Update statistics if needed
         if (this.statistics) {
-            this.statistics.printvalues();
+            this.statistics.sum();
+            this.statistics.min();
+            this.statistics.max();
+            this.statistics.avg();
+            this.statistics.count();
         }
     }
     /**
@@ -680,7 +690,7 @@ export class selectionManager {
      * @param endRow The ending row index
      */
     selectMultipleRows(startRow, endRow) {
-        console.log(`Selecting rows ${startRow} to ${endRow}`);
+        // console.log(`Selecting rows ${startRow} to ${endRow}`);
         // Make sure we're only working with valid row indices
         startRow = Math.max(1, startRow); // Don't include header row (row 0)
         endRow = Math.max(1, endRow);
@@ -707,7 +717,11 @@ export class selectionManager {
         this.dispatchSelectionChangeEvent();
         // Update statistics if needed
         if (this.statistics) {
-            this.statistics.printvalues();
+            this.statistics.sum();
+            this.statistics.min();
+            this.statistics.max();
+            this.statistics.avg();
+            this.statistics.count();
         }
     }
 }

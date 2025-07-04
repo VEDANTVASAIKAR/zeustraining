@@ -67,4 +67,82 @@ export class Statistics {
             
         }
     }
+
+    count() {
+        let cells = this.getSelectedCells();
+        let count = 0;
+        for (let i = 0; i < cells.length; i++) {
+            // Only count cells that have a value
+            if (cells[i].value !== null && cells[i].value !== '') {
+                count++;
+            }
+        }
+        console.log(count);
+    }
+
+    sum() {
+        let cells = this.getSelectedCells();
+        let sum = 0;
+        for (let i = 0; i < cells.length; i++) {
+            const val = parseFloat(cells[i].value as string);
+            if (!isNaN(val)) {
+                sum += val;
+            }
+        }
+        console.log(sum);
+    }
+
+
+    avg() {
+        let cells = this.getSelectedCells();
+        let sum = 0;
+        let count = 0;
+        for (let i = 0; i < cells.length; i++) {
+            const val = parseFloat(cells[i].value as string);
+            if (!isNaN(val)) {
+                sum += val;
+                count++;
+            }
+        }
+        if (count === 0) {
+            console.log("No numeric values selected");
+        } else {
+            console.log(sum / count);
+        }
+    }
+    
+    min() {
+        let cells = this.getSelectedCells();
+        let min = Infinity; // Start with the highest possible value
+
+        for (let i = 0; i < cells.length; i++) {
+            const val = parseFloat(cells[i].value as string);
+            if (!isNaN(val)) {
+                if (val < min) {
+                    min = val;
+                }
+            }
+        }
+        console.log(min === Infinity ? 'No numeric values' : min);
+    }
+
+    max() {
+        let cells = this.getSelectedCells();
+        let max = -Infinity; // Start with the lowest possible value
+
+        for (let i = 0; i < cells.length; i++) {
+            const val = parseFloat(cells[i].value as string);
+            if (!isNaN(val)) {
+                if (val > max) {
+                    max = val;
+                }
+            }
+        }
+
+        if (max === -Infinity) {
+            console.log('No numeric values');
+        } else {
+            console.log('Max:', max);
+        }
+    }
 }

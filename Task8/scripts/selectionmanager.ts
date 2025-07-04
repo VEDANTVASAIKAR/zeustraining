@@ -72,7 +72,7 @@ export class selectionManager {
         // this.canvas.addEventListener("click", (event) => this.handleCellClick(event));
         this.canvas.addEventListener('pointerdown',(event) => this.handleMouseDown(event));
         document.addEventListener('pointerup',()=> this.handlePointerUp());
-        console.log('Selection manager attached');
+        // console.log('Selection manager attached');
     }
 
 
@@ -445,6 +445,7 @@ export class selectionManager {
             const columnLabel = getExcelColumnLabel(c - 1);
             this.paintCell(0, c, columnLabel, this.rows, this.cols);
         }
+        this.statistics?.max()
     }
 
     /**
@@ -527,7 +528,7 @@ export class selectionManager {
                 // Normal click: clear all previous multi-selection
                 this.selectionarr = [];
             }
-            console.log(this.selectionarr.length);
+            // console.log(this.selectionarr.length);
             
             this.eventmanager?.positionInput(1, col);
 
@@ -622,9 +623,9 @@ export class selectionManager {
             endRow: row,
             endCol: col
         };
-        console.log((this.activeSelection));
-        console.log(this.selectionStartCell);
-        console.log(this.selectionEndCell);
+        // console.log((this.activeSelection));
+        // console.log(this.selectionStartCell);
+        // console.log(this.selectionEndCell);
         
         
         
@@ -656,9 +657,9 @@ export class selectionManager {
     }
 
     handleMouseDrag(event : PointerEvent , visibleX:number, visibleY :number,row : number, col :number){
-        console.log('hiiii');
+        // console.log('hiiii');
         if(event.ctrlKey){
-            console.log('hiiiiii');
+            // console.log('hiiiiii');
             
         }
         
@@ -678,7 +679,7 @@ export class selectionManager {
 
         const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
         const currentRow = findIndexFromCoord(virtualY, this.rows.heights); 
-        console.log(`${currentRow},${currentCol}`);
+        // console.log(`${currentRow},${currentCol}`);
 
         // The end cell is (currentRow, currentCol)
         this.selectionEndCell = { row: currentRow, col: currentCol };
@@ -735,8 +736,8 @@ export class selectionManager {
         if (!this.ctx) {
             return;
         }  
-        console.log(currentRow);
-        console.log(currentCol);
+        // console.log(currentRow);
+        // console.log(currentCol);
         
          if (this.selectionStartCell && this.selectionEndCell) {
             this.activeSelection = {
@@ -801,6 +802,11 @@ export class selectionManager {
         // }
 
         this.statistics?.printvalues()
+        this.statistics?.sum();
+            this.statistics?.min();
+            this.statistics?.max();
+            this.statistics?.avg();
+            this.statistics?.count();
     }
 
     /**
@@ -826,7 +832,7 @@ export class selectionManager {
      * @param endCol The ending column index
      */
     selectMultipleColumns(startCol: number, endCol: number) {
-        console.log(`Selecting columns ${startCol} to ${endCol}`);
+        // console.log(`Selecting columns ${startCol} to ${endCol}`);
         
         // Make sure we're only working with valid column indices
         startCol = Math.max(1, startCol); // Don't include header column (col 0)
@@ -841,7 +847,7 @@ export class selectionManager {
         if(this.selectionarr){
                     for (let selection of this.selectionarr){
                         // Paint this range
-                        console.log(selection);
+                        // console.log(selection);
                         
                         this.paintSelectedCells(
                             selection.startRow,
@@ -871,7 +877,11 @@ export class selectionManager {
         
         // Update statistics if needed
         if (this.statistics) {
-            this.statistics.printvalues();
+            this.statistics.sum();
+            this.statistics.min();
+            this.statistics.max();
+            this.statistics.avg();
+            this.statistics.count();
         }
     }
 
@@ -881,7 +891,7 @@ export class selectionManager {
      * @param endRow The ending row index
      */
     selectMultipleRows(startRow: number, endRow: number) {
-        console.log(`Selecting rows ${startRow} to ${endRow}`);
+        // console.log(`Selecting rows ${startRow} to ${endRow}`);
         
         // Make sure we're only working with valid row indices
         startRow = Math.max(1, startRow); // Don't include header row (row 0)
@@ -921,7 +931,11 @@ export class selectionManager {
         
         // Update statistics if needed
         if (this.statistics) {
-            this.statistics.printvalues();
+            this.statistics.sum();
+            this.statistics.min();
+            this.statistics.max();
+            this.statistics.avg();
+            this.statistics.count();
         }
     }
 }    
