@@ -74,10 +74,40 @@ const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellM
 
 SelectionManager.seteventmanager(eventManager);
 
-console.log(cols.widths);
+/**
+ * Loads data into the grid.
+ * @param {any[]} data - An array of objects to load.
+ */
+function loadData(data: any[]) {
+    if (!data || data.length === 0) {
+        return;
+    }
 
+    // Get headers from the first object's keys
+    const headers = Object.keys(data[0]);
+
+    // Populate column headers (starting from col 1)
+    headers.forEach((header, colIndex) => {
+        // We use colIndex + 1 because column 0 is for row numbers.
+        cellManager.setCell(0, colIndex + 1, header);
+    });
+
+    // Populate data rows
+    data.forEach((dataRow, rowIndex) => {
+        // We use rowIndex + 1 because row 0 is for headers.
+        headers.forEach((header, colIndex) => {
+            // colIndex + 1 to align with headers
+            cellManager.setCell(rowIndex + 1, colIndex + 1, dataRow[header]);
+        });
+    });
+
+    // Redraw the grid to show the new data
+    grid.rendervisible(rows, cols);
+}
 
 
 let data = new GridDataGen(90);
 let values = data.generateData();
 console.log(values);
+// Load the generated data into the grid
+loadData(values);
