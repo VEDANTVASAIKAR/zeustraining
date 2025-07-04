@@ -11,14 +11,42 @@ import { selectionManager } from './selectionmanager.js';
 
 export class Statistics {
     selection : {startRow: number;startCol: number; endRow: number;endCol: number;} | null = null ;
+    output: HTMLInputElement = document.getElementById('output') as HTMLInputElement;
+    couunt :HTMLElement = document.querySelector('.count') as HTMLElement;
+    summ : HTMLElement = document.querySelector('.sum') as HTMLElement;
+    minimum :HTMLElement = document.querySelector('.min') as HTMLElement;
+    maximum :HTMLElement = document.querySelector('.max') as HTMLElement;
+    average :HTMLElement = document.querySelector('.avg') as HTMLElement;
+
     constructor(
         private canvas: HTMLCanvasElement,
-        private cellManager: CellManager
+        private cellManager: CellManager,
+        
     ) {
         // Listen for selection changes
         this.canvas.addEventListener('selection-changed', (event: any) => {
             this.selection = event.detail.selection;
             console.log(this.selection);
+        });
+        this.couunt.addEventListener('click', () => {
+            let count = this.count();
+            this.output.value = `${count}`
+        });
+        this.summ.addEventListener('click', () => {
+            let sum = this.sum();       
+            this.output.value = `${sum}`
+        });
+        this.minimum.addEventListener('click', () => {
+            let min = this.min();
+            this.output.value = `${min}`
+        });0
+        this.maximum.addEventListener('click', () => {
+            let max = this.max();
+            this.output.value = `${max}`
+        });
+        this.average.addEventListener('click', () => {
+            let avg = this.avg();
+            this.output.value = `${avg}`
         });
         
         
@@ -77,7 +105,7 @@ export class Statistics {
                 count++;
             }
         }
-        console.log(count);
+        return count;
     }
 
     sum() {
@@ -89,7 +117,7 @@ export class Statistics {
                 sum += val;
             }
         }
-        console.log(sum);
+        return sum;
     }
 
 
@@ -107,10 +135,11 @@ export class Statistics {
         if (count === 0) {
             console.log("No numeric values selected");
         } else {
-            console.log(sum / count);
+            let avg = sum / count;
+            return avg;
         }
     }
-    
+
     min() {
         let cells = this.getSelectedCells();
         let min = Infinity; // Start with the highest possible value
@@ -123,7 +152,8 @@ export class Statistics {
                 }
             }
         }
-        console.log(min === Infinity ? 'No numeric values' : min);
+        // console.log(min === Infinity ? 'No numeric values' : min);
+        return min === Infinity ? null : min; // Return null if no numeric values found
     }
 
     max() {
@@ -144,5 +174,6 @@ export class Statistics {
         } else {
             console.log('Max:', max);
         }
+        return max === -Infinity ? null : max; // Return null if no numeric values found
     }
 }

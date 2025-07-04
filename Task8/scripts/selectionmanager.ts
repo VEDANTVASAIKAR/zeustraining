@@ -227,6 +227,7 @@ export class selectionManager {
                 // }
                 // Update visual selection
                 this.extendSelection(currentselectedrow, currentselectedcol);
+                
                 this.eventmanager?.positionInput(currentselectedrow,currentselectedcol);
                 e.preventDefault();
                 
@@ -421,6 +422,8 @@ export class selectionManager {
     //method to paint all cells in the selection
     paintSelectedCells(startRow: number, startCol: number, endRow: number, endCol: number) {
         // Loop through all cells in the selection range
+        console.log(`Painting selection from (${startRow}, ${startCol}) to (${endRow}, ${endCol})`);
+        
         for (let r = startRow; r <= endRow; r++) {
             for (let c = startCol; c <= endCol; c++) {
                 // Get the cell value
@@ -938,6 +941,23 @@ export class selectionManager {
             this.statistics.count();
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
 }    
 
 

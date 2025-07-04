@@ -9,10 +9,37 @@ export class Statistics {
         this.canvas = canvas;
         this.cellManager = cellManager;
         this.selection = null;
+        this.output = document.getElementById('output');
+        this.couunt = document.querySelector('.count');
+        this.summ = document.querySelector('.sum');
+        this.minimum = document.querySelector('.min');
+        this.maximum = document.querySelector('.max');
+        this.average = document.querySelector('.avg');
         // Listen for selection changes
         this.canvas.addEventListener('selection-changed', (event) => {
             this.selection = event.detail.selection;
             console.log(this.selection);
+        });
+        this.couunt.addEventListener('click', () => {
+            let count = this.count();
+            this.output.value = `${count}`;
+        });
+        this.summ.addEventListener('click', () => {
+            let sum = this.sum();
+            this.output.value = `${sum}`;
+        });
+        this.minimum.addEventListener('click', () => {
+            let min = this.min();
+            this.output.value = `${min}`;
+        });
+        0;
+        this.maximum.addEventListener('click', () => {
+            let max = this.max();
+            this.output.value = `${max}`;
+        });
+        this.average.addEventListener('click', () => {
+            let avg = this.avg();
+            this.output.value = `${avg}`;
         });
     }
     /**
@@ -62,7 +89,7 @@ export class Statistics {
                 count++;
             }
         }
-        console.log(count);
+        return count;
     }
     sum() {
         let cells = this.getSelectedCells();
@@ -73,7 +100,7 @@ export class Statistics {
                 sum += val;
             }
         }
-        console.log(sum);
+        return sum;
     }
     avg() {
         let cells = this.getSelectedCells();
@@ -90,7 +117,8 @@ export class Statistics {
             console.log("No numeric values selected");
         }
         else {
-            console.log(sum / count);
+            let avg = sum / count;
+            return avg;
         }
     }
     min() {
@@ -104,7 +132,8 @@ export class Statistics {
                 }
             }
         }
-        console.log(min === Infinity ? 'No numeric values' : min);
+        // console.log(min === Infinity ? 'No numeric values' : min);
+        return min === Infinity ? null : min; // Return null if no numeric values found
     }
     max() {
         let cells = this.getSelectedCells();
@@ -123,5 +152,6 @@ export class Statistics {
         else {
             console.log('Max:', max);
         }
+        return max === -Infinity ? null : max; // Return null if no numeric values found
     }
 }

@@ -420,6 +420,7 @@ export class EventManager {
      * @param {boolean} makeVisible Whether to make the input visible (default: true)
      */
     positionInputAtCurrentSelection(makeVisible: boolean = true) {
+        
         const cellLeft = this.cols.widths.slice(0, this.selectedCol).reduce((a, b) => a + b, 0);
         const cellTop = this.rows.heights.slice(0, this.selectedRow).reduce((a, b) => a + b, 0);
         

@@ -7,6 +7,8 @@ import { CellManager } from "./cellmanager.js";
 import { EventManager } from "./eventmanager.js";
 import { selectionManager } from "./selectionmanager.js";
 import { Statistics } from "./statistics.js";
+import { GridDataGen } from "./generatedata.js";
+
 
 let selectedRow: number | null = null;
 let selectedCol: number | null = null;
@@ -76,3 +78,6 @@ console.log(cols.widths);
 
 
 
+let data = new GridDataGen(90);
+let values = data.generateData();
+console.log(values);
