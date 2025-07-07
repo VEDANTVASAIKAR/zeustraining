@@ -238,6 +238,7 @@ export class selectionManager {
     }
     /**
      * Paints a cell with highlight color and displays the value
+     *
      * @param {number} row - The row index of the cell
      * @param {number} col - The column index of the cell
      * @param {string|number|null} value - The value to display in the cell
@@ -245,6 +246,10 @@ export class selectionManager {
      * @param {Cols} cols - The columns manager
      */
     paintCell(row, col, value, rows, cols) {
+        if (!this.ctx) {
+            return;
+        }
+        // ---- POSITION CALCULATION ----
         // Calculate position in virtual grid
         let x = 0;
         for (let i = 0; i < col; i++) {
@@ -278,52 +283,142 @@ export class selectionManager {
             drawX = x - this.container.scrollLeft;
             drawY = y - this.container.scrollTop;
         }
-        if (!this.ctx) {
-            return;
+        // ---- CELL TYPE DETERMINATION ----
+        // Determine cell types for styling decisions
+        const isHeader = row === 0 || col === 0;
+        // Get normalized selection range if we have an active selection
+        let minRow = 0, maxRow = 0, minCol = 0, maxCol = 0;
+        if (this.activeSelection) {
+            minRow = Math.min(this.activeSelection.startRow, this.activeSelection.endRow);
+            maxRow = Math.max(this.activeSelection.startRow, this.activeSelection.endRow);
+            minCol = Math.min(this.activeSelection.startCol, this.activeSelection.endCol);
+            maxCol = Math.max(this.activeSelection.startCol, this.activeSelection.endCol);
         }
+        // Determine header selection status
+        const isHeaderInitiatedSelection = (this.selectionStartCell?.row === 0 || this.selectionStartCell?.col === 0);
+        const isSelectedColumnHeader = row === 0 && col > 0 && this.selectionStartCell?.row === 0 &&
+            this.activeSelection && col >= minCol && col <= maxCol;
+        const isSelectedRowHeader = col === 0 && row > 0 && this.selectionStartCell?.col === 0 &&
+            this.activeSelection && row >= minRow && row <= maxRow;
+        // For highlighted header (when normal cell is selected)
+        const isHighlightedColumnHeader = row === 0 && col > 0 && this.activeSelection &&
+            col >= minCol && col <= maxCol &&
+            !isSelectedColumnHeader &&
+            this.selectionStartCell?.row !== 0;
+        const isHighlightedRowHeader = col === 0 && row > 0 && this.activeSelection &&
+            row >= minRow && row <= maxRow &&
+            !isSelectedRowHeader &&
+            this.selectionStartCell?.col !== 0;
+        // ---- DRAWING CELL BACKGROUND ----
         // Clear the cell area
         this.ctx.clearRect(drawX, drawY, w, h);
-        // Fill with highlight color
-        if (row === 0 || col === 0) {
-            // Header cells get stronger highlight
+        // Apply the appropriate fill style based on cell type and selection state
+        if (isSelectedColumnHeader || isSelectedRowHeader) {
+            // Headers that are part of a header-initiated selection get the dark green color
+            this.ctx.fillStyle = "#0a753a";
+            this.ctx.fillRect(drawX, drawY, w, h);
+        }
+        else if (isHeader) {
+            // Regular selected headers (not header-initiated) get the light green highlight
             this.ctx.fillStyle = "rgba(202,234,216,1)";
+            this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
         }
         else {
-            // Regular selected cells get lighter highlight
+            // Regular selected cells get even lighter highlight
             this.ctx.fillStyle = "rgba(231,241,236,1)";
+            this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
         }
-        this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
-        // Draw the borders
+        // ---- DRAWING CELL BORDERS ----
+        // // Draw standard light gray borders for all cells
         this.ctx.strokeStyle = "#e0e0e0";
         this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
+        // Draw special borders for selection edges and headers
+        this.ctx.strokeStyle = "rgb(19, 126, 67)"; // Green border color for all special borders
+        this.ctx.lineWidth = 2; // Thicker line for all special borders
+        // For regular cell selection borders
+        if (!isHeader && this.activeSelection) {
+            const isTopEdge = row === minRow;
+            const isBottomEdge = row === maxRow;
+            const isLeftEdge = col === minCol;
+            const isRightEdge = col === maxCol;
+            // Only add borders if this cell is at an edge of the selection
+            if (isTopEdge || isBottomEdge || isLeftEdge || isRightEdge) {
+                this.ctx.beginPath();
+                // Draw only the borders that are at selection edges
+                if (isTopEdge) {
+                    this.ctx.moveTo(drawX, drawY);
+                    this.ctx.lineTo(drawX + w, drawY);
+                }
+                if (isBottomEdge) {
+                    this.ctx.moveTo(drawX, drawY + h);
+                    this.ctx.lineTo(drawX + w, drawY + h);
+                }
+                if (isLeftEdge) {
+                    this.ctx.moveTo(drawX, drawY);
+                    this.ctx.lineTo(drawX, drawY + h);
+                }
+                if (isRightEdge) {
+                    this.ctx.moveTo(drawX + w, drawY);
+                    this.ctx.lineTo(drawX + w, drawY + h);
+                }
+                this.ctx.stroke();
+            }
+        }
+        // Draw special header borders using a helper function to reduce redundancy
+        if (isSelectedColumnHeader || isHighlightedColumnHeader) {
+            // Draw bottom border for column header
+            this.ctx.beginPath();
+            this.ctx.moveTo(drawX + 0.5, drawY + h - 0.5);
+            this.ctx.lineTo(drawX + w - 0.5, drawY + h - 0.5);
+            this.ctx.stroke();
+        }
+        if (isSelectedRowHeader || isHighlightedRowHeader) {
+            // Draw right border for row header
+            this.ctx.beginPath();
+            this.ctx.moveTo(drawX + w - 0.5, drawY + 0.5);
+            this.ctx.lineTo(drawX + w - 0.5, drawY + h - 0.5);
+            this.ctx.stroke();
+        }
+        // Reset to default line width
+        this.ctx.lineWidth = 1;
+        // ---- DRAWING TEXT ----
         // Draw the text
         this.ctx.textAlign = "center";
         this.ctx.textBaseline = "middle";
-        this.ctx.fillStyle = "#000"; // Black text
+        // Use white text for dark green headers, black for everything else
+        this.ctx.fillStyle = (isSelectedColumnHeader || isSelectedRowHeader) ? "#FFFFFF" : "#000";
         this.ctx.font = "12px Arial";
         this.ctx.fillText(value != null ? String(value) : "", drawX + w / 2, drawY + h / 2);
     }
-    //method to paint all cells in the selection
     paintSelectedCells(startRow, startCol, endRow, endCol) {
+        // Check if this is a header-initiated selection
+        const isHeaderRowSelection = this.selectionStartCell?.col === 0;
+        const isHeaderColSelection = this.selectionStartCell?.row === 0;
         // Loop through all cells in the selection range
         console.log(`Painting selection from (${startRow}, ${startCol}) to (${endRow}, ${endCol})`);
-        for (let r = startRow; r <= endRow; r++) {
-            for (let c = startCol; c <= endCol; c++) {
+        // Ensure the range is properly normalized (important for drag left/up)
+        const minRow = Math.min(startRow, endRow);
+        const maxRow = Math.max(startRow, endRow);
+        const minCol = Math.min(startCol, endCol);
+        const maxCol = Math.max(startCol, endCol);
+        // Paint all cells in the selection range
+        for (let r = minRow; r <= maxRow; r++) {
+            for (let c = minCol; c <= maxCol; c++) {
                 // Get the cell value
                 const cell = this.cellmanager.getCell(r, c);
                 const value = cell ? cell.value : null;
                 // Paint each cell with selection highlight
-                // Use a lighter highlight for interior cells than for headers
                 this.paintCell(r, c, value, this.rows, this.cols);
             }
         }
-        // Additionally highlight the row headers for all selected rows
-        for (let r = startRow; r <= endRow; r++) {
+        // Additionally highlight the row headers for all selected rows (using normalized range)
+        for (let r = minRow; r <= maxRow; r++) {
             // Paint row header with highlight
-            this.paintCell(r, 0, r, this.rows, this.cols);
+            const headerValue = r;
+            this.paintCell(r, 0, headerValue, this.rows, this.cols);
         }
-        // Additionally highlight the column headers for all selected columns
-        for (let c = startCol; c <= endCol; c++) {
+        // Additionally highlight the column headers for all selected columns (using normalized range)
+        for (let c = minCol; c <= maxCol; c++) {
             // Paint column header with highlight
             const columnLabel = getExcelColumnLabel(c - 1);
             this.paintCell(0, c, columnLabel, this.rows, this.cols);
@@ -461,6 +556,15 @@ export class selectionManager {
         const row = findIndexFromCoord(virtualY, this.rows.heights);
         if (row < 1 || col < 1)
             return;
+        // IMPORTANT: Clear any previous header-initiated selections
+        // This ensures headers return to normal state after clicking a regular cell
+        if (this.selectionStartCell?.row === 0 || this.selectionStartCell?.col === 0) {
+            // We're transitioning from a header selection to a cell selection
+            // Reset the selection state completely and redraw the grid
+            this.selectionStartCell = null;
+            this.selectionEndCell = null;
+            this.griddrawer.rendervisible(this.rows, this.cols);
+        }
         this.selectionarr = [];
         this.eventmanager?.handleCanvasClick(event);
         this.griddrawer.rendervisible(this.rows, this.cols);
@@ -481,10 +585,6 @@ export class selectionManager {
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
     }
     handleMouseDrag(event, visibleX, visibleY, row, col) {
-        // console.log('hiiii');
-        if (event.ctrlKey) {
-            // console.log('hiiiiii');
-        }
         // The start cell is simply (row, col)
         this.selectionStartCell = { row, col };
         let startTopX = visibleX;
@@ -497,22 +597,29 @@ export class selectionManager {
         const virtualY = y + this.container.scrollTop;
         const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
         const currentRow = findIndexFromCoord(virtualY, this.rows.heights);
-        // console.log(`${currentRow},${currentCol}`);
         // The end cell is (currentRow, currentCol)
         this.selectionEndCell = { row: currentRow, col: currentCol };
-        // Determine the actual rectangle corners (normalize coordinates)
-        const startRow = Math.min(row, currentRow);
-        const startCol = Math.min(col, currentCol);
-        const endRow = Math.max(row, currentRow);
-        const endCol = Math.max(col, currentCol);
+        // Always normalize the coordinates for the selection
+        const minRow = Math.min(row, currentRow);
+        const maxRow = Math.max(row, currentRow);
+        const minCol = Math.min(col, currentCol);
+        const maxCol = Math.max(col, currentCol);
         // Clear and redraw the grid
         if (!this.ctx) {
             return;
         }
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.griddrawer.rendervisible(this.rows, this.cols);
-        // Paint all cells in the selection range
-        this.paintSelectedCells(startRow, startCol, endRow, endCol);
+        // IMPORTANT: Update the active selection immediately with the normalized range
+        this.activeSelection = {
+            startRow: minRow,
+            startCol: minCol,
+            endRow: maxRow,
+            endCol: maxCol
+        };
+        // Paint all cells in the selection range - use the normalized range
+        this.paintSelectedCells(minRow, minCol, maxRow, maxCol);
+        // Calculate width and height for the border drawing
         let width = 0;
         let height = 0;
         // Calculate width based on the distance between columns
@@ -548,26 +655,14 @@ export class selectionManager {
         if (!this.ctx) {
             return;
         }
-        // console.log(currentRow);
-        // console.log(currentCol);
-        if (this.selectionStartCell && this.selectionEndCell) {
-            this.activeSelection = {
-                startRow: startRow,
-                startCol: startCol,
-                endRow: currentRow,
-                endCol: currentCol
-            };
-            // Dispatch the selection change event
-            this.dispatchSelectionChangeEvent();
-        }
+        // Dispatch selection change event
+        this.dispatchSelectionChangeEvent();
         // Excel-like selection styling
-        this.ctx.fillStyle = "rgba(231, 241, 236, 1)";
-        this.ctx.strokeStyle = "rgb(19, 126, 67,1)";
-        this.ctx.lineWidth = 1; // Border width
-        // Draw the filled rectangle
-        // this.ctx.fillRect(startTopX, startTopY, width, height);
-        // Draw the border
-        this.ctx.strokeRect(startTopX, startTopY, width, height);
+        // this.ctx.fillStyle = "rgba(231, 241, 236, 1)";  
+        // this.ctx.strokeStyle = "rgb(19, 126, 67,1)";      
+        // this.ctx.lineWidth = 1;                         
+        // // Draw the border
+        // this.ctx.strokeRect(startTopX, startTopY, width, height);
     }
     handlePointerUp() {
         if (this.mouseMoveHandler) {
@@ -576,7 +671,7 @@ export class selectionManager {
         }
         console.log(this.activeSelection);
         if (this.activeSelection) {
-            this.selectionarr.push(this.activeSelection);
+            // this.selectionarr.push(this.activeSelection)
         }
         // // Handle column header drag selection specifically
         // if (this.selectionStartCell?.row === 0 && this.selectionEndCell?.row === 0) {

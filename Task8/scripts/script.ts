@@ -52,7 +52,7 @@ window.addEventListener('resize', resizeCanvasesWithDPI);
 resizeCanvasesWithDPI(); // Call immediately to set initial size
 
 const rows = new Rows(100);
-const cols = new Cols(500); 
+const cols = new Cols(50); 
 
 const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols,cellManager);
