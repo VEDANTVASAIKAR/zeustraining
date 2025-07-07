@@ -48,9 +48,10 @@ grid.rendervisible(rows, cols);
 const Inputdiv = document.getElementById("inputt");
 console.log(Inputdiv.innerHTML);
 const cellInput = document.getElementById("cellInput");
-const statistics = new Statistics(canvas, cellManager);
 // pass grid and cellManager to event manager
+const statistics = new Statistics(canvas, cellManager);
 const SelectionManager = new selectionManager(grid, rows, cols, cellManager, canvas, statistics);
+statistics.setSelectionManager(SelectionManager);
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager, SelectionManager);
 SelectionManager.seteventmanager(eventManager);
 /**

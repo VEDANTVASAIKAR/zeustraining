@@ -334,46 +334,73 @@ export class EventManager {
         }, { once: false });
     }
     /**
+     * Sets the active cell and positions the input, but does NOT scroll the container.
+     * This is used for header clicks to avoid jumping the viewport.
+     * @param row The row index of the new active cell.
+     * @param col The col index of the new active cell.
+     */
+    setActiveCell(row, col) {
+        // 1. Update the application's selected cell state
+        this.selectedRow = row;
+        this.selectedCol = col;
+        // 2. Compute cell's absolute position and dimensions
+        const cellLeft = this.cols.widths.slice(0, col).reduce((a, b) => a + b, 0);
+        const cellTop = this.rows.heights.slice(0, row).reduce((a, b) => a + b, 0);
+        const cellWidth = this.cols.widths[col];
+        const cellHeight = this.rows.heights[row];
+        // 3. Position the input element without scrolling
+        this.cellInput.style.display = "block";
+        this.cellInput.style.position = "absolute";
+        this.cellInput.style.left = cellLeft + "px";
+        this.cellInput.style.top = cellTop + "px";
+        this.cellInput.style.width = cellWidth + "px";
+        this.cellInput.style.height = cellHeight + "px";
+        // 4. Set input's value
+        const cell = this.cellManager.getCell(row, col);
+        this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
+    }
+    /**
      * Positions the input box at the given cell, keeps it visible, and adjusts for scroll.
      * @param selectedRow The row index (1-based, must not be 0)
      * @param selectedCol The column index (1-based, must not be 0)
      */
     positionInput(selectedRow = this.selectedRow, selectedCol = this.selectedCol) {
-        // 2. Compute cell absolute position in grid
+        // 1. Update the application's selected cell state
+        this.selectedRow = selectedRow;
+        this.selectedCol = selectedCol;
+        // 2. Compute cell's absolute position and dimensions in the virtual grid
         const cellLeft = this.cols.widths.slice(0, selectedCol).reduce((a, b) => a + b, 0);
         const cellTop = this.rows.heights.slice(0, selectedRow).reduce((a, b) => a + b, 0);
         const cellWidth = this.cols.widths[selectedCol];
         const cellHeight = this.rows.heights[selectedRow];
-        // 3. Scroll if needed to make cell visible
-        const visibleLeft = this.container.scrollLeft;
-        const visibleTop = this.container.scrollTop;
-        const visibleRight = visibleLeft + this.container.clientWidth;
-        const visibleBottom = visibleTop + this.container.clientHeight;
-        const cellRight = cellLeft + cellWidth;
-        const cellBottom = cellTop + cellHeight;
-        if (cellLeft < visibleLeft) {
+        // 3. Get the current viewport dimensions and scroll positions
+        const viewportLeft = this.container.scrollLeft;
+        const viewportTop = this.container.scrollTop;
+        const viewportRight = viewportLeft + this.container.clientWidth;
+        const viewportBottom = viewportTop + this.container.clientHeight;
+        // 4. Check if the cell is outside the viewport and scroll ONLY if necessary
+        // Check horizontal scroll
+        if (cellLeft < viewportLeft) {
             this.container.scrollLeft = cellLeft;
         }
-        else if (cellRight > visibleRight) {
-            this.container.scrollLeft = cellRight - this.container.clientWidth;
+        else if (cellLeft + cellWidth > viewportRight) {
+            this.container.scrollLeft = cellLeft + cellWidth - this.container.clientWidth;
         }
-        if (cellTop < visibleTop) {
+        // Check vertical scroll
+        if (cellTop < viewportTop) {
             this.container.scrollTop = cellTop;
         }
-        else if (cellBottom > visibleBottom) {
-            this.container.scrollTop = cellBottom - this.container.clientHeight;
+        else if (cellTop + cellHeight > viewportBottom) {
+            this.container.scrollTop = cellTop + cellHeight - this.container.clientHeight;
         }
-        // 4. Calculate the position relative to the visible viewport (subtract scroll)
-        const adjustedLeft = cellLeft;
-        const adjustedTop = cellTop;
-        // 5. Show and position the input
+        // 5. Position the input element. The position is always absolute to the scrollable container.
         this.cellInput.style.display = "block";
         this.cellInput.style.position = "absolute";
-        this.cellInput.style.left = adjustedLeft + "px";
-        this.cellInput.style.top = adjustedTop + "px";
+        this.cellInput.style.left = cellLeft + "px";
+        this.cellInput.style.top = cellTop + "px";
         this.cellInput.style.width = cellWidth + "px";
         this.cellInput.style.height = cellHeight + "px";
-        // 6. Set input value for the cell
+        // 6. Set input's value from the cell manager
         const cell = this.cellManager.getCell(selectedRow, selectedCol);
         this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
         // 7. Prevent input click from stealing canvas focus

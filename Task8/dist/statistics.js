@@ -42,6 +42,9 @@ export class Statistics {
             this.output.value = `${avg}`;
         });
     }
+    setSelectionManager(selectionManager) {
+        this.SelectionManager = selectionManager;
+    }
     /**
      * Gets all cells within the current selection range
      * @returns Array of cell objects from the selected range, or empty array if no selection
@@ -81,6 +84,9 @@ export class Statistics {
         }
     }
     count() {
+        if (this.SelectionManager) {
+            console.log(this.SelectionManager.selectionarr);
+        }
         let cells = this.getSelectedCells();
         let count = 0;
         for (let i = 0; i < cells.length; i++) {

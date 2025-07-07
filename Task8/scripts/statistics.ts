@@ -10,19 +10,22 @@ import { selectionManager } from './selectionmanager.js';
  */
 
 export class Statistics {
-    selection : {startRow: number;startCol: number; endRow: number;endCol: number;} | null = null ;
+    selection: { startRow: number; startCol: number; endRow: number; endCol: number; } | null = null;
     output: HTMLInputElement = document.getElementById('output') as HTMLInputElement;
-    couunt :HTMLElement = document.querySelector('.count') as HTMLElement;
-    summ : HTMLElement = document.querySelector('.sum') as HTMLElement;
-    minimum :HTMLElement = document.querySelector('.min') as HTMLElement;
-    maximum :HTMLElement = document.querySelector('.max') as HTMLElement;
-    average :HTMLElement = document.querySelector('.avg') as HTMLElement;
+    couunt: HTMLElement = document.querySelector('.count') as HTMLElement;
+    summ: HTMLElement = document.querySelector('.sum') as HTMLElement;
+    minimum: HTMLElement = document.querySelector('.min') as HTMLElement;
+    maximum: HTMLElement = document.querySelector('.max') as HTMLElement;
+    average: HTMLElement = document.querySelector('.avg') as HTMLElement;
+    SelectionManager?: selectionManager;
 
     constructor(
         private canvas: HTMLCanvasElement,
         private cellManager: CellManager,
-        
+
+
     ) {
+
         // Listen for selection changes
         this.canvas.addEventListener('selection-changed', (event: any) => {
             this.selection = event.detail.selection;
@@ -33,13 +36,13 @@ export class Statistics {
             this.output.value = `${count}`
         });
         this.summ.addEventListener('click', () => {
-            let sum = this.sum();       
+            let sum = this.sum();
             this.output.value = `${sum}`
         });
         this.minimum.addEventListener('click', () => {
             let min = this.min();
             this.output.value = `${min}`
-        });0
+        }); 0
         this.maximum.addEventListener('click', () => {
             let max = this.max();
             this.output.value = `${max}`
@@ -48,8 +51,12 @@ export class Statistics {
             let avg = this.avg();
             this.output.value = `${avg}`
         });
-        
-        
+
+
+    }
+
+    setSelectionManager(selectionManager: selectionManager) {
+        this.SelectionManager = selectionManager;
     }
 
     /**
@@ -58,15 +65,15 @@ export class Statistics {
      */
     getSelectedCells() {
         if (!this.selection) return [];
-        
+
         const { startRow, startCol, endRow, endCol } = this.selection;
         const selectedCells = [];
-        
+
         // Loop through all cells in the selection range
         for (let row = startRow; row <= endRow; row++) {
             for (let col = startCol; col <= endCol; col++) {
                 const cell = this.cellManager.getCell(row, col);
-                
+
                 // Add the cell to our array if it exists
                 if (cell) {
                     selectedCells.push(cell);
@@ -82,21 +89,25 @@ export class Statistics {
                 }
             }
         }
-        
+
         return selectedCells;
     }
 
-    printvalues(){
+    printvalues() {
         let cells = this.getSelectedCells()
-        for (let i =0; i< cells.length;i++){
+        for (let i = 0; i < cells.length; i++) {
             // console.log(cells[i].value);
             // console.log(i);
-            
-            
+
+
         }
     }
 
     count() {
+        if (this.SelectionManager) {
+            console.log(this.SelectionManager.selectionarr)
+
+        }
         let cells = this.getSelectedCells();
         let count = 0;
         for (let i = 0; i < cells.length; i++) {

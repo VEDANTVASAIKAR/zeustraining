@@ -368,18 +368,16 @@ export class selectionManager {
         }
     }
     handleMouseDown(event) {
-        // Get your existing coordinates
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        const virtualX = x + this.container.scrollLeft;
-        const virtualY = y + this.container.scrollTop;
-        const col = findIndexFromCoord(virtualX, this.cols.widths);
-        const row = findIndexFromCoord(virtualY, this.rows.heights);
-        // Check if click is on a header
-        if (row === 0 && col > 0) {
+        // Check for column header click (fixed at the top)
+        if (y < this.rows.heights[0] && x > this.cols.widths[0]) {
+            const virtualX = x + this.container.scrollLeft;
+            const col = findIndexFromCoord(virtualX, this.cols.widths);
+            // Find the first visible row to set as active
+            const firstVisibleRow = findIndexFromCoord(this.container.scrollTop, this.rows.heights) + 1;
             if (event.ctrlKey) {
-                // Create a selection range for the full column you just clicked
                 const colSelection = {
                     startRow: 1,
                     startCol: col,
@@ -387,47 +385,39 @@ export class selectionManager {
                     endCol: col
                 };
                 this.selectionarr.push(colSelection);
-                // this.activeSelection = colSelection;
             }
             else {
-                // Normal click: clear all previous multi-selection
                 this.selectionarr = [];
-                // For a normal click, the new selection will be the only one
                 const colSelection = {
                     startRow: 1,
                     startCol: col,
                     endRow: this.rows.n - 1,
                     endCol: col
                 };
-                this.selectionarr.push(colSelection);
+                // this.selectionarr.push(colSelection);
             }
-            // console.log(this.selectionarr.length);
-            this.eventmanager?.positionInput(1, col);
-            // Store the starting column for potential column drag selection
+            this.eventmanager?.setActiveCell(firstVisibleRow, col);
             this.selectionStartCell = { row: 0, col: col };
-            // Set up special column selection drag handler
             this.mouseMoveHandler = (moveEvent) => {
                 const moveRect = this.canvas.getBoundingClientRect();
                 const moveX = moveEvent.clientX - moveRect.left + this.container.scrollLeft;
                 const currentCol = findIndexFromCoord(moveX, this.cols.widths);
-                // Only process if we're still in the header row
                 if (currentCol > 0) {
-                    // Update selection to span from start column to current column
                     this.selectMultipleColumns(col, currentCol);
-                    // Store the current position for when the drag ends
                     this.selectionEndCell = { row: 0, col: currentCol };
                 }
             };
-            // Attach the drag handler
             this.container.addEventListener('pointermove', this.mouseMoveHandler);
-            // Column header click - select entire column
             this.selectMultipleColumns(col, col);
-            // this.selectEntireColumn(col);
             return;
         }
-        else if (col === 0 && row > 0) {
+        // Check for row header click (fixed at the left)
+        if (x < this.cols.widths[0] && y > this.rows.heights[0]) {
+            const virtualY = y + this.container.scrollTop;
+            const row = findIndexFromCoord(virtualY, this.rows.heights);
+            // Find the first visible column to set as active
+            const firstVisibleCol = findIndexFromCoord(this.container.scrollLeft, this.cols.widths) + 1;
             if (event.ctrlKey) {
-                // CTRL+Click: Add this row to selection array
                 const rowSelection = {
                     startRow: row,
                     startCol: 1,
@@ -435,10 +425,8 @@ export class selectionManager {
                     endCol: this.cols.n - 1
                 };
                 this.selectionarr.push(rowSelection);
-                // this.activeSelection = rowSelection;
             }
             else {
-                // Normal click: Clear previous, select only this row
                 this.selectionarr = [];
                 const rowSelection = {
                     startRow: row,
@@ -446,57 +434,39 @@ export class selectionManager {
                     endRow: row,
                     endCol: this.cols.n - 1
                 };
-                this.selectionarr.push(rowSelection);
+                // this.selectionarr.push(rowSelection);
             }
-            this.eventmanager?.positionInput(row, 1);
-            // Store the starting row for potential row drag selection
+            this.eventmanager?.setActiveCell(row, firstVisibleCol);
             this.selectionStartCell = { row: row, col: 0 };
-            // Set up special row selection drag handler
             this.mouseMoveHandler = (moveEvent) => {
                 const moveRect = this.canvas.getBoundingClientRect();
                 const moveY = moveEvent.clientY - moveRect.top + this.container.scrollTop;
                 const currentRow = findIndexFromCoord(moveY, this.rows.heights);
-                // Only process if we're still in the header column
                 if (currentRow > 0) {
-                    // Update selection to span from start row to current row
                     this.selectMultipleRows(row, currentRow);
-                    // Store the current position for when the drag ends
                     this.selectionEndCell = { row: currentRow, col: 0 };
                 }
             };
-            // Attach the drag handler
             this.container.addEventListener('pointermove', this.mouseMoveHandler);
-            // Row header click - select entire row
             this.selectMultipleRows(row, row);
-            // this.selectEntireRow(row);
             return;
         }
         // Ignore corner cell click (top-left)
-        if (row === 0 && col === 0)
+        if (x < this.cols.widths[0] && y < this.rows.heights[0])
             return;
-        // Ignore headers
+        // Regular cell click
+        const virtualX = x + this.container.scrollLeft;
+        const virtualY = y + this.container.scrollTop;
+        const col = findIndexFromCoord(virtualX, this.cols.widths);
+        const row = findIndexFromCoord(virtualY, this.rows.heights);
         if (row < 1 || col < 1)
             return;
         this.selectionarr = [];
-        // Tell EventManager about the click (for input positioning)
         this.eventmanager?.handleCanvasClick(event);
-        // Redraw the grid to clear previous highlighting
         this.griddrawer.rendervisible(this.rows, this.cols);
-        // Create a single cell selection immediately (this will be expanded if drag occurs)
-        this.activeSelection = {
-            startRow: row,
-            startCol: col,
-            endRow: row,
-            endCol: col
-        };
-        // console.log((this.activeSelection));
-        // console.log(this.selectionStartCell);
-        // console.log(this.selectionEndCell);
-        // Apply initial selection (single cell and its headers)
+        this.activeSelection = { startRow: row, startCol: col, endRow: row, endCol: col };
         this.paintSelectedCells(row, col, row, col);
-        // Store start position for potential dragging
         this.selectionStartCell = { row, col };
-        // Calculate visible position for drag feedback
         let topLeftX = 0;
         for (let i = 0; i < col; i++) {
             topLeftX += this.cols.widths[i];
@@ -505,10 +475,8 @@ export class selectionManager {
         for (let i = 0; i < row; i++) {
             topLeftY += this.rows.heights[i];
         }
-        // Adjust for scroll
         const visibleX = topLeftX - this.container.scrollLeft;
         const visibleY = topLeftY - this.container.scrollTop;
-        // Set up the drag handler
         this.mouseMoveHandler = (event) => this.handleMouseDrag(event, visibleX, visibleY, row, col);
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
     }
@@ -605,6 +573,10 @@ export class selectionManager {
         if (this.mouseMoveHandler) {
             this.container.removeEventListener('pointermove', this.mouseMoveHandler);
             this.mouseMoveHandler = null;
+        }
+        console.log(this.activeSelection);
+        if (this.activeSelection) {
+            this.selectionarr.push(this.activeSelection);
         }
         // // Handle column header drag selection specifically
         // if (this.selectionStartCell?.row === 0 && this.selectionEndCell?.row === 0) {

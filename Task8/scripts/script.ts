@@ -65,10 +65,11 @@ const Inputdiv = document.getElementById("inputt") as HTMLElement;
 console.log(Inputdiv.innerHTML);
 
 const cellInput = document.getElementById("cellInput") as HTMLInputElement;
-const statistics = new Statistics(canvas,cellManager)
 // pass grid and cellManager to event manager
-const SelectionManager = new selectionManager(grid,rows,cols,cellManager,canvas,statistics)
+const statistics = new Statistics(canvas,cellManager)
 
+const SelectionManager = new selectionManager(grid,rows,cols,cellManager,canvas,statistics)
+statistics.setSelectionManager(SelectionManager);
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager,SelectionManager);
 
 
