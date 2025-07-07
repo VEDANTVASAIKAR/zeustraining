@@ -260,7 +260,6 @@ export class EventManager {
         const virtualY = y + this.container.scrollTop;
         const col = findIndexFromCoord(virtualX, this.cols.widths);
         const row = findIndexFromCoord(virtualY, this.rows.heights);
-        console.log(`Clicked at selections: (${virtualX}, ${virtualY}) -> Row: ${row}, Col: ${col}`);
         // avoid editing headers
         if (row <= 0 || col <= 0)
             return;
@@ -319,8 +318,6 @@ export class EventManager {
         this.cellInput.style.top = cellTop + "px";
         this.cellInput.style.width = this.cols.widths[this.selectedCol] + "px";
         this.cellInput.style.height = this.rows.heights[this.selectedRow] + "px";
-        console.log(this.cellInput.style.top);
-        console.log(this.cellInput.style.left);
         // Verify the style values after setting
         // console.log(`Input box style: left=${this.cellInput.style.left}, top=${this.cellInput.style.top}, width=${this.cellInput.style.width}, height=${this.cellInput.style.height}`);
         const cell = this.cellManager.getCell(this.selectedRow, this.selectedCol);
@@ -376,10 +373,6 @@ export class EventManager {
         this.cellInput.style.top = adjustedTop + "px";
         this.cellInput.style.width = cellWidth + "px";
         this.cellInput.style.height = cellHeight + "px";
-        console.log(cellTop);
-        console.log(cellLeft);
-        console.log(this.cellInput.style.top);
-        console.log(this.cellInput.style.left);
         // 6. Set input value for the cell
         const cell = this.cellManager.getCell(selectedRow, selectedCol);
         this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";

@@ -158,7 +158,7 @@ export class selectionManager {
                 // }
                 // Update visual selection
                 this.extendSelection(currentselectedrow, currentselectedcol);
-                console.log(`Current selection: (${currentselectedrow}, ${currentselectedcol})`);
+                // console.log(`Current selection: (${currentselectedrow}, ${currentselectedcol})`);
                 this.eventmanager?.positionInput(currentselectedrow, currentselectedcol);
                 e.preventDefault();
             }
@@ -334,6 +334,7 @@ export class selectionManager {
      * Reapplies the current selection highlighting after scroll events
      */
     reapplySelectionHighlighting() {
+        console.log(this.activeSelection);
         // If we have an active selection, redraw it completely
         if (this.activeSelection) {
             this.paintSelectedCells(this.activeSelection.startRow, this.activeSelection.startCol, this.activeSelection.endRow, this.activeSelection.endCol);
@@ -378,7 +379,6 @@ export class selectionManager {
         // Check if click is on a header
         if (row === 0 && col > 0) {
             if (event.ctrlKey) {
-                console.log(('ucediucgwkeg'));
                 // Create a selection range for the full column you just clicked
                 const colSelection = {
                     startRow: 1,
@@ -392,6 +392,14 @@ export class selectionManager {
             else {
                 // Normal click: clear all previous multi-selection
                 this.selectionarr = [];
+                // For a normal click, the new selection will be the only one
+                const colSelection = {
+                    startRow: 1,
+                    startCol: col,
+                    endRow: this.rows.n - 1,
+                    endCol: col
+                };
+                this.selectionarr.push(colSelection);
             }
             // console.log(this.selectionarr.length);
             this.eventmanager?.positionInput(1, col);
@@ -432,6 +440,13 @@ export class selectionManager {
             else {
                 // Normal click: Clear previous, select only this row
                 this.selectionarr = [];
+                const rowSelection = {
+                    startRow: row,
+                    startCol: 1,
+                    endRow: row,
+                    endCol: this.cols.n - 1
+                };
+                this.selectionarr.push(rowSelection);
             }
             this.eventmanager?.positionInput(row, 1);
             // Store the starting row for potential row drag selection
@@ -643,10 +658,10 @@ export class selectionManager {
         this.canvas.dispatchEvent(event);
     }
     /**
-     * Handles multiple column selection via drag
-     * @param startCol The starting column index
-     * @param endCol The ending column index
-     */
+         * Handles multiple column selection via drag
+         * @param startCol The starting column index
+         * @param endCol The ending column index
+         */
     selectMultipleColumns(startCol, endCol) {
         // console.log(`Selecting columns ${startCol} to ${endCol}`);
         // Make sure we're only working with valid column indices
@@ -665,12 +680,13 @@ export class selectionManager {
             }
         }
         // Create a selection that spans all rows, but only the selected columns
-        this.activeSelection = {
+        const newSelection = {
             startRow: 1,
             startCol: firstCol,
             endRow: this.rows.n - 1, // Last row
             endCol: lastCol
         };
+        this.activeSelection = newSelection;
         // Reapply the selection highlighting
         this.reapplySelectionHighlighting();
         // Position the input at the first cell for potential editing
@@ -705,16 +721,15 @@ export class selectionManager {
             this.paintSelectedCells(selection.startRow, selection.startCol, selection.endRow, selection.endCol);
         }
         // Create a selection that spans all columns, but only the selected rows
-        this.activeSelection = {
+        const newSelection = {
             startRow: firstRow,
             startCol: 1,
             endRow: lastRow,
             endCol: this.cols.n - 1 // Last column
         };
+        this.activeSelection = newSelection;
         // Reapply the selection highlighting
         this.reapplySelectionHighlighting();
-        // Position the input at the first cell for potential editing
-        // this.eventmanager?.positionInput(firstRow, 1);
         // Dispatch selection changed event
         this.dispatchSelectionChangeEvent();
         // Update statistics if needed

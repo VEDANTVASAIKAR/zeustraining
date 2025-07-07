@@ -26,7 +26,7 @@ export class Statistics {
         // Listen for selection changes
         this.canvas.addEventListener('selection-changed', (event: any) => {
             this.selection = event.detail.selection;
-            console.log(this.selection);
+            // console.log(this.selection);
         });
         this.couunt.addEventListener('click', () => {
             let count = this.count();
@@ -133,7 +133,7 @@ export class Statistics {
             }
         }
         if (count === 0) {
-            console.log("No numeric values selected");
+            // console.log("No numeric values selected");
         } else {
             let avg = sum / count;
             return avg;
@@ -170,9 +170,9 @@ export class Statistics {
         }
 
         if (max === -Infinity) {
-            console.log('No numeric values');
+            // console.log('No numeric values');
         } else {
-            console.log('Max:', max);
+            // console.log('Max:', max);
         }
         return max === -Infinity ? null : max; // Return null if no numeric values found
     }
