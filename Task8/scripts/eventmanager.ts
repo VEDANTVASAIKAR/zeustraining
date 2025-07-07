@@ -74,11 +74,6 @@ export class EventManager {
             this.cellManager.setCell(this.selectedRow,this.selectedCol,this.cellInput.value)
         }
 
-        // update input box position if visible
-        if(this.cellInput.style.display == 'block'){
-            this.updateInputBoxIfVisible();
-        }
-        
         // Only schedule a new rendering if we're not already in the middle of one
         if (!ticking) {
             window.requestAnimationFrame(() => {
@@ -122,22 +117,7 @@ export class EventManager {
 
     attachInputEvents() {
         this.cellInput.addEventListener("blur", () => this.saveCell());
-        this.cellInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                this.saveCell();
-                
-                // Move selection down after Enter (like Excel)
-                if (this.selectedRow !== null) {
-                    this.selectedRow++;
-                    this.positionInputAtCurrentSelection();
-                    
-                    // Notify SelectionManager about new selection
-                    // this.notifySelectionChange();
-                }
-                this.grid.rendervisible(this.rows,this.cols)
-                e.preventDefault();
-            }
-        });    
+            
     }
 
 
@@ -347,6 +327,8 @@ export class EventManager {
 
         const col = findIndexFromCoord(virtualX, this.cols.widths);
         const row = findIndexFromCoord(virtualY, this.rows.heights);
+        console.log(`Clicked at selections: (${virtualX}, ${virtualY}) -> Row: ${row}, Col: ${col}`);
+        
 
         // avoid editing headers
         if (row <= 0 || col <= 0) return;
@@ -411,7 +393,7 @@ export class EventManager {
      */
     updateInputBoxIfVisible() {
         if (this.selectedRow !== null && this.selectedCol !== null) {
-            this.positionInputAtCurrentSelection();
+            this.positionInput();
         }
     }
 
@@ -437,6 +419,8 @@ export class EventManager {
         this.cellInput.style.top = cellTop + "px";
         this.cellInput.style.width = this.cols.widths[this.selectedCol] + "px";
         this.cellInput.style.height = this.rows.heights[this.selectedRow] + "px";
+        console.log(this.cellInput.style.top);
+        console.log(this.cellInput.style.left);
         
         // Verify the style values after setting
         // console.log(`Input box style: left=${this.cellInput.style.left}, top=${this.cellInput.style.top}, width=${this.cellInput.style.width}, height=${this.cellInput.style.height}`);
@@ -461,10 +445,8 @@ export class EventManager {
      * @param selectedRow The row index (1-based, must not be 0)
      * @param selectedCol The column index (1-based, must not be 0)
      */
-    positionInput(selectedRow: number, selectedCol: number) {
-        // 1. Clamp indices so we never go above headers
-        selectedRow = Math.max(1, selectedRow);
-        selectedCol = Math.max(1, selectedCol);
+    positionInput(selectedRow: number = this.selectedRow, selectedCol: number = this.selectedCol) {
+
 
         // 2. Compute cell absolute position in grid
         const cellLeft = this.cols.widths.slice(0, selectedCol).reduce((a, b) => a + b, 0);
@@ -492,8 +474,8 @@ export class EventManager {
         }
 
         // 4. Calculate the position relative to the visible viewport (subtract scroll)
-        const adjustedLeft = cellLeft - this.container.scrollLeft;
-        const adjustedTop = cellTop - this.container.scrollTop;
+        const adjustedLeft = cellLeft 
+        const adjustedTop = cellTop 
 
         // 5. Show and position the input
         this.cellInput.style.display = "block";
@@ -502,6 +484,14 @@ export class EventManager {
         this.cellInput.style.top = adjustedTop + "px";
         this.cellInput.style.width = cellWidth + "px";
         this.cellInput.style.height = cellHeight + "px";
+        console.log(cellTop);
+        console.log(cellLeft);
+        
+        
+        console.log(this.cellInput.style.top);
+        console.log(this.cellInput.style.left);
+        
+        
 
         // 6. Set input value for the cell
         const cell = this.cellManager.getCell(selectedRow, selectedCol);

@@ -158,6 +158,7 @@ export class selectionManager {
                 // }
                 // Update visual selection
                 this.extendSelection(currentselectedrow, currentselectedcol);
+                console.log(`Current selection: (${currentselectedrow}, ${currentselectedcol})`);
                 this.eventmanager?.positionInput(currentselectedrow, currentselectedcol);
                 e.preventDefault();
             }

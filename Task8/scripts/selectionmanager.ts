@@ -154,6 +154,7 @@ export class selectionManager {
         if(e.key && ! e.shiftKey){
             let currentselectedrow = this.activeSelection.startRow;
             let currentselectedcol = this.activeSelection.startCol
+                        
 
             
 
@@ -227,7 +228,8 @@ export class selectionManager {
                 // }
                 // Update visual selection
                 this.extendSelection(currentselectedrow, currentselectedcol);
-                
+                console.log(`Current selection: (${currentselectedrow}, ${currentselectedcol})`);
+
                 this.eventmanager?.positionInput(currentselectedrow,currentselectedcol);
                 e.preventDefault();
                 

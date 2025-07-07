@@ -55,10 +55,6 @@ export class EventManager {
                 // console.log(this.selectedRow)
                 this.cellManager.setCell(this.selectedRow, this.selectedCol, this.cellInput.value);
             }
-            // update input box position if visible
-            if (this.cellInput.style.display == 'block') {
-                this.updateInputBoxIfVisible();
-            }
             // Only schedule a new rendering if we're not already in the middle of one
             if (!ticking) {
                 window.requestAnimationFrame(() => {
@@ -95,20 +91,6 @@ export class EventManager {
     }
     attachInputEvents() {
         this.cellInput.addEventListener("blur", () => this.saveCell());
-        this.cellInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                this.saveCell();
-                // Move selection down after Enter (like Excel)
-                if (this.selectedRow !== null) {
-                    this.selectedRow++;
-                    this.positionInputAtCurrentSelection();
-                    // Notify SelectionManager about new selection
-                    // this.notifySelectionChange();
-                }
-                this.grid.rendervisible(this.rows, this.cols);
-                e.preventDefault();
-            }
-        });
     }
     attachMouseEvents() {
         this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
@@ -278,6 +260,7 @@ export class EventManager {
         const virtualY = y + this.container.scrollTop;
         const col = findIndexFromCoord(virtualX, this.cols.widths);
         const row = findIndexFromCoord(virtualY, this.rows.heights);
+        console.log(`Clicked at selections: (${virtualX}, ${virtualY}) -> Row: ${row}, Col: ${col}`);
         // avoid editing headers
         if (row <= 0 || col <= 0)
             return;
@@ -318,7 +301,7 @@ export class EventManager {
      */
     updateInputBoxIfVisible() {
         if (this.selectedRow !== null && this.selectedCol !== null) {
-            this.positionInputAtCurrentSelection();
+            this.positionInput();
         }
     }
     /**
@@ -336,6 +319,8 @@ export class EventManager {
         this.cellInput.style.top = cellTop + "px";
         this.cellInput.style.width = this.cols.widths[this.selectedCol] + "px";
         this.cellInput.style.height = this.rows.heights[this.selectedRow] + "px";
+        console.log(this.cellInput.style.top);
+        console.log(this.cellInput.style.left);
         // Verify the style values after setting
         // console.log(`Input box style: left=${this.cellInput.style.left}, top=${this.cellInput.style.top}, width=${this.cellInput.style.width}, height=${this.cellInput.style.height}`);
         const cell = this.cellManager.getCell(this.selectedRow, this.selectedCol);
@@ -351,41 +336,12 @@ export class EventManager {
             }
         }, { once: false });
     }
-    // positionInput(selectedRow : number, selectedCol :number) {
-    //     const cellLeft = this.cols.widths.slice(0, selectedCol).reduce((a, b) => a + b, 0);
-    //     const cellTop = this.rows.heights.slice(0, selectedRow).reduce((a, b) => a + b, 0);
-    //     // console.log(`Cell absolute position: left=${cellLeft}, top=${cellTop}`);
-    //     // console.log(`Current scroll: left=${this.container.scrollLeft}, top=${this.container.scrollTop}`);
-    //     this.cellInput.style.display = "block";
-    //     this.cellInput.style.position = "absolute";
-    //     this.cellInput.style.left = cellLeft + "px";
-    //     this.cellInput.style.top = cellTop + "px";
-    //     this.cellInput.style.width = this.cols.widths[this.selectedCol] + "px";
-    //     this.cellInput.style.height = this.rows.heights[this.selectedRow] + "px";
-    //     // Verify the style values after setting
-    //     // console.log(`Input box style: left=${this.cellInput.style.left}, top=${this.cellInput.style.top}, width=${this.cellInput.style.width}, height=${this.cellInput.style.height}`);
-    //     const cell = this.cellManager.getCell(this.selectedRow, this.selectedCol);
-    //     this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
-    //     // Add this - intercept clicks on the input element itself
-    //     this.cellInput.addEventListener('mousedown', (e) => {
-    //         // Check if it's not a double-click
-    //         if (e.detail === 1) {
-    //             e.preventDefault();
-    //             e.stopPropagation();
-    //             this.canvas.focus();
-    //             return false;
-    //         }
-    //     }, { once: false });
-    // }
     /**
- * Positions the input box at the given cell, keeps it visible, and adjusts for scroll.
- * @param selectedRow The row index (1-based, must not be 0)
- * @param selectedCol The column index (1-based, must not be 0)
- */
-    positionInput(selectedRow, selectedCol) {
-        // 1. Clamp indices so we never go above headers
-        selectedRow = Math.max(1, selectedRow);
-        selectedCol = Math.max(1, selectedCol);
+     * Positions the input box at the given cell, keeps it visible, and adjusts for scroll.
+     * @param selectedRow The row index (1-based, must not be 0)
+     * @param selectedCol The column index (1-based, must not be 0)
+     */
+    positionInput(selectedRow = this.selectedRow, selectedCol = this.selectedCol) {
         // 2. Compute cell absolute position in grid
         const cellLeft = this.cols.widths.slice(0, selectedCol).reduce((a, b) => a + b, 0);
         const cellTop = this.rows.heights.slice(0, selectedRow).reduce((a, b) => a + b, 0);
@@ -411,8 +367,8 @@ export class EventManager {
             this.container.scrollTop = cellBottom - this.container.clientHeight;
         }
         // 4. Calculate the position relative to the visible viewport (subtract scroll)
-        const adjustedLeft = cellLeft - this.container.scrollLeft;
-        const adjustedTop = cellTop - this.container.scrollTop;
+        const adjustedLeft = cellLeft;
+        const adjustedTop = cellTop;
         // 5. Show and position the input
         this.cellInput.style.display = "block";
         this.cellInput.style.position = "absolute";
@@ -420,6 +376,10 @@ export class EventManager {
         this.cellInput.style.top = adjustedTop + "px";
         this.cellInput.style.width = cellWidth + "px";
         this.cellInput.style.height = cellHeight + "px";
+        console.log(cellTop);
+        console.log(cellLeft);
+        console.log(this.cellInput.style.top);
+        console.log(this.cellInput.style.left);
         // 6. Set input value for the cell
         const cell = this.cellManager.getCell(selectedRow, selectedCol);
         this.cellInput.value = cell && cell.value != null ? String(cell.value) : "";
