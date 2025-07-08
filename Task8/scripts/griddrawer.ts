@@ -83,6 +83,7 @@ export class GridDrawer {
    * @param cols - Column manager instance
    */
   columnheaders(rows: Rows, cols: Cols){
+    
     for (let j=1; j < cols.n; j++){
       let label = getExcelColumnLabel(j-1);
       this.cellmanager.setCell(0, j, label);

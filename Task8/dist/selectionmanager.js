@@ -273,14 +273,14 @@ export class selectionManager {
             this.ctx.fillStyle = "#0a753a";
             this.ctx.fillRect(drawX, drawY, w, h);
         }
-        else if (isHeader) {
-            // Regular selected headers (not header-initiated) get the light green highlight
-            this.ctx.fillStyle = "rgba(202,234,216,1)";
-            this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
-        }
+        //  else if (isHeader) {
+        //     // Regular selected headers (not header-initiated) get the light green highlight
+        //     this.ctx.fillStyle = "rgba(202,234,216,1)";
+        //     this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
+        // } 
         else {
             // Regular selected cells get even lighter highlight
-            this.ctx.fillStyle = "rgba(231,241,236,1)";
+            this.ctx.fillStyle = "rgba(202,234,216,1)";
             this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
         }
         // ---- DRAWING CELL BORDERS ----
@@ -450,7 +450,6 @@ export class selectionManager {
                 endCol: col
             };
             this.mouseMoveHandler = (moveEvent) => {
-                console.log('vedant');
                 const moveRect = this.canvas.getBoundingClientRect();
                 const moveX = moveEvent.clientX - moveRect.left + this.container.scrollLeft;
                 const currentCol = findIndexFromCoord(moveX, this.cols.widths);
