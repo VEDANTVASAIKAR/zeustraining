@@ -450,6 +450,7 @@ export class selectionManager {
                 endCol: col
             };
             this.mouseMoveHandler = (moveEvent) => {
+                console.log('vedant');
                 const moveRect = this.canvas.getBoundingClientRect();
                 const moveX = moveEvent.clientX - moveRect.left + this.container.scrollLeft;
                 const currentCol = findIndexFromCoord(moveX, this.cols.widths);
@@ -530,11 +531,11 @@ export class selectionManager {
         }
         const visibleX = topLeftX - this.container.scrollLeft;
         const visibleY = topLeftY - this.container.scrollTop;
-        this.mouseMoveHandler = (event) => this.handleMouseDrag(event, visibleX, visibleY, row, col);
+        this.mouseMoveHandler = (event) => this.handlePointerMove(event, visibleX, visibleY, row, col);
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
         console.log(this.activeSelection);
     }
-    handleMouseDrag(event, visibleX, visibleY, initialRow, initialCol) {
+    handlePointerMove(event, visibleX, visibleY, initialRow, initialCol) {
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
@@ -729,12 +730,9 @@ export class selectionManager {
         // Convert to virtual coordinates with scroll
         const virtualX = x + this.container.scrollLeft;
         const virtualY = y + this.container.scrollTop;
-        // Get header dimensions
-        const headerHeight = this.rows.heights[0];
-        const headerWidth = this.cols.widths[0];
         const col = findIndexFromCoord(virtualX, this.cols.widths);
         const row = findIndexFromCoord(virtualY, this.rows.heights);
-        if (row && col) {
+        if (row || col) {
             return true;
         }
         // No valid element hit

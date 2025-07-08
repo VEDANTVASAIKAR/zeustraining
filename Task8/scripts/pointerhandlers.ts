@@ -3,6 +3,8 @@ import { EventManager } from "./eventmanager";
 
 
 export class PointerHandlers {
+
+    eventfunction : EventManager | selectionManager | null = null;
     constructor(
         private container: HTMLElement,
         private eventmanager: EventManager, // Replace with actual type if available
@@ -27,13 +29,20 @@ export class PointerHandlers {
         }else if(this.selectionmanager.hitdown(event.clientX, event.clientY)){
             return this.selectionmanager;
         }
+        else{
+            return null;
+        }
         
         
     }
 
     private handlePointerDown(event: PointerEvent) {
-        let eventfunction = this.hittest(event);
-        eventfunction?.handlePointerDown(event);
+        this.eventfunction = this.hittest(event);
+        if(this.eventfunction){
+            this.eventfunction.handlePointerDown(event);
+        }
+      
+        
         // if (this.eventmanager){
         //     this.eventmanager.handleMouseDown(event);
         // }
@@ -45,7 +54,15 @@ export class PointerHandlers {
     }
 
     private handlePointerMove(event: PointerEvent) {
-        this.hittest(event);
+        // to show handles
+        if (!this.eventfunction){
+            this.eventfunction = this.hittest(event);
+        }
+        
+        this.eventmanager.showresizehandles(event);
+        this.eventmanager.handlePointerMove(event);
+
+
         // Handle pointer move logic
         // if (this.eventmanager){
         //     this.eventmanager.handleMouseMove(event);
@@ -53,14 +70,12 @@ export class PointerHandlers {
     }
 
     private handlePointerUp(event: PointerEvent) {
-        this.hittest(event);
-        // Handle pointer up logic
-        // if (this.eventmanager){
-        //     this.eventmanager.handleMouseUp(event);
-        // }
-        if(this.selectionmanager){
-            this.selectionmanager.handlePointerUp(event);
+        window.removeEventListener('pointermove', this.handlePointerMove);
+        if (this.eventfunction){
+            this.eventfunction?.handlePointerUp(event);            
         }
+        // Handle pointer up logic
+        this.eventfunction = null; // Reset the event function after handling
     }
     
 }

@@ -9,6 +9,7 @@ import { getExcelColumnLabel } from "./utils.js";
  * Manages all event listeners for the grid and input elements.
  */
 export class EventManager {
+    selection: { startRow: number; startCol: number; endRow: number; endCol: number; } | null = null;
     selectedRow: number ;
     selectedCol: number ;
     container : HTMLElement;
@@ -27,6 +28,7 @@ export class EventManager {
     /** Position of the preview line when resizing */
     private previewLineX: number | null = null;
     private resizingColLeft: number | null = null;
+    paint : true | false = false; // to paint while resizing
 
     constructor(
         public canvas: HTMLCanvasElement,
@@ -39,6 +41,7 @@ export class EventManager {
         
     ) {
         // Initialize selection to cell A1 (row 1, col 1 since row 0 and col 0 are headers)
+        this.paint = false;
         this.selectedRow = 1;
         this.selectedCol = 1;
         this.container = document.querySelector('.container') as HTMLElement;
@@ -50,7 +53,11 @@ export class EventManager {
         this.positionInput();
         // this.notifySelectionChange();
         this.canvas.focus();
-        
+        // Listen for selection changes
+        this.canvas.addEventListener('selection-changed', (event: any) => {
+            this.selection = event.detail.selection;
+            console.log(this.selection);
+        });
     }
 
     redraw() {
@@ -163,10 +170,13 @@ export class EventManager {
             }
             this.previewLineY = sum;
         }
+        this.paint= true
     }
 
 
-    handleMouseUp(event: MouseEvent) {
+    handlePointerUp(event: MouseEvent) {
+        console.log(this.selection);
+        this.paint = false;
         
 
         // Only do this if a column is being resized and a preview line exists
@@ -189,8 +199,15 @@ export class EventManager {
             this.grid.rendervisible(this.rows,this.cols)
             //  ADD: Redraw all cell contents!
             // This will draw all cells with data after resizing.
-            for (const [key, cell] of this.cellManager.cellMap.entries()) {
-                this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
+            // for (const [key, cell] of this.cellManager.cellMap.entries()) {
+            //     // this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
+            //     if (this.selection){
+            //         this.selectionManager.paintSelectedCells(this.selection?.startRow,this.selection?.startCol,this.selection?.endRow,this.selection?.endCol);
+            //     }
+                
+            // }
+            if (this.selection){
+                    this.selectionManager.paintSelectedCells(this.selection?.startRow,this.selection?.startCol,this.selection?.endRow,this.selection?.endCol);
             }
             this.updateInputBoxIfVisible();
         }
@@ -223,72 +240,32 @@ export class EventManager {
 
             // ADD: Redraw all cell contents!
             // This will draw all cells with data after resizing.
-            for (const [key, cell] of this.cellManager.cellMap.entries()) {
-                this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
+            // for (const [key, cell] of this.cellManager.cellMap.entries()) {
+            //     this.grid.drawCell(cell.row, cell.col, cell.value, this.rows, this.cols);
+            // }
+            if (this.selection){
+                    this.selectionManager.paintSelectedCells(this.selection?.startRow,this.selection?.startCol,this.selection?.endRow,this.selection?.endCol);
             }
             this.updateInputBoxIfVisible();
         }
         // Reset the resizingRow state
         this.resizingRow = null;
         this.previewLineY = null;
+      
+        window.removeEventListener('pointermove', this.handlePointerMove.bind(this));
+
 
     }
 
 
 
     // First, fix handleMouseMove to use virtual coordinates for detection
-    handleMouseMove(event: MouseEvent) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
+    handlePointerMove(event: MouseEvent) {
 
-        // Calculate virtual coordinates with scroll offset
-        const virtualX = x + this.container.scrollLeft;
-        const virtualY = y + this.container.scrollTop;
-
-        const threshold = 5; // px distance to detect border for resizing
-        const headerHeight = this.rows.heights[0];
-        const headerWidth = this.cols.widths[0];
+        // if (this.selection && this.paint){
+        //             this.selectionManager.paintSelectedCells(this.selection?.startRow,this.selection?.startCol,this.selection?.endRow,this.selection?.endCol);
+        //     }
         
-        // Track if we found a border (for cursor)
-        let foundBorder = false;
-
-        // --- Check for column resizing (hovering near right edge of any column in header row) ---
-        if (y < headerHeight) {
-            let sum = 0;
-            for (let col = 0; col < this.cols.n; col++) {
-                sum += this.cols.widths[col];
-                // Using virtualX to account for scroll position
-                if (Math.abs(virtualX - sum) < threshold) {
-                    this.canvas.style.cursor = "ew-resize";
-                    this.hoveredColBorder = col;
-                    foundBorder = true;
-                    break;
-                }
-            }
-        }
-
-        // --- Check for row resizing (hovering near bottom edge of any row in the header column) ---
-        if (!foundBorder && x < headerWidth) {
-            let sum = 0;
-            for (let row = 0; row < this.rows.n; row++) {
-                sum += this.rows.heights[row];
-                // Using virtualY to account for scroll position
-                if (Math.abs(virtualY - sum) < threshold) {
-                    this.canvas.style.cursor = "ns-resize";
-                    this.hoveredRowBorder = row;
-                    foundBorder = true;
-                    break;
-                }
-            }
-        }
-
-        // --- Default cursor if not on any border ---
-        if (!foundBorder) {
-            this.canvas.style.cursor = "cell";
-            this.hoveredColBorder = null;
-            this.hoveredRowBorder = null;
-        }
 
         if (this.resizingCol !== null && this.resizingColLeft !== null) {
             const dx = event.clientX - this.startX;
@@ -500,6 +477,59 @@ export class EventManager {
         }, { once: false });
     }
 
+    showresizehandles(event : PointerEvent){
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        // Calculate virtual coordinates with scroll offset
+        const virtualX = x + this.container.scrollLeft;
+        const virtualY = y + this.container.scrollTop;
+
+        const threshold = 5; // px distance to detect border for resizing
+        const headerHeight = this.rows.heights[0];
+        const headerWidth = this.cols.widths[0];
+        
+        // Track if we found a border (for cursor)
+        let foundBorder = false;
+
+        // --- Check for column resizing (hovering near right edge of any column in header row) ---
+        if (y < headerHeight) {
+            let sum = 0;
+            for (let col = 0; col < this.cols.n; col++) {
+                sum += this.cols.widths[col];
+                // Using virtualX to account for scroll position
+                if (Math.abs(virtualX - sum) < threshold) {
+                    this.canvas.style.cursor = "ew-resize";
+                    this.hoveredColBorder = col;
+                    foundBorder = true;
+                    break;
+                }
+            }
+        }
+
+        // --- Check for row resizing (hovering near bottom edge of any row in the header column) ---
+        if (!foundBorder && x < headerWidth) {
+            let sum = 0;
+            for (let row = 0; row < this.rows.n; row++) {
+                sum += this.rows.heights[row];
+                // Using virtualY to account for scroll position
+                if (Math.abs(virtualY - sum) < threshold) {
+                    this.canvas.style.cursor = "ns-resize";
+                    this.hoveredRowBorder = row;
+                    foundBorder = true;
+                    break;
+                }
+            }
+        }
+
+        // --- Default cursor if not on any border ---
+        if (!foundBorder) {
+            this.canvas.style.cursor = "cell";
+            this.hoveredColBorder = null;
+            this.hoveredRowBorder = null;
+        }
+    }
 
     /**
      HIT TESTS
@@ -525,8 +555,7 @@ export class EventManager {
         const headerHeight = this.rows.heights[0];
         const headerWidth = this.cols.widths[0];
         
-        // Track if we found a border (for cursor)
-        let foundBorder = false;
+
 
         // --- Check for column resizing (hovering near right edge of any column in header row) ---
         if (y < headerHeight) {
@@ -535,15 +564,27 @@ export class EventManager {
                 sum += this.cols.widths[col];
                 // Using virtualX to account for scroll position
                 if (Math.abs(virtualX - sum) < threshold) {
-                    this.canvas.style.cursor = "ew-resize";
+                    // this.canvas.style.cursor = "ew-resize";
                     this.hoveredColBorder = col;
-                    foundBorder = true;
                     return true
                 }
             }
-        }else{
-            return false
         }
+        // --- Check for row resizing (hovering near bottom edge of any row in the header column) ---
+        if ( x < headerWidth) {
+            let sum = 0;
+            for (let row = 0; row < this.rows.n; row++) {
+                sum += this.rows.heights[row];
+                // Using virtualY to account for scroll position
+                if (Math.abs(virtualY - sum) < threshold) {
+                    // this.canvas.style.cursor = "ns-resize";
+                    this.hoveredRowBorder = row;
+                    return true
+                }
+            }
+        }
+
+        return false
         
 
     }

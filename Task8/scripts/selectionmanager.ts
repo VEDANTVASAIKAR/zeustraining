@@ -468,7 +468,7 @@ export class selectionManager {
         );
     }
 
-    paintSelectedCells(startRow: number, startCol: number, endRow: number, endCol: number) {
+    paintSelectedCells(startRow: number , startCol: number, endRow: number, endCol: number) {
         // Ensure the range is properly normalized
         const minRow = Math.min(startRow, endRow);
         const maxRow = Math.max(startRow, endRow);
@@ -593,6 +593,8 @@ export class selectionManager {
             };
             
             this.mouseMoveHandler = (moveEvent) => {
+                console.log('vedant');
+                
                 const moveRect = this.canvas.getBoundingClientRect();
                 const moveX = moveEvent.clientX - moveRect.left + this.container.scrollLeft;
                 const currentCol = findIndexFromCoord(moveX, this.cols.widths);
@@ -689,14 +691,14 @@ export class selectionManager {
         const visibleX = topLeftX - this.container.scrollLeft;
         const visibleY = topLeftY - this.container.scrollTop;
         
-        this.mouseMoveHandler = (event) => this.handleMouseDrag(event, visibleX, visibleY, row, col);
+        this.mouseMoveHandler = (event) => this.handlePointerMove(event, visibleX, visibleY, row, col);
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
 
         console.log(this.activeSelection);
         
     }
 
-    handleMouseDrag(event: PointerEvent, visibleX: number, visibleY: number, initialRow: number, initialCol: number) {
+    handlePointerMove(event: PointerEvent, visibleX: number, visibleY: number, initialRow: number, initialCol: number) {
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
@@ -933,14 +935,11 @@ export class selectionManager {
         const virtualX = x + this.container.scrollLeft;
         const virtualY = y + this.container.scrollTop;
         
-        // Get header dimensions
-        const headerHeight = this.rows.heights[0];
-        const headerWidth = this.cols.widths[0];
 
         const col = findIndexFromCoord(virtualX, this.cols.widths);
         const row = findIndexFromCoord(virtualY, this.rows.heights);
 
-        if(row && col){
+        if(row || col){
            return true 
         }
 

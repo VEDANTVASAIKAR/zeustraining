@@ -5,6 +5,7 @@ export class PointerHandlers {
         this.container = container;
         this.eventmanager = eventmanager;
         this.selectionmanager = selectionmanager;
+        this.eventfunction = null;
         this.attachPointerEvents();
         this.eventmanager = eventmanager;
         this.selectionmanager = selectionmanager;
@@ -21,10 +22,15 @@ export class PointerHandlers {
         else if (this.selectionmanager.hitdown(event.clientX, event.clientY)) {
             return this.selectionmanager;
         }
+        else {
+            return null;
+        }
     }
     handlePointerDown(event) {
-        let eventfunction = this.hittest(event);
-        eventfunction?.handlePointerDown(event);
+        this.eventfunction = this.hittest(event);
+        if (this.eventfunction) {
+            this.eventfunction.handlePointerDown(event);
+        }
         // if (this.eventmanager){
         //     this.eventmanager.handleMouseDown(event);
         // }
@@ -34,20 +40,23 @@ export class PointerHandlers {
         // Handle pointer down logic
     }
     handlePointerMove(event) {
-        this.hittest(event);
+        // to show handles
+        if (!this.eventfunction) {
+            this.eventfunction = this.hittest(event);
+        }
+        this.eventmanager.showresizehandles(event);
+        this.eventmanager.handlePointerMove(event);
         // Handle pointer move logic
         // if (this.eventmanager){
         //     this.eventmanager.handleMouseMove(event);
         // }
     }
     handlePointerUp(event) {
-        this.hittest(event);
-        // Handle pointer up logic
-        // if (this.eventmanager){
-        //     this.eventmanager.handleMouseUp(event);
-        // }
-        if (this.selectionmanager) {
-            this.selectionmanager.handlePointerUp(event);
+        window.removeEventListener('pointermove', this.handlePointerMove);
+        if (this.eventfunction) {
+            this.eventfunction?.handlePointerUp(event);
         }
+        // Handle pointer up logic
+        this.eventfunction = null; // Reset the event function after handling
     }
 }
