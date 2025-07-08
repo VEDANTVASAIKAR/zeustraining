@@ -9,9 +9,10 @@ export class PointerHandlers {
         this.attachPointerEvents();
         this.eventmanager = eventmanager;
         this.selectionmanager = selectionmanager;
+        this.container = container;
     }
     attachPointerEvents() {
-        window.addEventListener('pointerdown', (event) => this.handlePointerDown(event));
+        this.container.addEventListener('pointerdown', (event) => this.handlePointerDown(event));
         window.addEventListener('pointermove', (event) => this.handlePointerMove(event));
         window.addEventListener('pointerup', (event) => this.handlePointerUp(event));
     }
@@ -52,7 +53,6 @@ export class PointerHandlers {
         // }
     }
     handlePointerUp(event) {
-        window.removeEventListener('pointermove', this.handlePointerMove);
         if (this.eventfunction) {
             this.eventfunction?.handlePointerUp(event);
         }

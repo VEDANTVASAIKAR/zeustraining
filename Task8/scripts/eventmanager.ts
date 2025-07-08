@@ -143,6 +143,7 @@ export class EventManager {
 
     handlePointerDown(event: MouseEvent) {
         console.log('eventmanager: handlePointerDown');
+            
         
         if (this.hoveredColBorder !== null) {
             this.resizingCol = this.hoveredColBorder;
@@ -272,6 +273,7 @@ export class EventManager {
             const newWidth = Math.max(10, this.startWidth + dx);
             this.cols.setWidth(this.resizingCol, newWidth);
             this.grid.columnheaders(this.rows, this.cols); // Redraw headers
+          
             
             let sum = 0;
             for (let i = 0; i < this.resizingCol; i++) {
@@ -291,6 +293,7 @@ export class EventManager {
             const newHeight = Math.max(10, this.startHeight + dy);
             this.rows.setHeight(this.resizingRow, newHeight);
             this.grid.rowheaders(this.rows, this.cols); // Redraw headers
+            
             let sum = 0;
             for (let i = 0; i < this.resizingRow; i++) {
                 sum += this.rows.heights[i];

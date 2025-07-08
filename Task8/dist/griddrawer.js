@@ -12,6 +12,7 @@ export class GridDrawer {
      * @param cellmanager - Cell manager instance
      */
     constructor(canvasId, rows, cols, cellmanager) {
+        this.selectionManager = null;
         // Get the main canvas element
         this.canvas = document.getElementById(canvasId);
         // Get the container for scroll position tracking
@@ -41,6 +42,9 @@ export class GridDrawer {
         this.rows = rows;
         this.cols = cols;
     }
+    setSelectionManager(selectionManager) {
+        this.selectionManager = selectionManager;
+    }
     /**
      * Draws all column headers (A, B, C, etc.)
      * @param rows - Row manager instance
@@ -50,7 +54,7 @@ export class GridDrawer {
         for (let j = 1; j < cols.n; j++) {
             let label = getExcelColumnLabel(j - 1);
             this.cellmanager.setCell(0, j, label);
-            this.drawCell(0, j, label, rows, cols);
+            this.selectionManager?.paintCell(0, j, label, rows, cols);
         }
     }
     /**
@@ -59,13 +63,10 @@ export class GridDrawer {
      * @param cols - Column manager instance
      */
     rowheaders(rows, cols) {
-        // Get current scroll position from container
-        const scrollLeft = this.container.scrollLeft;
-        const scrollTop = this.container.scrollTop;
         for (let i = 1; i <= rows.n; i++) {
             let label = i;
             this.cellmanager.setCell(i, 0, label);
-            this.drawCell(i, 0, label, rows, cols);
+            this.selectionManager?.paintCell(i, 0, label, rows, cols);
         }
     }
     /**

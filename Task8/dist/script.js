@@ -55,6 +55,7 @@ const SelectionManager = new selectionManager(grid, rows, cols, cellManager, can
 statistics.setSelectionManager(SelectionManager);
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager, SelectionManager);
 SelectionManager.seteventmanager(eventManager);
+grid.setSelectionManager(SelectionManager);
 const pointerHandlers = new PointerHandlers(container, eventManager, SelectionManager);
 /**
  * Loads data into the grid.

@@ -4,12 +4,14 @@ import { Cols } from "./cols.js";
 import { CELL_WIDTH, CELL_HEIGHT } from "./constants.js";
 import { CellManager } from "./cellmanager.js";
 import { getExcelColumnLabel } from "./utils.js";
+import { selectionManager } from "./selectionmanager.js"; 
 
 /**
  * GridDrawer class is responsible for all canvas rendering operations
  * It handles drawing the grid, cells, and optimization for large datasets
  */
 export class GridDrawer {
+  selectionManager: selectionManager | null = null;
   /** Canvas 2D rendering context */
   ctx: CanvasRenderingContext2D;
   /** Main canvas element */
@@ -72,7 +74,9 @@ export class GridDrawer {
     this.cols = cols;
   }
 
-
+  setSelectionManager(selectionManager: selectionManager) {
+    this.selectionManager = selectionManager;     
+  }
   /**
    * Draws all column headers (A, B, C, etc.)
    * @param rows - Row manager instance
@@ -82,7 +86,7 @@ export class GridDrawer {
     for (let j=1; j < cols.n; j++){
       let label = getExcelColumnLabel(j-1);
       this.cellmanager.setCell(0, j, label);
-      this.drawCell(0, j, label, rows, cols);
+      this.selectionManager?.paintCell(0, j, label, rows, cols);
     }     
   }
 
@@ -92,13 +96,10 @@ export class GridDrawer {
    * @param cols - Column manager instance
    */
   rowheaders(rows: Rows, cols: Cols){
-    // Get current scroll position from container
-    const scrollLeft = this.container.scrollLeft;
-    const scrollTop = this.container.scrollTop;
     for(let i=1; i <= rows.n; i++){
       let label = i;
       this.cellmanager.setCell(i, 0, label);
-      this.drawCell(i, 0, label, rows, cols);
+      this.selectionManager?.paintCell(i, 0, label, rows, cols);
       
     }
   }

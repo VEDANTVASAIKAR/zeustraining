@@ -75,6 +75,7 @@ const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellM
 
 
 SelectionManager.seteventmanager(eventManager);
+grid.setSelectionManager(SelectionManager);
 const pointerHandlers = new PointerHandlers(container, eventManager, SelectionManager);
 
 /**
