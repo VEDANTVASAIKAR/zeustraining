@@ -476,7 +476,7 @@ export class GridDrawer {
         );
     } else {
         // Left-align text in regular cells
-        this.ctx.textAlign = "left";
+        this.ctx.textAlign = "center";
         this.ctx.textBaseline = "middle";
         this.ctx.fillStyle = "#000";
         this.ctx.font = "12px Arial";
@@ -484,7 +484,7 @@ export class GridDrawer {
         // Draw the text with a small padding from the left
         this.ctx.fillText(
             value != null ? String(value) : "",
-            drawX + 4,
+            drawX + w/2,
             drawY + h/2
         );
     }
@@ -503,7 +503,7 @@ export class GridDrawer {
     this.overlayCtx.setLineDash([5, 5]); // Dashed line pattern
     this.overlayCtx.moveTo(x, 0);
     this.overlayCtx.lineTo(x, this.overlay.height);
-    this.overlayCtx.strokeStyle = '#000';
+    this.overlayCtx.strokeStyle = '#107c41';
     this.overlayCtx.lineWidth = 2;
     this.overlayCtx.stroke();
     this.overlayCtx.setLineDash([]); // Reset dash pattern
@@ -522,7 +522,7 @@ export class GridDrawer {
     this.overlayCtx.setLineDash([5, 5]); // Dashed line pattern
     this.overlayCtx.moveTo(0, y);
     this.overlayCtx.lineTo(this.overlay.width, y);
-    this.overlayCtx.strokeStyle = '#000';
+    this.overlayCtx.strokeStyle = '#107c41';
     this.overlayCtx.lineWidth = 2;
     this.overlayCtx.stroke();
     this.overlayCtx.setLineDash([]); // Reset dash pattern

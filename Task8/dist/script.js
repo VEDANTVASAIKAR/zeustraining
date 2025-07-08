@@ -6,6 +6,7 @@ import { EventManager } from "./eventmanager.js";
 import { selectionManager } from "./selectionmanager.js";
 import { Statistics } from "./statistics.js";
 import { GridDataGen } from "./generatedata.js";
+import { PointerHandlers } from "./pointerhandlers.js";
 let selectedRow = null;
 let selectedCol = null;
 let container = document.querySelector('.container');
@@ -54,6 +55,7 @@ const SelectionManager = new selectionManager(grid, rows, cols, cellManager, can
 statistics.setSelectionManager(SelectionManager);
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager, SelectionManager);
 SelectionManager.seteventmanager(eventManager);
+const pointerHandlers = new PointerHandlers(container, eventManager, SelectionManager);
 /**
  * Loads data into the grid.
  * @param {any[]} data - An array of objects to load.

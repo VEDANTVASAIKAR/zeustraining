@@ -8,6 +8,7 @@ import { EventManager } from "./eventmanager.js";
 import { selectionManager } from "./selectionmanager.js";
 import { Statistics } from "./statistics.js";
 import { GridDataGen } from "./generatedata.js";
+import { PointerHandlers } from "./pointerhandlers.js";
 
 
 let selectedRow: number | null = null;
@@ -74,6 +75,7 @@ const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellM
 
 
 SelectionManager.seteventmanager(eventManager);
+const pointerHandlers = new PointerHandlers(container, eventManager, SelectionManager);
 
 /**
  * Loads data into the grid.
