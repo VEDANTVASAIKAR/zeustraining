@@ -21,6 +21,11 @@ export class selectionManager {
     private mouseMoveHandler: ((event: PointerEvent) => void) | null = null;
     public eventmanager : EventManager | null= null;
     statistics : Statistics | null = null;
+
+    //for auto scroll
+    lastX = 0;
+    lastY = 0;
+    autoScrollInterval : null | number = null ;
     
     /** 
      * Tracks the current selection of cells as a rectangle
@@ -572,6 +577,7 @@ export class selectionManager {
     }
 
     handlePointerDown(event: PointerEvent) {
+        this.startAutoScroll();
         console.log('selectionmanager: handlePointerDown');
         
         const rect = this.canvas.getBoundingClientRect();
@@ -715,6 +721,9 @@ export class selectionManager {
     }
 
     handlePointerMove(event: PointerEvent, visibleX: number, visibleY: number, initialRow: number, initialCol: number) {
+        this.lastX = event.clientX;
+        this.lastY = event.clientY;
+
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
@@ -788,11 +797,24 @@ export class selectionManager {
             startTopY = visibleY - height + this.rows.heights[initialRow];
         }
 
+        // 3. Get the current viewport dimensions and scroll positions
+        const viewportLeft = this.container.scrollLeft;
+        const viewportTop = this.container.scrollTop;
+        const viewportRight = viewportLeft + this.container.clientWidth;
+        const viewportBottom = viewportTop + this.container.clientHeight;
+        console.log(`Viewport: left=${viewportLeft}, top=${viewportTop}, right=${viewportRight}, bottom=${viewportBottom}`);
+        console.log(`Selection: startX=${startTopX}, startY=${startTopY}, width=${width}, height=${height}`);
+
+        
+        
+
         // Dispatch selection change event
         this.dispatchSelectionChangeEvent();
     }
 
     handlePointerUp(event: PointerEvent) {
+        this.stopAutoScroll();
+
         if (this.mouseMoveHandler) {
             this.container.removeEventListener('pointermove', this.mouseMoveHandler);
             this.mouseMoveHandler = null;
@@ -985,7 +1007,55 @@ export class selectionManager {
         }
         return false;
     }
-}    
+
+    //autoscroll functions
+
+    startAutoScroll() {
+        if(this.autoScrollInterval != null)return;
+        this.autoScrollInterval = window.setInterval(() => this.autoScrollLogic(), 60); 
+    }   
+
+    stopAutoScroll() {
+        if (this.autoScrollInterval !== null) {
+        clearInterval(this.autoScrollInterval);
+        this.autoScrollInterval = null;
+        }
+    }
+
+    autoScrollLogic() {
+        const SCROLL_BUFFER_RIGHT = 35;
+        const SCROLL_BUFFER_LEFT = 150; // custom value
+        const SCROLL_BUFFER_BOTTOM = 35;
+        const SCROLL_BUFFER_TOP = 350; // custom value
+
+        const SCROLL_STEP = 10;
+
+        const viewportLeft = this.container.scrollLeft;
+        const viewportRight = viewportLeft + this.container.clientWidth;
+        const viewportTop = this.container.scrollTop;
+        const viewportBottom = viewportTop + this.container.clientHeight;
+
+        // Right edge
+        if (this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT) {
+            this.container.scrollLeft += SCROLL_STEP;
+        }
+        // Left edge
+        else if (this.lastX + this.container.scrollLeft < viewportLeft + SCROLL_BUFFER_LEFT) {
+            this.container.scrollLeft -= SCROLL_STEP;
+        }
+
+        // Bottom edge
+        if (this.lastY + this.container.scrollTop > viewportBottom - SCROLL_BUFFER_BOTTOM) {
+            this.container.scrollTop += SCROLL_STEP;
+        }
+        // Top edge
+        else if (this.lastY + this.container.scrollTop < viewportTop + SCROLL_BUFFER_TOP) {
+            this.container.scrollTop -= SCROLL_STEP;
+
+            }
+        } 
+
+}
 
 interface SelectionRange {
     startRow: number;
