@@ -63,7 +63,7 @@ grid.rendervisible(rows, cols);
 
 
 const Inputdiv = document.getElementById("inputt") as HTMLElement;
-console.log(Inputdiv.innerHTML);
+// console.log(Inputdiv.innerHTML);
 
 const cellInput = document.getElementById("cellInput") as HTMLInputElement;
 // pass grid and cellManager to event manager
@@ -112,6 +112,6 @@ function loadData(data: any[]) {
 
 let data = new GridDataGen(90);
 let values = data.generateData();
-console.log(values);
+// console.log(values);
 // Load the generated data into the grid
 loadData(values);

@@ -56,7 +56,7 @@ export class EventManager {
         // Listen for selection changes
         this.canvas.addEventListener('selection-changed', (event: any) => {
             this.selection = event.detail.selection;
-            console.log(this.selection);
+            // console.log(this.selection);
         });
     }
 
@@ -172,6 +172,8 @@ export class EventManager {
             this.previewLineY = sum;
         }
         this.paint= true
+        // console.log(this.selection);
+        
     }
 
 
@@ -209,7 +211,9 @@ export class EventManager {
             // }
             if (this.selection){
                     this.selectionManager.paintSelectedCells(this.selection?.startRow,this.selection?.startCol,this.selection?.endRow,this.selection?.endCol);
+                    this.selectionManager.selectMultipleColumns(this.selection?.startCol, this.selection?.endCol);
             }
+            
             this.updateInputBoxIfVisible();
         }
         // Reset the resizingCol state
@@ -246,6 +250,7 @@ export class EventManager {
             // }
             if (this.selection){
                     this.selectionManager.paintSelectedCells(this.selection?.startRow,this.selection?.startCol,this.selection?.endRow,this.selection?.endCol);
+                    this.selectionManager.selectMultipleRows(this.selection?.startRow, this.selection?.endRow);
             }
             this.updateInputBoxIfVisible();
         }

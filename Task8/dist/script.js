@@ -47,7 +47,7 @@ const grid = new GridDrawer("canvas", rows, cols, cellManager);
 // Initial rendering
 grid.rendervisible(rows, cols);
 const Inputdiv = document.getElementById("inputt");
-console.log(Inputdiv.innerHTML);
+// console.log(Inputdiv.innerHTML);
 const cellInput = document.getElementById("cellInput");
 // pass grid and cellManager to event manager
 const statistics = new Statistics(canvas, cellManager);
@@ -85,6 +85,6 @@ function loadData(data) {
 }
 let data = new GridDataGen(90);
 let values = data.generateData();
-console.log(values);
+// console.log(values);
 // Load the generated data into the grid
 loadData(values);

@@ -105,7 +105,7 @@ export class Statistics {
 
     count() {
         if (this.SelectionManager) {
-            console.log(this.SelectionManager.selectionarr)
+            // console.log(this.SelectionManager.selectionarr)
 
         }
         let cells = this.getSelectedCells();

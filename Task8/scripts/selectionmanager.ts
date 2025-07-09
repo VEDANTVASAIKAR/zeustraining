@@ -335,6 +335,10 @@ export class selectionManager {
         
         // Determine cell types for styling decisions
         const isHeader = row === 0 || col === 0;
+
+        // New: check if this header is part of any header-based selection
+        const isMultiSelectedHeader = this.selectionarr && this.isHeaderSelectedByAnySelection(row, col);
+
         
         // Get normalized selection range
         const minRow = Math.min(this.activeSelection.startRow, this.activeSelection.endRow);
@@ -372,21 +376,29 @@ export class selectionManager {
         this.ctx.clearRect(drawX, drawY, w, h);
         
         // Apply the appropriate fill style based on cell type and selection state
-        if (isSelectedColumnHeader || isSelectedRowHeader) {
-            // Headers that are part of a header-initiated selection get the dark green color
+        if (isMultiSelectedHeader) {
+        // Paint all multi-selected headers dark green
+        this.ctx.fillStyle = "#0a753a";
+        this.ctx.fillRect(drawX, drawY, w, h);
+        }
+        else if (isSelectedColumnHeader || isSelectedRowHeader) {
+            // Fallback for single selection
             this.ctx.fillStyle = "#0a753a";
             this.ctx.fillRect(drawX, drawY, w, h);
         }
-        //  else if (isHeader) {
-        //     // Regular selected headers (not header-initiated) get the light green highlight
-        //     this.ctx.fillStyle = "rgba(202,234,216,1)";
-        //     this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
-        // } 
+        else if (isHighlightedColumnHeader || isHighlightedRowHeader) {
+            this.ctx.fillStyle = "rgba(202,234,216,1)";
+            this.ctx.fillRect(drawX, drawY, w, h);
+        }
+        else if (isHeader) {
+            this.ctx.fillStyle = "rgba(245,245,245,1)";
+            this.ctx.fillRect(drawX, drawY, w, h);
+        }
         else {
-            // Regular selected cells get even lighter highlight
             this.ctx.fillStyle = "rgba(202,234,216,1)";
             this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
         }
+        // For non-selected, non-highlighted headers, do not fill anything (leave as default)
         
         // ---- DRAWING CELL BORDERS ----
         
@@ -477,7 +489,7 @@ export class selectionManager {
         const minCol = Math.min(startCol, endCol);
         const maxCol = Math.max(startCol, endCol);
         
-        console.log(`Painting selection from (${minRow}, ${minCol}) to (${maxRow}, ${maxCol})`);
+        // console.log(`Painting selection from (${minRow}, ${minCol}) to (${maxRow}, ${maxCol})`);
         
         // Paint all cells in the selection range
         for (let r = minRow; r <= maxRow; r++) {
@@ -512,7 +524,7 @@ export class selectionManager {
      * Reapplies the current selection highlighting after scroll events
      */
     reapplySelectionHighlighting() {
-        console.log(this.activeSelection);
+        // console.log(this.activeSelection);
         
         // If we have an active selection, redraw it completely
         if (this.activeSelection) {
@@ -573,7 +585,7 @@ export class selectionManager {
 
             if(event.ctrlKey){
                 const colSelection: SelectionRange = {
-                    startRow: 1,
+                    startRow: 0,
                     startCol: col,
                     endRow: this.rows.n - 1,
                     endCol: col
@@ -620,7 +632,7 @@ export class selectionManager {
             if (event.ctrlKey) {
                 const rowSelection = {
                     startRow: row,
-                    startCol: 1,
+                    startCol: 0,
                     endRow: row,
                     endCol: this.cols.n - 1
                 };
@@ -696,7 +708,9 @@ export class selectionManager {
         this.mouseMoveHandler = (event) => this.handlePointerMove(event, visibleX, visibleY, row, col);
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
 
-        console.log(this.activeSelection);
+        // console.log(this.activeSelection);
+        // Dispatch selection change event
+        this.dispatchSelectionChangeEvent();
         
     }
 
@@ -785,6 +799,8 @@ export class selectionManager {
         }
         
         console.log(this.activeSelection);
+        console.log(this.selectionarr);
+        
         
         // Calculate statistics on the selection
         // this.statistics?.printvalues();
@@ -946,6 +962,27 @@ export class selectionManager {
         }
 
         // No valid element hit
+        return false;
+    }
+
+    //helper function to detect headers selected in selection array
+    isHeaderSelectedByAnySelection(row: number, col: number) {
+        // Only applies to headers
+        if (row === 0 && col > 0) {
+            // Column header
+            return this.selectionarr.some(sel =>
+                sel.startRow === 0 &&
+                col >= Math.min(sel.startCol, sel.endCol) &&
+                col <= Math.max(sel.startCol, sel.endCol)
+            );
+        } else if (col === 0 && row > 0) {
+            // Row header
+            return this.selectionarr.some(sel =>
+                sel.startCol === 0 &&
+                row >= Math.min(sel.startRow, sel.endRow) &&
+                row <= Math.max(sel.startRow, sel.endRow)
+            );
+        }
         return false;
     }
 }    
