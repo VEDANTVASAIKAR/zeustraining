@@ -1,82 +1,67 @@
 import { selectionManager } from "./selectionmanager";
 import { EventManager } from "./eventmanager";
+import { ResizeRows } from "./resizerows";
+import { ResizeCols } from "./resizecols";
 
+// Type for handlers that support hittest/pointer events
+type PointerHandler = selectionManager | ResizeRows | ResizeCols;
 
 export class PointerHandlers {
+    eventarray: PointerHandler[] = [];
+    eventfunction: EventManager | PointerHandler | null = null;
 
-    eventfunction : EventManager | selectionManager | null = null;
     constructor(
         private container: HTMLElement,
-        private eventmanager: EventManager, // Replace with actual type if available
-        private selectionmanager: selectionManager // Replace with actual type if available
+        private eventmanager: EventManager, 
+        private selectionmanager: selectionManager,
+        private resizerows: ResizeRows,
+        private resizecols: ResizeCols
     ) {
+        // Order matters if you want priority on hit test
+        this.eventarray = [this.resizerows, this.resizecols, this.selectionmanager];
         this.attachPointerEvents();
-        this.eventmanager = eventmanager;
-        this.selectionmanager = selectionmanager;
-        this.container = container;
     }
 
+    // Always show resize handles on any pointermove
+    private handlePointerMove = (event: PointerEvent) => {
+        this.eventmanager.showresizehandles(event);
 
-    private attachPointerEvents() {
-        this.container.addEventListener('pointerdown', (event) => this.handlePointerDown(event));
-        window.addEventListener('pointermove', (event) => this.handlePointerMove(event));
-        window.addEventListener('pointerup', (event) => this.handlePointerUp(event));
-    }
-
-    hittest(event : PointerEvent) {
-
-        if(this.eventmanager.isOverResizeHandle(event.clientX, event.clientY)){
-            return this.eventmanager
-        }else if(this.selectionmanager.hitdown(event.clientX, event.clientY)){
-            return this.selectionmanager;
+        // If a handler is active (drag or resize), delegate pointermove to it
+        if (this.eventfunction) {
+            if ("handlePointerMove" in this.eventfunction) {
+                this.eventfunction.handlePointerMove(event);
+            }
         }
-        else{
-            return null;
-        }
-        
-        
-    }
+    };
 
-    private handlePointerDown(event: PointerEvent) {
+    private handlePointerDown = (event: PointerEvent) => {
         this.eventfunction = this.hittest(event);
-        if(this.eventfunction){
+
+        if (this.eventfunction && "handlePointerDown" in this.eventfunction) {
             this.eventfunction.handlePointerDown(event);
         }
-      
-        
-        // if (this.eventmanager){
-        //     this.eventmanager.handleMouseDown(event);
-        // }
+    };
 
-        // if(this.selectionmanager){
-        //     this.selectionmanager.handleMouseDown(event);
-        // }
-        // Handle pointer down logic
-    }
-
-    private handlePointerMove(event: PointerEvent) {
-        // to show handles
-        if (!this.eventfunction){
-            this.eventfunction = this.hittest(event);
+    private handlePointerUp = (event: PointerEvent) => {
+        if (this.eventfunction && "handlePointerUp" in this.eventfunction) {
+            this.eventfunction.handlePointerUp(event);
         }
-        
-        this.eventmanager.showresizehandles(event);
-        this.eventmanager.handlePointerMove(event);
+        this.eventfunction = null;
+    };
 
-
-        // Handle pointer move logic
-        // if (this.eventmanager){
-        //     this.eventmanager.handleMouseMove(event);
-        // }
+    private attachPointerEvents() {
+        // Attach pointermove permanently so resize handles always update
+        window.addEventListener('pointerdown', this.handlePointerDown);
+        window.addEventListener('pointermove', this.handlePointerMove);
+        window.addEventListener('pointerup', this.handlePointerUp);
     }
 
-    private handlePointerUp(event: PointerEvent) {
-        if (this.eventfunction){
-            this.eventfunction?.handlePointerUp(event);            
+    hittest(event: PointerEvent): PointerHandler | null {
+        for (let handler of this.eventarray) {
+            if (handler.hittest(event)) {
+                return handler;
+            }
         }
-        window.removeEventListener('pointermove', this.handlePointerMove);
-        // Handle pointer up logic
-        this.eventfunction = null; // Reset the event function after handling
+        return null;
     }
-    
 }

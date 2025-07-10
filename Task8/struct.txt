@@ -33,3 +33,109 @@ src/
 │   └── constants.ts          # Default styles, sizes
 │
 └── main.ts                   # Entry point (init Grid, mount canvas)
+
+
+import { selectionManager } from "./selectionmanager";
+import { EventManager } from "./eventmanager";
+import { ResizeRows} from "./resizerows";
+import { ResizeCols } from "./resizecols";
+
+
+export class PointerHandlers {
+    eventarray: (selectionManager | ResizeRows | ResizeCols)[] = []
+    eventfunction : EventManager | selectionManager | ResizeRows | ResizeCols | null = null;
+    constructor(
+        private container: HTMLElement,
+        private eventmanager: EventManager, 
+        private selectionmanager: selectionManager ,
+        private resizerows: ResizeRows,
+        private resizecols: ResizeCols
+    ) {
+        this.attachPointerEvents();
+        this.eventmanager = eventmanager;
+        this.selectionmanager = selectionmanager;
+        this.container = container;
+        this.resizerows = resizerows;
+        this.resizecols = resizecols;
+        this.eventarray.push(this.resizerows,this.resizecols,this.selectionmanager,);
+    }
+
+
+    private attachPointerEvents() {
+        window.addEventListener('pointerdown', (event) => this.handlePointerDown(event));
+        window.addEventListener('pointermove', (event) => this.handlePointerMove(event));
+        window.addEventListener('pointerup', (event) => this.handlePointerUp(event));
+    }
+
+    hittest(event: PointerEvent) {
+        for (let handler of this.eventarray) {
+            if (handler.hittest(event)) {
+                return handler;
+            }
+        }
+        return null;
+
+
+        // if(this.eventmanager.isOverResizeHandle(event.clientX, event.clientY)){
+        //     return this.eventmanager
+        // }else if(this.selectionmanager.hittest(event.clientX, event.clientY)){
+        //     return this.selectionmanager;
+        // }
+        // else{
+        //     return null;
+        // }
+        
+        
+    }
+
+    private handlePointerDown(event: PointerEvent) {
+        this.eventfunction = this.hittest(event);
+        if(this.eventfunction){
+            this.eventfunction.handlePointerDown(event);
+        }
+      
+        
+        // if (this.eventmanager){
+        //     this.eventmanager.handleMouseDown(event);
+        // }
+
+        // if(this.selectionmanager){
+        //     this.selectionmanager.handleMouseDown(event);
+        // }
+        // Handle pointer down logic
+    }
+
+    private handlePointerMove(event: PointerEvent) {
+
+       this.eventmanager.showresizehandles(event);
+        if (!this.eventfunction){
+            this.eventfunction = this.hittest(event);
+        }
+        
+        
+        
+        if(this.eventfunction){
+            this.eventfunction.handlePointerMove(event);
+        }
+
+
+        // Handle pointer move logic
+        // if (this.eventmanager){
+        //     this.eventmanager.handleMouseMove(event);
+        // }
+    }
+
+    private handlePointerUp(event: PointerEvent) {
+        if (this.eventfunction){
+            this.eventfunction?.handlePointerUp(event);
+            this.eventfunction = null; // Reset the event function after handling
+            
+        }
+        
+        // Handle pointer up logic
+        // this.eventfunction = null; // Reset the event function after handling
+    }
+
+    
+    
+}

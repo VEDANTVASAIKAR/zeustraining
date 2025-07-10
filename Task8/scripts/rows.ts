@@ -35,4 +35,5 @@ export class Rows {
     getHeight(rowIndex: number): number {
         return this.heights[rowIndex];
     }
+
 }

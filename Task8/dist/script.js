@@ -7,6 +7,8 @@ import { selectionManager } from "./selectionmanager.js";
 import { Statistics } from "./statistics.js";
 import { GridDataGen } from "./generatedata.js";
 import { PointerHandlers } from "./pointerhandlers.js";
+import { ResizeRows } from "./resizerows.js";
+import { ResizeCols } from "./resizecols.js";
 let selectedRow = null;
 let selectedCol = null;
 let container = document.querySelector('.container');
@@ -56,7 +58,9 @@ statistics.setSelectionManager(SelectionManager);
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager, SelectionManager);
 SelectionManager.seteventmanager(eventManager);
 grid.setSelectionManager(SelectionManager);
-const pointerHandlers = new PointerHandlers(container, eventManager, SelectionManager);
+const resizerows = new ResizeRows(cols, rows, grid, eventManager, SelectionManager);
+const resizecols = new ResizeCols(cols, rows, grid, eventManager, SelectionManager);
+const pointerHandlers = new PointerHandlers(container, eventManager, SelectionManager, resizerows, resizecols);
 /**
  * Loads data into the grid.
  * @param {any[]} data - An array of objects to load.

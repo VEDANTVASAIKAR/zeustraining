@@ -29,11 +29,11 @@ export class EventManager {
         this.resizingColLeft = null;
         this.paint = false; // to paint while resizing
         // Initialize selection to cell A1 (row 1, col 1 since row 0 and col 0 are headers)
-        this.paint = false;
+        // this.paint = false;
         this.selectedRow = 1;
         this.selectedCol = 1;
         this.container = document.querySelector('.container');
-        this.attachCanvasEvents();
+        // this.attachCanvasEvents();
         // this.attachInputEvents();
         this.redraw();
         // this.attachMouseEvents();
@@ -106,6 +106,7 @@ export class EventManager {
     //     window.addEventListener('pointerup', (event) => this.handleMouseUp(event));
     // }
     handledblClick(event) {
+        console.log('eventmanager: handledblClick');
         this.cellInput.focus();
     }
     handlePointerDown(event) {
@@ -133,12 +134,12 @@ export class EventManager {
             }
             this.previewLineY = sum;
         }
-        this.paint = true;
+        // this.paint= true
         // console.log(this.selection);
     }
     handlePointerUp(event) {
         console.log(this.selection);
-        this.paint = false;
+        // this.paint = false;
         // Only do this if a column is being resized and a preview line exists
         if (this.resizingCol !== null && this.previewLineX !== null && this.resizingColLeft !== null) {
             // Calculate the sum of all column widths before the one being resized
@@ -378,12 +379,7 @@ export class EventManager {
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        console.log('x:', x, 'y:', y);
-        let summm = 0;
-        for (let i = 0; i <= 61; i++) {
-            summm += this.rows.heights[i];
-        }
-        console.log('sum:', summm - this.container.scrollTop);
+        // console.log('x:', x, 'y:', y);
         // Calculate virtual coordinates with scroll offset
         const virtualX = x + this.container.scrollLeft;
         const virtualY = y + this.container.scrollTop;

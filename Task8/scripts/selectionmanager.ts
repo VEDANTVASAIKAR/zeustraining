@@ -11,6 +11,8 @@ import { Statistics } from "./statistics.js";
  * Manages selection of cells and highlighting of corresponding headers
  */
 export class selectionManager {
+    private dragStartRow: number | null = null;
+    private dragStartCol: number | null = null;
     griddrawer: GridDrawer;
     rows: Rows;
     cols: Cols;
@@ -660,6 +662,7 @@ export class selectionManager {
                 endCol: col
             };
             
+            
             this.mouseMoveHandler = (moveEvent) => {
                 
                 const moveRect = this.canvas.getBoundingClientRect();
@@ -757,8 +760,10 @@ export class selectionManager {
         
         const visibleX = topLeftX - this.container.scrollLeft;
         const visibleY = topLeftY - this.container.scrollTop;
+        this.dragStartRow = row;
+        this.dragStartCol = col;
         
-        this.mouseMoveHandler = (event) => this.handlePointerMove(event, visibleX, visibleY, row, col);
+        this.mouseMoveHandler = (event) => this.handlePointerMovee(event);
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
 
         // console.log(this.activeSelection);
@@ -767,11 +772,9 @@ export class selectionManager {
         
     }
 
-    handlePointerMove(event: PointerEvent, visibleX: number, visibleY: number, initialRow: number, initialCol: number) {
-        console.log('slectionmanager: handlePointerMove');
-     
-        
-        
+    handlePointerMovee(event: PointerEvent) {
+        console.log('selectionmanager: handlePointerMove');
+
         this.lastX = event.clientX;
         this.lastY = event.clientY;
 
@@ -786,28 +789,24 @@ export class selectionManager {
         const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
         const currentRow = findIndexFromCoord(virtualY, this.rows.heights);
 
-
         // Clear and redraw the grid
-        if (!this.ctx) {
-            return;
-        }
-        
+        if (!this.ctx) return;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.griddrawer.rendervisible(this.rows, this.cols);
 
-        // Preserve the original start point for drag direction detection
-        // but update the current end point
-        this.activeSelection = {
-            startRow: initialRow,
-            startCol: initialCol,
-            endRow: currentRow,
-            endCol: currentCol
-        };
-
-        // Dispatch selection change event
-        this.dispatchSelectionChangeEvent();
-        //uncontrolled scroll
-        this.extendSelection(currentRow, currentCol);
+        // Use strict null check to allow 0 as a valid index
+        if (this.dragStartRow !== null && this.dragStartCol !== null) {
+            this.activeSelection = {
+                startRow: this.dragStartRow,
+                startCol: this.dragStartCol,
+                endRow: currentRow,
+                endCol: currentCol
+            };
+            // Dispatch selection change event
+            this.dispatchSelectionChangeEvent();
+            // Extend selection for highlighting/scroll
+            this.extendSelection(currentRow, currentCol);
+        }
     
 
         // // Calculate visual feedback for drag operation
@@ -851,6 +850,8 @@ export class selectionManager {
     }
 
     handlePointerUp(event: PointerEvent) {
+        console.log('selectionmanager: handlePointerUp');
+        
         this.stopAutoScroll();
         
 
@@ -1012,10 +1013,10 @@ export class selectionManager {
      * @param clientY - Client Y coordinate
      * @returns String indicating what was hit: 'columnHeader', 'rowHeader', 'corner', 'cell', or 'none'
      */
-    hitdown(clientX: number, clientY: number) {
+    hittest(event : any) {
         const rect = this.canvas.getBoundingClientRect();
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
 
         // Convert to virtual coordinates with scroll
         const virtualX = x + this.container.scrollLeft;

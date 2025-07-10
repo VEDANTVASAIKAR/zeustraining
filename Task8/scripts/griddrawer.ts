@@ -309,6 +309,8 @@ export class GridDrawer {
     this.ctx.fillRect(0, 0, cornerW, cornerH);
     this.ctx.strokeStyle = "#e0e0e0";
     this.ctx.strokeRect(0.5, 0.5, cornerW, cornerH);
+
+    
   }
 
   /**
