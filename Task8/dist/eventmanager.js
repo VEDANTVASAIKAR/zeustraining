@@ -378,6 +378,12 @@ export class EventManager {
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
+        console.log('x:', x, 'y:', y);
+        let summm = 0;
+        for (let i = 0; i <= 61; i++) {
+            summm += this.rows.heights[i];
+        }
+        console.log('sum:', summm - this.container.scrollTop);
         // Calculate virtual coordinates with scroll offset
         const virtualX = x + this.container.scrollLeft;
         const virtualY = y + this.container.scrollTop;

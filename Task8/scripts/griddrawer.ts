@@ -182,7 +182,7 @@ export class GridDrawer {
     this.ctx.strokeStyle = "#e0e0e0";
     
     // Draw horizontal lines for visible rows
-    let yPos = 0;
+    let yPos = 0 ; 
     for (let i = 0; i <= endRow; i++) {
       if (i >= startRow) {
         // Draw line at the correct position accounting for scroll

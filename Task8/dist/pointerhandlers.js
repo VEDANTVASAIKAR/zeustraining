@@ -56,6 +56,7 @@ export class PointerHandlers {
         if (this.eventfunction) {
             this.eventfunction?.handlePointerUp(event);
         }
+        window.removeEventListener('pointermove', this.handlePointerMove);
         // Handle pointer up logic
         this.eventfunction = null; // Reset the event function after handling
     }

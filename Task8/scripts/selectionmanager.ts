@@ -244,7 +244,7 @@ export class selectionManager {
             Math.max(this.activeSelection.startRow, this.activeSelection.endRow),
             Math.max(this.activeSelection.startCol, this.activeSelection.endCol)
         );
-        console.log(this.activeSelection.endRow, this.activeSelection.endCol);
+        // console.log(this.activeSelection.endRow, this.activeSelection.endCol);
 
         //SCROLL LOGIC
         // Last Compute cell's absolute position and dimensions in the virtual grid
@@ -261,9 +261,10 @@ export class selectionManager {
 
         //  Check if the cell is outside the viewport and scroll ONLY if necessary
         // Check horizontal scroll
-        if (cellLeft < viewportLeft) {
-            this.container.scrollLeft = cellLeft;
-        } else if (cellLeft + cellWidth > viewportRight) {
+        const horizontalBuffer = 100;
+        if (cellLeft < viewportLeft + horizontalBuffer) {
+            this.container.scrollLeft = Math.max(0, cellLeft - horizontalBuffer);
+        }else if (cellLeft + cellWidth > viewportRight ) {
             this.container.scrollLeft = cellLeft + cellWidth - this.container.clientWidth;
         }
         // Check horizontal scroll with reduced speed (25% of full scroll) for drag scroll
@@ -279,10 +280,9 @@ export class selectionManager {
         //     this.container.scrollLeft += fullScrollAmount * 0.50;
         // }
         // Check vertical scroll
-        if (cellTop < viewportTop) {
-            this.container.scrollTop = cellTop;
-        } else if (cellTop + cellHeight > viewportBottom) {
-            this.container.scrollTop = cellTop + cellHeight - this.container.clientHeight;
+        const verticalBuffer = 25;
+        if (cellTop < viewportTop + verticalBuffer) {
+            this.container.scrollTop = Math.max(0, cellTop - verticalBuffer);
         }
 
 
@@ -786,14 +786,6 @@ export class selectionManager {
         const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
         const currentRow = findIndexFromCoord(virtualY, this.rows.heights);
 
-        //uncontrolled scroll
-        this.extendSelection(currentRow, currentCol);
-
-        // Always normalize the coordinates for the selection
-        const minRow = Math.min(initialRow, currentRow);
-        const maxRow = Math.max(initialRow, currentRow);
-        const minCol = Math.min(initialCol, currentCol);
-        const maxCol = Math.max(initialCol, currentCol);
 
         // Clear and redraw the grid
         if (!this.ctx) {
@@ -811,49 +803,51 @@ export class selectionManager {
             endRow: currentRow,
             endCol: currentCol
         };
-    
-        // Paint all cells in the selection range
-        this.paintSelectedCells(minRow, minCol, maxRow, maxCol);
-
-        // Calculate visual feedback for drag operation
-        let startTopX = visibleX;
-        let startTopY = visibleY;
-        let width = 0;
-        let height = 0;
-
-        // Calculate width based on the distance between columns
-        if (currentCol >= initialCol) {
-            // Selection going right
-            for (let i = initialCol; i <= currentCol; i++) { 
-                width += this.cols.widths[i];
-            }
-        } else {
-            // Selection going left
-            for (let i = currentCol; i <= initialCol; i++) {
-                width += this.cols.widths[i];
-            }
-            // Adjust starting X position
-            startTopX = visibleX - width + this.cols.widths[initialCol];
-        }
-
-        // Calculate height based on the distance between rows
-        if (currentRow >= initialRow) {
-            // Selection going down
-            for (let i = initialRow; i <= currentRow; i++) {
-                height += this.rows.heights[i];
-            }
-        } else {
-            // Selection going up
-            for (let i = currentRow; i <= initialRow; i++) {
-                height += this.rows.heights[i];
-            }
-            // Adjust starting Y position
-            startTopY = visibleY - height + this.rows.heights[initialRow];
-        }
-
 
         // Dispatch selection change event
         this.dispatchSelectionChangeEvent();
+        //uncontrolled scroll
+        this.extendSelection(currentRow, currentCol);
+    
+
+        // // Calculate visual feedback for drag operation
+        // let startTopX = visibleX;
+        // let startTopY = visibleY;
+        // let width = 0;
+        // let height = 0;
+
+        // // Calculate width based on the distance between columns
+        // if (currentCol >= initialCol) {
+        //     // Selection going right
+        //     for (let i = initialCol; i <= currentCol; i++) { 
+        //         width += this.cols.widths[i];
+        //     }
+        // } else {
+        //     // Selection going left
+        //     for (let i = currentCol; i <= initialCol; i++) {
+        //         width += this.cols.widths[i];
+        //     }
+        //     // Adjust starting X position
+        //     startTopX = visibleX - width + this.cols.widths[initialCol];
+        // }
+
+        // // Calculate height based on the distance between rows
+        // if (currentRow >= initialRow) {
+        //     // Selection going down
+        //     for (let i = initialRow; i <= currentRow; i++) {
+        //         height += this.rows.heights[i];
+        //     }
+        // } else {
+        //     // Selection going up
+        //     for (let i = currentRow; i <= initialRow; i++) {
+        //         height += this.rows.heights[i];
+        //     }
+        //     // Adjust starting Y position
+        //     startTopY = visibleY - height + this.rows.heights[initialRow];
+        // }
+
+
+        
     }
 
     handlePointerUp(event: PointerEvent) {
@@ -1119,8 +1113,7 @@ export class selectionManager {
         else if (this.lastY < SCROLL_BUFFER_TOP) {
             this.container.scrollTop -= SCROLL_STEP;
         }
-        console.log(this.lastY + this.container.scrollTop);
-        console.log(viewportBottom - SCROLL_BUFFER_BOTTOM);
+        
         // Check if we actually scrolled
         const didScroll = (this.container.scrollLeft !== originalScrollLeft) || 
                         (this.container.scrollTop !== originalScrollTop);
