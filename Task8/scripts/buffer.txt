@@ -1,1048 +1,466 @@
-// Handles 2nd column selection for click, ctrl+click, and drag selection events separately
-
 import { Rows } from "./rows.js";
 import { Cols } from "./cols.js";
-import { findIndexFromCoord, getExcelColumnLabel } from "./utils.js";
 import { CellManager } from "./cellmanager.js";
-import { GridDrawer } from "./griddrawer.js";
-import { EventManager } from "./eventmanager.js";
-import { Statistics } from "./statistics.js";
 
-export class ColumnSelectionManager {
-    griddrawer: GridDrawer;
-    rows: Rows;
-    cols: Cols;
-    cellmanager: CellManager;
-    canvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D | null;
-    container: HTMLElement;
-    statistics : Statistics | null = null;
-    eventmanager : EventManager | null= null;
-
-    selectionarr : SelectionRange[] = [];
-    activeSelection: SelectionRange | null = null;
-    mouseMoveHandler: ((event: PointerEvent) => void) | null = null;
-    autoScrollInterval : null | number = null ;
-    lastX = 0;
-    lastY = 0;
-
-    constructor(
-        griddrawer: GridDrawer, 
-        rows: Rows, 
-        cols: Cols, 
-        cellmanager: CellManager, 
-        canvas: HTMLCanvasElement,
-        statistics : Statistics | null = null
-    ) {
-        this.container = document.querySelector('.container') as HTMLElement;
-        this.griddrawer = griddrawer;
-        this.rows = rows;
-        this.cols = cols;
-        this.cellmanager = cellmanager;
-        this.canvas = canvas;
-        this.ctx = this.canvas.getContext("2d");
-        this.statistics = statistics;
-    }
-
-    seteventmanager(em : EventManager){
-        this.eventmanager = em;
-    }
-
-    // attachCanvasEvents() {
-    //     this.canvas.addEventListener('pointerdown',(event) => this.handlePointerDown(event));
-    //     document.addEventListener('pointerup',(event) => this.handlePointerUp(event));
-    // }
-
-    handlePointerDown(event: PointerEvent) {
-        this.startAutoScroll();
-        // Column header selection only
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        if (y < this.rows.heights[0] && x > this.cols.widths[0]) {
-            const virtualX = x + this.container.scrollLeft;
-            const col = findIndexFromCoord(virtualX, this.cols.widths);
-
-            if(event.ctrlKey){
-                const colSelection: SelectionRange = {
-                    startRow: 0,
-                    startCol: col,
-                    endRow: this.rows.n - 1,
-                    endCol: col
-                };
-                this.selectionarr.push(colSelection);
-            } else {
-                this.selectionarr = [];
-            }
-            this.eventmanager?.setActiveCell(1, col);
-
-            this.activeSelection = {
-                startRow: 0,
-                startCol: col,
-                endRow: this.rows.n - 1,
-                endCol: col
-            };
-
-            this.mouseMoveHandler = (moveEvent) => {
-                const moveRect = this.canvas.getBoundingClientRect();
-                const moveX = moveEvent.clientX - moveRect.left + this.container.scrollLeft;
-                const currentCol = findIndexFromCoord(moveX, this.cols.widths);
-                if (currentCol > 0) {
-                    this.selectMultipleColumns(col, currentCol);
-                }
-            };
-
-            this.container.addEventListener('pointermove', this.mouseMoveHandler);
-            this.selectMultipleColumns(col, col);
-        }
-    }
-
-    handlePointerMove(event: PointerEvent) {
-        // Only for drag selection on column header
-        this.lastX = event.clientX;
-        this.lastY = event.clientY;
-        // No-op: logic handled in mouseMoveHandler set in pointerdown
-    }
-
-    handlePointerUp(event: PointerEvent) {
-        this.stopAutoScroll();
-        if (this.mouseMoveHandler) {
-            this.container.removeEventListener('pointermove', this.mouseMoveHandler);
-            this.mouseMoveHandler = null;
-        }
-        this.lastX = 0;
-        this.lastY = 0;
-        // this.statistics?.printvalues();
-        // this.statistics?.sum();
-        // this.statistics?.min();
-        // this.statistics?.max();
-        // this.statistics?.avg();
-        // this.statistics?.count();
-    }
-
-    selectMultipleColumns(startCol: number, endCol: number) {
-        startCol = Math.max(1, startCol);
-        endCol = Math.max(1, endCol);
-        const firstCol = Math.min(startCol, endCol);
-        const lastCol = Math.max(startCol, endCol);
-        this.griddrawer.rendervisible(this.rows, this.cols);
-        if(this.selectionarr.length > 0) {
-            for (let selection of this.selectionarr) {
-                this.paintSelectedCells(
-                    selection.startRow,
-                    selection.startCol,
-                    selection.endRow,
-                    selection.endCol
-                );
-            }
-        }
-        if (this.activeSelection) {
-            this.activeSelection = {
-                startRow: 0,
-                startCol: firstCol,
-                endRow: this.rows.n - 1,
-                endCol: lastCol
-            };
-        }
-        this.paintSelectedCells(
-            0,
-            firstCol,
-            this.rows.n - 1,
-            lastCol
-        );
-        // this.statistics?.sum();
-        // this.statistics?.min();
-        // this.statistics?.max();
-        // this.statistics?.avg();
-        // this.statistics?.count();
-    }
-
-    paintSelectedCells(startRow: number , startCol: number, endRow: number, endCol: number) {
-        const minRow = Math.min(startRow, endRow);
-        const maxRow = Math.max(startRow, endRow);
-        const minCol = Math.min(startCol, endCol);
-        const maxCol = Math.max(startCol, endCol);
-        for (let r = minRow; r <= maxRow; r++) {
-            for (let c = minCol; c <= maxCol; c++) {
-                const cell = this.cellmanager.getCell(r, c);
-                const value = cell ? cell.value : null;
-                this.paintCell(r, c, value, this.rows, this.cols);
-            }
-        }
-        for (let r = minRow; r <= maxRow; r++) {
-            const headerValue = r;
-            this.paintCell(r, 0, headerValue, this.rows, this.cols);
-        }
-        for (let c = minCol; c <= maxCol; c++) {
-            const columnLabel = getExcelColumnLabel(c - 1);
-            this.paintCell(0, c, columnLabel, this.rows, this.cols);
-        }
-        this.statistics?.max();
-    }
-
-    paintCell(
-        row: number,
-        col: number,
-        value: string | number | null,
-        rows: Rows,
-        cols: Cols,
-    ) {
-        if (!this.ctx || !this.activeSelection) return;
-        let x = 0;
-        for (let i = 0; i < col; i++) x += cols.widths[i];
-        let y = 0;
-        for (let i = 0; i < row; i++) y += rows.heights[i];
-        const w = cols.widths[col];
-        const h = rows.heights[row];
-        let drawX: number, drawY: number;
-        if (row === 0 && col === 0) { drawX = 0; drawY = 0; }
-        else if (row === 0) { drawX = x - this.container.scrollLeft; drawY = 0; }
-        else if (col === 0) { drawX = 0; drawY = y - this.container.scrollTop; }
-        else { drawX = x - this.container.scrollLeft; drawY = y - this.container.scrollTop; }
-        const isHeader = row === 0 || col === 0;
-        this.ctx.clearRect(drawX, drawY, w, h);
-        if (isHeader) {
-            this.ctx.fillStyle = "rgba(245,245,245,1)";
-            this.ctx.fillRect(drawX, drawY, w, h);
-        } else {
-            this.ctx.fillStyle = "rgba(202,234,216,1)";
-            this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
-        }
-        this.ctx.strokeStyle = "#e0e0e0";
-        this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
-        this.ctx.strokeStyle = "rgb(19, 126, 67)";
-        this.ctx.lineWidth = 2;
-        this.ctx.lineWidth = 1;
-        this.ctx.textAlign = "center";
-        this.ctx.textBaseline = "middle";
-        this.ctx.fillStyle = "#000";
-        this.ctx.font = "12px Arial";
-        this.ctx.fillText(
-            value != null ? String(value) : "",
-            drawX + w/2,
-            drawY + h/2
-        );
-    }
-
-    //autoscroll functions
-    startAutoScroll() {
-        if(this.autoScrollInterval != null)return;
-        this.autoScrollInterval = window.setInterval(() => this.autoScrollLogic(), 60); 
-    }
-    stopAutoScroll() {
-        if (this.autoScrollInterval !== null) {
-            clearInterval(this.autoScrollInterval);
-            this.autoScrollInterval = null;
-        }
-    }
-    autoScrollLogic() {
-        if (!this.mouseMoveHandler) return;
-        if (this.lastX === 0 && this.lastY === 0) return;
-        const originalScrollLeft = this.container.scrollLeft;
-        const originalScrollTop = this.container.scrollTop;
-        const SCROLL_BUFFER_RIGHT = 50;
-        const SCROLL_BUFFER_LEFT = 250;
-        const SCROLL_BUFFER_BOTTOM = 2;
-        const SCROLL_BUFFER_TOP = 100;
-        const SCROLL_STEP = 20;
-        const viewportLeft = this.container.scrollLeft;
-        const viewportRight = viewportLeft + this.container.clientWidth;
-        const viewportTop = this.container.scrollTop;
-        const viewportBottom = viewportTop + this.container.clientHeight;
-        if (this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT) {
-            this.container.scrollLeft += SCROLL_STEP;
-        }
-        else if (this.lastX < SCROLL_BUFFER_LEFT) {
-            this.container.scrollLeft -= SCROLL_STEP;
-        }
-        if (this.lastY + this.container.scrollTop -50 > viewportBottom - SCROLL_BUFFER_BOTTOM) {
-            this.container.scrollTop += SCROLL_STEP;
-        }
-        else if (this.lastY < SCROLL_BUFFER_TOP) {
-            this.container.scrollTop -= SCROLL_STEP;
-        }
-        const didScroll = (this.container.scrollLeft !== originalScrollLeft) ||
-                          (this.container.scrollTop !== originalScrollTop);
-        if (didScroll && this.mouseMoveHandler) {
-            const syntheticEvent = new PointerEvent('pointermove', {
-                clientX: this.lastX,
-                clientY: this.lastY,
-                bubbles: true,
-                cancelable: true,
-                view: window
-            });
-            this.mouseMoveHandler(syntheticEvent);
-        }
-    }
-
-    // autoScrollLogic() {
-    //     // Don't proceed if the mouseMoveHandler has been removed
-    //     if (!this.mouseMoveHandler) {
-    //         return;
-    //     }
-    //     // Don't proceed if lastX/Y are reset (indicating pointer up)
-    //     if (this.lastX === 0 && this.lastY === 0) {
-    //         return;
-    //     }
-    //     const viewportLeft = this.container.scrollLeft;
-    //     const viewportRight = viewportLeft + this.container.clientWidth;
-    //     const viewportTop = this.container.scrollTop;
-    //     const viewportBottom = viewportTop + this.container.clientHeight;
-    //     const SCROLL_BUFFER_RIGHT = 50;
-    //     const SCROLL_BUFFER_LEFT = 250;
-    //     const SCROLL_BUFFER_BOTTOM = 35;
-    //     const SCROLL_BUFFER_TOP = 100;
-    //     const wouldScrollRight = this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT;
-    //     const wouldScrollLeft = this.lastX < SCROLL_BUFFER_LEFT;
-    //     const wouldScrollDown = this.lastY + this.container.scrollTop > viewportBottom - SCROLL_BUFFER_BOTTOM;
-    //     const wouldScrollUp = this.lastY < SCROLL_BUFFER_TOP;
-    //     const wouldScroll = wouldScrollRight || wouldScrollLeft || wouldScrollDown || wouldScrollUp;
-    //     if (wouldScroll && this.mouseMoveHandler) {
-    //         const syntheticEvent = new PointerEvent('pointermove', {
-    //             clientX: this.lastX,
-    //             clientY: this.lastY,
-    //             bubbles: true,
-    //             cancelable: true,
-    //             view: window
-    //         });
-    //         this.mouseMoveHandler(syntheticEvent);
-    //     }
-    // }
-}
-
-interface SelectionRange {
+export interface SelectionRange {
     startRow: number;
     startCol: number;
     endRow: number;
     endCol: number;
 }
-// Handles 3rd row selection for click, ctrl+click, and drag selection events separately
-
-import { Rows } from "./rows.js";
-import { Cols } from "./cols.js";
-import { findIndexFromCoord, getExcelColumnLabel } from "./utils.js";
-import { CellManager } from "./cellmanager.js";
-import { GridDrawer } from "./griddrawer.js";
-import { EventManager } from "./eventmanager.js";
-import { Statistics } from "./statistics.js";
-
-export class RowSelectionManager {
-    griddrawer: GridDrawer;
-    rows: Rows;
-    cols: Cols;
-    cellmanager: CellManager;
-    canvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D | null;
-    container: HTMLElement;
-    statistics : Statistics | null = null;
-    eventmanager : EventManager | null= null;
-
-    selectionarr : SelectionRange[] = [];
-    activeSelection: SelectionRange | null = null;
-    mouseMoveHandler: ((event: PointerEvent) => void) | null = null;
-    autoScrollInterval : null | number = null ;
-    lastX = 0;
-    lastY = 0;
-
-    constructor(
-        griddrawer: GridDrawer, 
-        rows: Rows, 
-        cols: Cols, 
-        cellmanager: CellManager, 
-        canvas: HTMLCanvasElement,
-        statistics : Statistics | null = null
-    ) {
-        this.container = document.querySelector('.container') as HTMLElement;
-        this.griddrawer = griddrawer;
-        this.rows = rows;
-        this.cols = cols;
-        this.cellmanager = cellmanager;
-        this.canvas = canvas;
-        this.ctx = this.canvas.getContext("2d");
-        this.statistics = statistics;
-    }
-
-    seteventmanager(em : EventManager){
-        this.eventmanager = em;
-    }
-
-    // attachCanvasEvents() {
-    //     this.canvas.addEventListener('pointerdown',(event) => this.handlePointerDown(event));
-    //     document.addEventListener('pointerup',(event) => this.handlePointerUp(event));
-    // }
-
-    handlePointerDown(event: PointerEvent) {
-        this.startAutoScroll();
-        // Row header selection only
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        if (x < this.cols.widths[0] && y > this.rows.heights[0]) {
-            const virtualY = y + this.container.scrollTop;
-            const row = findIndexFromCoord(virtualY, this.rows.heights);
-            if (event.ctrlKey) {
-                const rowSelection = {
-                    startRow: row,
-                    startCol: 0,
-                    endRow: row,
-                    endCol: this.cols.n - 1
-                };
-                this.selectionarr.push(rowSelection);
-            } else {
-                this.selectionarr = [];
-            }
-            this.eventmanager?.setActiveCell(row, 1);
-
-            this.activeSelection = {
-                startRow: row,
-                startCol: 0,
-                endRow: row,
-                endCol: this.cols.n - 1
-            };
-
-            this.mouseMoveHandler = (moveEvent) => {
-                const moveRect = this.canvas.getBoundingClientRect();
-                const moveY = moveEvent.clientY - moveRect.top + this.container.scrollTop;
-                const currentRow = findIndexFromCoord(moveY, this.rows.heights);
-                if (currentRow > 0) {
-                    this.selectMultipleRows(row, currentRow);
-                }
-            };
-
-            this.container.addEventListener('pointermove', this.mouseMoveHandler);
-            this.selectMultipleRows(row, row);
-        }
-    }
-
-    handlePointerMove(event: PointerEvent) {
-        // Only for drag selection on row header
-        this.lastX = event.clientX;
-        this.lastY = event.clientY;
-        // No-op: logic handled in mouseMoveHandler set in pointerdown
-    }
-
-    handlePointerUp(event: PointerEvent) {
-        this.stopAutoScroll();
-        if (this.mouseMoveHandler) {
-            this.container.removeEventListener('pointermove', this.mouseMoveHandler);
-            this.mouseMoveHandler = null;
-        }
-        this.lastX = 0;
-        this.lastY = 0;
-        // this.statistics?.printvalues();
-        // this.statistics?.sum();
-        // this.statistics?.min();
-        // this.statistics?.max();
-        // this.statistics?.avg();
-        // this.statistics?.count();
-    }
-
-    selectMultipleRows(startRow: number, endRow: number) {
-        startRow = Math.max(1, startRow);
-        endRow = Math.max(1, endRow);
-        const firstRow = Math.min(startRow, endRow);
-        const lastRow = Math.max(startRow, endRow);
-        this.griddrawer.rendervisible(this.rows, this.cols);
-        for (const selection of this.selectionarr) {
-            this.paintSelectedCells(
-                selection.startRow,
-                selection.startCol,
-                selection.endRow,
-                selection.endCol
-            );
-        }
-        if (this.activeSelection) {
-            this.activeSelection = {
-                startRow: firstRow,
-                startCol: 0,
-                endRow: lastRow,
-                endCol: this.cols.n - 1
-            };
-        }
-        this.paintSelectedCells(
-            firstRow,
-            0,
-            lastRow,
-            this.cols.n - 1
-        );
-        // this.statistics?.sum();
-        // this.statistics?.min();
-        // this.statistics?.max();
-        // this.statistics?.avg();
-        // this.statistics?.count();
-    }
-
-    paintSelectedCells(startRow: number , startCol: number, endRow: number, endCol: number) {
-        const minRow = Math.min(startRow, endRow);
-        const maxRow = Math.max(startRow, endRow);
-        const minCol = Math.min(startCol, endCol);
-        const maxCol = Math.max(startCol, endCol);
-        for (let r = minRow; r <= maxRow; r++) {
-            for (let c = minCol; c <= maxCol; c++) {
-                const cell = this.cellmanager.getCell(r, c);
-                const value = cell ? cell.value : null;
-                this.paintCell(r, c, value, this.rows, this.cols);
-            }
-        }
-        for (let r = minRow; r <= maxRow; r++) {
-            const headerValue = r;
-            this.paintCell(r, 0, headerValue, this.rows, this.cols);
-        }
-        for (let c = minCol; c <= maxCol; c++) {
-            const columnLabel = getExcelColumnLabel(c - 1);
-            this.paintCell(0, c, columnLabel, this.rows, this.cols);
-        }
-        this.statistics?.max();
-    }
-
-    paintCell(
-        row: number,
-        col: number,
-        value: string | number | null,
-        rows: Rows,
-        cols: Cols,
-    ) {
-        if (!this.ctx || !this.activeSelection) return;
-        let x = 0;
-        for (let i = 0; i < col; i++) x += cols.widths[i];
-        let y = 0;
-        for (let i = 0; i < row; i++) y += rows.heights[i];
-        const w = cols.widths[col];
-        const h = rows.heights[row];
-        let drawX: number, drawY: number;
-        if (row === 0 && col === 0) { drawX = 0; drawY = 0; }
-        else if (row === 0) { drawX = x - this.container.scrollLeft; drawY = 0; }
-        else if (col === 0) { drawX = 0; drawY = y - this.container.scrollTop; }
-        else { drawX = x - this.container.scrollLeft; drawY = y - this.container.scrollTop; }
-        const isHeader = row === 0 || col === 0;
-        this.ctx.clearRect(drawX, drawY, w, h);
-        if (isHeader) {
-            this.ctx.fillStyle = "rgba(245,245,245,1)";
-            this.ctx.fillRect(drawX, drawY, w, h);
-        } else {
-            this.ctx.fillStyle = "rgba(202,234,216,1)";
-            this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
-        }
-        this.ctx.strokeStyle = "#e0e0e0";
-        this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
-        this.ctx.strokeStyle = "rgb(19, 126, 67)";
-        this.ctx.lineWidth = 2;
-        this.ctx.lineWidth = 1;
-        this.ctx.textAlign = "center";
-        this.ctx.textBaseline = "middle";
-        this.ctx.fillStyle = "#000";
-        this.ctx.font = "12px Arial";
-        this.ctx.fillText(
-            value != null ? String(value) : "",
-            drawX + w/2,
-            drawY + h/2
-        );
-    }
-
-    //autoscroll functions
-    startAutoScroll() {
-        if(this.autoScrollInterval != null)return;
-        this.autoScrollInterval = window.setInterval(() => this.autoScrollLogic(), 60); 
-    }
-    stopAutoScroll() {
-        if (this.autoScrollInterval !== null) {
-            clearInterval(this.autoScrollInterval);
-            this.autoScrollInterval = null;
-        }
-    }
-    autoScrollLogic() {
-        if (!this.mouseMoveHandler) return;
-        if (this.lastX === 0 && this.lastY === 0) return;
-        const originalScrollLeft = this.container.scrollLeft;
-        const originalScrollTop = this.container.scrollTop;
-        const SCROLL_BUFFER_RIGHT = 50;
-        const SCROLL_BUFFER_LEFT = 250;
-        const SCROLL_BUFFER_BOTTOM = 2;
-        const SCROLL_BUFFER_TOP = 100;
-        const SCROLL_STEP = 20;
-        const viewportLeft = this.container.scrollLeft;
-        const viewportRight = viewportLeft + this.container.clientWidth;
-        const viewportTop = this.container.scrollTop;
-        const viewportBottom = viewportTop + this.container.clientHeight;
-        if (this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT) {
-            this.container.scrollLeft += SCROLL_STEP;
-        }
-        else if (this.lastX < SCROLL_BUFFER_LEFT) {
-            this.container.scrollLeft -= SCROLL_STEP;
-        }
-        if (this.lastY + this.container.scrollTop -50 > viewportBottom - SCROLL_BUFFER_BOTTOM) {
-            this.container.scrollTop += SCROLL_STEP;
-        }
-        else if (this.lastY < SCROLL_BUFFER_TOP) {
-            this.container.scrollTop -= SCROLL_STEP;
-        }
-        const didScroll = (this.container.scrollLeft !== originalScrollLeft) ||
-                          (this.container.scrollTop !== originalScrollTop);
-        if (didScroll && this.mouseMoveHandler) {
-            const syntheticEvent = new PointerEvent('pointermove', {
-                clientX: this.lastX,
-                clientY: this.lastY,
-                bubbles: true,
-                cancelable: true,
-                view: window
-            });
-            this.mouseMoveHandler(syntheticEvent);
-        }
-    }
-
-    // autoScrollLogic() {
-    //     // Don't proceed if the mouseMoveHandler has been removed
-    //     if (!this.mouseMoveHandler) {
-    //         return;
-    //     }
-    //     // Don't proceed if lastX/Y are reset (indicating pointer up)
-    //     if (this.lastX === 0 && this.lastY === 0) {
-    //         return;
-    //     }
-    //     const viewportLeft = this.container.scrollLeft;
-    //     const viewportRight = viewportLeft + this.container.clientWidth;
-    //     const viewportTop = this.container.scrollTop;
-    //     const viewportBottom = viewportTop + this.container.clientHeight;
-    //     const SCROLL_BUFFER_RIGHT = 50;
-    //     const SCROLL_BUFFER_LEFT = 250;
-    //     const SCROLL_BUFFER_BOTTOM = 35;
-    //     const SCROLL_BUFFER_TOP = 100;
-    //     const wouldScrollRight = this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT;
-    //     const wouldScrollLeft = this.lastX < SCROLL_BUFFER_LEFT;
-    //     const wouldScrollDown = this.lastY + this.container.scrollTop > viewportBottom - SCROLL_BUFFER_BOTTOM;
-    //     const wouldScrollUp = this.lastY < SCROLL_BUFFER_TOP;
-    //     const wouldScroll = wouldScrollRight || wouldScrollLeft || wouldScrollDown || wouldScrollUp;
-    //     if (wouldScroll && this.mouseMoveHandler) {
-    //         const syntheticEvent = new PointerEvent('pointermove', {
-    //             clientX: this.lastX,
-    //             clientY: this.lastY,
-    //             bubbles: true,
-    //             cancelable: true,
-    //             view: window
-    //         });
-    //         this.mouseMoveHandler(syntheticEvent);
-    //     }
-    // }
-}
-
-interface SelectionRange {
-    startRow: number;
-    startCol: number;
-    endRow: number;
-    endCol: number;
-}
-// Handles 1st cell selection + drag cell selection events separately (pointer and pointer+key events only)
-
-import { Rows } from "./rows.js";
-import { Cols } from "./cols.js";
-import { findIndexFromCoord, getExcelColumnLabel } from "./utils.js";
-import { CellManager } from "./cellmanager.js";
-import { GridDrawer } from "./griddrawer.js";
-import { EventManager } from "./eventmanager.js";
-import { Statistics } from "./statistics.js";
 
 /**
- * Manages single cell selection and drag selection (cell range) via pointer and pointer+key events only
+ * Paints all multi-selections as semi-transparent rectangles and highlights headers.
  */
-export class CellSelectionManager {
-    private dragStartRow: number | null = null;
-    private dragStartCol: number | null = null;
-    griddrawer: GridDrawer;
-    rows: Rows;
-    cols: Cols;
-    cellmanager: CellManager;
-    canvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D | null;
-    container: HTMLElement;
-    private mouseMoveHandler: ((event: PointerEvent) => void) | null = null;
-    public eventmanager : EventManager | null= null;
-    statistics : Statistics | null = null;
-
-    lastX = 0;
-    lastY = 0;
-    autoScrollInterval : null | number = null ;
-
-    activeSelection: {
-        startRow: number;
-        startCol: number; 
-        endRow: number;
-        endCol: number;
-    } | null = null;
-
-    cellInput: HTMLInputElement | null = null;
-    previousSelectedRow: number | null = null;
-    previousSelectedCol: number | null = null;
-
-    constructor(
-        griddrawer: GridDrawer, 
-        rows: Rows, 
-        cols: Cols, 
-        cellmanager: CellManager, 
-        canvas: HTMLCanvasElement,
-        statistics : Statistics | null = null
-    ) {
-        this.container = document.querySelector('.container') as HTMLElement;
-        this.griddrawer = griddrawer;
-        this.rows = rows;
-        this.cols = cols;
-        this.cellmanager = cellmanager;
-        this.canvas = canvas;
-        this.ctx = this.canvas.getContext("2d");
-        this.statistics = statistics;
-        this.cellInput = document.getElementById("cellInput") as HTMLInputElement;
-        // Only keep events for input saving, not selection via keyboard
-        this.cellInput?.addEventListener("input", (e) => {
-            if (this.activeSelection?.startRow !== null && this.activeSelection?.startCol !== null) {
-                const currentValue = this.cellInput?.value;
-                if(this.activeSelection && currentValue){
-                    this.cellmanager.setCell(
-                        this.activeSelection.startRow,
-                        this.activeSelection.startCol,
-                        currentValue
-                    );
-                }
-            }
-        });
+export function paintMultiSelections(
+    ctx: CanvasRenderingContext2D,
+    griddrawer: any,
+    rows: Rows,
+    cols: Cols,
+    cellmanager: CellManager,
+    container: HTMLElement,
+    selectionarr: SelectionRange[]
+) {
+    for (const sel of selectionarr) {
+        paintSelectionRect(ctx, rows, cols, container, sel, "rgba(202,234,216,0.4)", false);
+        paintSelectionHeaders(ctx, rows, cols, container, sel, false);
     }
+}
 
-    seteventmanager(em : EventManager){
-        this.eventmanager = em;
-    }
-
-    // attachCanvasEvents() {
-    //     this.canvas.addEventListener('pointerdown',(event) => this.handlePointerDown(event));
-    //     document.addEventListener('pointerup',(event) => this.handlePointerUp(event));
-    // }
-
-    extendSelection(newEndRow: number, newEndCol: number) {
-        if (!this.activeSelection) return;
-        this.activeSelection = {
-            startRow: this.activeSelection.startRow,
-            startCol: this.activeSelection.startCol,
-            endRow: newEndRow,
-            endCol: newEndCol
-        };
-        this.griddrawer.rendervisible(this.rows, this.cols);
-        this.paintSelectedCells(
-            Math.min(this.activeSelection.startRow, this.activeSelection.endRow),
-            Math.min(this.activeSelection.startCol, this.activeSelection.endCol),
-            Math.max(this.activeSelection.startRow, this.activeSelection.endRow),
-            Math.max(this.activeSelection.startCol, this.activeSelection.endCol)
-        );
-        this.dispatchSelectionChangeEvent();
-    }
-
-    clearPreviousSelection() {
-        if (this.previousSelectedRow !== null) {
-            this.griddrawer.drawFixedRowHeader(
-                this.previousSelectedRow, 
-                this.rows, 
-                this.cols,
-                this.container.scrollTop
-            );
-        }
-        if (this.previousSelectedCol !== null) {
-            const columnLabel = getExcelColumnLabel(this.previousSelectedCol - 1);
-            this.griddrawer.drawFixedColumnHeader(
-                this.previousSelectedCol, 
-                this.rows, 
-                this.cols, 
-                this.container.scrollLeft
-            );
-        }
-        this.previousSelectedRow = null;
-        this.previousSelectedCol = null;
-    }
-
-    paintCell(
-        row: number,
-        col: number,
-        value: string | number | null,
+/**
+ * Main entry: Paints multi-selection rectangles, headers, and active selection.
+ */
+export class Painter {
+    public static paintSelectedCells(
+        ctx: CanvasRenderingContext2D,
+        griddrawer: any,
         rows: Rows,
         cols: Cols,
+        cellmanager: CellManager,
+        container: HTMLElement,
+        selection: SelectionRange | null,
+        selectionarr: SelectionRange[]
     ) {
-        if (!this.ctx || !this.activeSelection) return;
+        if (!ctx) return;
+        griddrawer.rendervisible(rows, cols);
+
+        // Paint all multi-selections first
+        paintMultiSelections(ctx, griddrawer, rows, cols, cellmanager, container, selectionarr);
+
+        // Paint the current/active selection (topmost, outlined and slightly darker)
+        if (selection) {
+            paintSelectionRect(ctx, rows, cols, container, selection, "rgba(19,126,67,0.22)", true);
+            paintSelectionHeaders(ctx, rows, cols, container, selection, true);
+        }
+    }
+}
+
+/**
+ * Paints a single semi-transparent rectangle for the selection.
+ * Handles scroll offsets and outlines the selection.
+ */
+function paintSelectionRect(
+    ctx: CanvasRenderingContext2D,
+    rows: Rows,
+    cols: Cols,
+    container: HTMLElement,
+    selection: SelectionRange,
+    fillStyle: string = "rgba(202,234,216,0.4)",
+    outline: boolean = false
+) {
+    const minRow = Math.min(selection.startRow, selection.endRow);
+    const maxRow = Math.max(selection.startRow, selection.endRow);
+    const minCol = Math.min(selection.startCol, selection.endCol);
+    const maxCol = Math.max(selection.startCol, selection.endCol);
+
+    // Compute top-left pixel of the selection
+    let x = 0, y = 0;
+    for (let i = 0; i < minCol; i++) x += cols.widths[i];
+    for (let i = 0; i < minRow; i++) y += rows.heights[i];
+
+    // Compute width and height of the selection rectangle
+    let w = 0, h = 0;
+    for (let i = minCol; i <= maxCol; i++) w += cols.widths[i];
+    for (let i = minRow; i <= maxRow; i++) h += rows.heights[i];
+
+    // Adjust for scroll position
+    const drawX = x - container.scrollLeft;
+    const drawY = y - container.scrollTop;
+
+    ctx.save();
+    ctx.globalAlpha = 1; // Fill style already has alpha
+    ctx.fillStyle = fillStyle;
+    ctx.fillRect(drawX, drawY, w, h);
+
+    // Outline the selection (only for active selection rectangle)
+    if (outline) {
+        ctx.strokeStyle = "rgba(19,126,67,0.7)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(drawX, drawY, w, h);
+    }
+    ctx.restore();
+}
+
+/**
+ * Paints headers for the selection as rectangles only, no individual cell painting, no relabelling.
+ * - For block selection, paint corresponding header region as a transparent rectangle,
+ *   with only bottom border for column headers and only right border for row headers.
+ * - For direct header selection (selection starts at row 0 or col 0), also use rectangles only.
+ */
+function paintSelectionHeaders(
+    ctx: CanvasRenderingContext2D,
+    rows: Rows,
+    cols: Cols,
+    container: HTMLElement,
+    selection: SelectionRange,
+    isActive: boolean
+) {
+    const minRow = Math.min(selection.startRow, selection.endRow);
+    const maxRow = Math.max(selection.startRow, selection.endRow);
+    const minCol = Math.min(selection.startCol, selection.endCol);
+    const maxCol = Math.max(selection.startCol, selection.endCol);
+
+    // Column headers rectangle
+    if (minCol > 0) {
         let x = 0;
-        for (let i = 0; i < col; i++) x += cols.widths[i];
+        for (let i = 0; i < minCol; i++) x += cols.widths[i];
+        let w = 0;
+        for (let i = minCol; i <= maxCol; i++) w += cols.widths[i];
+        const y = 0, h = rows.heights[0], drawX = x - container.scrollLeft, drawY = 0;
+
+        ctx.save();
+        ctx.fillStyle = "rgba(202,234,216,0.4)";
+        ctx.fillRect(drawX, drawY, w, h);
+
+        // Only bottom border
+        ctx.strokeStyle = "#107c41";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(drawX, drawY + h);
+        ctx.lineTo(drawX + w, drawY + h);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    // Row headers rectangle
+    if (minRow > 0) {
         let y = 0;
-        for (let i = 0; i < row; i++) y += rows.heights[i];
-        const w = cols.widths[col];
-        const h = rows.heights[row];
-        let drawX: number, drawY: number;
-        if (row === 0 && col === 0) { drawX = 0; drawY = 0; }
-        else if (row === 0) { drawX = x - this.container.scrollLeft; drawY = 0; }
-        else if (col === 0) { drawX = 0; drawY = y - this.container.scrollTop; }
-        else { drawX = x - this.container.scrollLeft; drawY = y - this.container.scrollTop; }
+        for (let i = 0; i < minRow; i++) y += rows.heights[i];
+        let h = 0;
+        for (let i = minRow; i <= maxRow; i++) h += rows.heights[i];
+        const x = 0, w = cols.widths[0], drawX = 0, drawY = y - container.scrollTop;
 
-        const isHeader = row === 0 || col === 0;
-        const minRow = Math.min(this.activeSelection.startRow, this.activeSelection.endRow);
-        const maxRow = Math.max(this.activeSelection.startRow, this.activeSelection.endRow);
-        const minCol = Math.min(this.activeSelection.startCol, this.activeSelection.endCol);
-        const maxCol = Math.max(this.activeSelection.startCol, this.activeSelection.endCol);
+        ctx.save();
+        ctx.fillStyle = "rgba(202,234,216,0.4)";
+        ctx.fillRect(drawX, drawY, w, h);
 
-        // ---- DRAWING CELL BACKGROUND ----
-        this.ctx.clearRect(drawX, drawY, w, h);
-        if (isHeader) {
-            this.ctx.fillStyle = "rgba(245,245,245,1)";
-            this.ctx.fillRect(drawX, drawY, w, h);
-        } else {
-            this.ctx.fillStyle = "rgba(202,234,216,1)";
-            this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
+        // Only right border
+        ctx.strokeStyle = "#107c41";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(drawX + w, drawY);
+        ctx.lineTo(drawX + w, drawY + h);
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+
+
+
+import { Rows } from "./rows.js";
+import { Cols } from "./cols.js";
+import { getExcelColumnLabel } from "./utils.js";
+import { CellManager } from "./cellmanager.js";
+
+export interface SelectionRange {
+    startRow: number;
+    startCol: number;
+    endRow: number;
+    endCol: number;
+}
+
+/**
+ * Paints all selections in selectionarr (multi-selection).
+ * Only paints cells and headers that are in the visible region.
+ */
+export function paintMultiSelections(
+    ctx: CanvasRenderingContext2D,
+    griddrawer: any,
+    rows: Rows,
+    cols: Cols,
+    cellmanager: CellManager,
+    container: HTMLElement,
+    selectionarr: SelectionRange[]
+) {
+    const visible = calculateVisibleRegion(rows, cols, container);
+    for (const sel of selectionarr) {
+        paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible);
+    }
+}
+
+/**
+ * Main entry: Paints multi-selection and active selection.
+ * Only visible region is painted.
+ */
+export class Painter {
+    public static paintSelectedCells(
+        ctx: CanvasRenderingContext2D,
+        griddrawer: any,
+        rows: Rows,
+        cols: Cols,
+        cellmanager: CellManager,
+        container: HTMLElement,
+        selection: SelectionRange | null,
+        selectionarr: SelectionRange[]
+    ) {
+        if (!ctx) return;
+        griddrawer.rendervisible(rows, cols);
+
+        const visible = calculateVisibleRegion(rows, cols, container);
+
+        // Paint all multi-selections first
+        for (const sel of selectionarr) {
+            paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible);
         }
 
-        // ---- DRAWING CELL BORDERS ----
-        this.ctx.strokeStyle = "#e0e0e0";
-        this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
-        this.ctx.strokeStyle = "rgb(19, 126, 67)";
-        this.ctx.lineWidth = 2;
-        if (!isHeader) {
-            const isTopEdge = row === minRow;
-            const isBottomEdge = row === maxRow;
-            const isLeftEdge = col === minCol;
-            const isRightEdge = col === maxCol;
-            if (isTopEdge || isBottomEdge || isLeftEdge || isRightEdge) {
-                this.ctx.beginPath();
-                if (isTopEdge) { this.ctx.moveTo(drawX, drawY); this.ctx.lineTo(drawX + w, drawY); }
-                if (isBottomEdge) { this.ctx.moveTo(drawX, drawY + h); this.ctx.lineTo(drawX + w, drawY + h); }
-                if (isLeftEdge) { this.ctx.moveTo(drawX, drawY); this.ctx.lineTo(drawX, drawY + h); }
-                if (isRightEdge) { this.ctx.moveTo(drawX + w, drawY); this.ctx.lineTo(drawX + w, drawY + h); }
-                this.ctx.stroke();
-            }
+        // Then paint the current/active selection (topmost)
+        if (selection) {
+            paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible);
         }
-        this.ctx.lineWidth = 1;
+    }
+}
 
-        // ---- DRAWING TEXT ----
-        this.ctx.textAlign = "center";
-        this.ctx.textBaseline = "middle";
-        this.ctx.fillStyle = "#000";
-        this.ctx.font = "12px Arial";
-        this.ctx.fillText(
-            value != null ? String(value) : "",
-            drawX + w/2,
-            drawY + h/2
+// Calculate visible region (row/col indices) from container scroll and size
+function calculateVisibleRegion(
+    rows: Rows,
+    cols: Cols,
+    container: HTMLElement
+) {
+    const scrollLeft = container.scrollLeft;
+    const scrollTop = container.scrollTop;
+    const clientWidth = container.clientWidth;
+    const clientHeight = container.clientHeight;
+
+    // Find first and last visible column
+    let visibleLeft = 0, visibleRight = cols.n - 1;
+    let x = 0;
+    for (let c = 0; c < cols.n; c++) {
+        if (x + cols.widths[c] > scrollLeft) {
+            visibleLeft = c;
+            break;
+        }
+        x += cols.widths[c];
+    }
+    x = 0;
+    for (let c = 0; c < cols.n; c++) {
+        x += cols.widths[c];
+        if (x > scrollLeft + clientWidth) {
+            visibleRight = c;
+            break;
+        }
+    }
+
+    // Find first and last visible row
+    let visibleTop = 0, visibleBottom = rows.n - 1;
+    let y = 0;
+    for (let r = 0; r < rows.n; r++) {
+        if (y + rows.heights[r] > scrollTop) {
+            visibleTop = r;
+            break;
+        }
+        y += rows.heights[r];
+    }
+    y = 0;
+    for (let r = 0; r < rows.n; r++) {
+        y += rows.heights[r];
+        if (y > scrollTop + clientHeight) {
+            visibleBottom = r;
+            break;
+        }
+    }
+
+    return { visibleLeft, visibleRight, visibleTop, visibleBottom };
+}
+
+// Paint a block for a single selection, only for visible region
+function paintSelectionBlock(
+    ctx: CanvasRenderingContext2D,
+    rows: Rows,
+    cols: Cols,
+    cellmanager: CellManager,
+    container: HTMLElement,
+    selection: SelectionRange,
+    selectionarr: SelectionRange[],
+    visible: { visibleLeft: number; visibleRight: number; visibleTop: number; visibleBottom: number }
+) {
+    const minRow = Math.min(selection.startRow, selection.endRow);
+    const maxRow = Math.max(selection.startRow, selection.endRow);
+    const minCol = Math.min(selection.startCol, selection.endCol);
+    const maxCol = Math.max(selection.startCol, selection.endCol);
+
+    // Paint all normal cells that are visible
+    for (let r = Math.max(minRow, visible.visibleTop); r <= Math.min(maxRow, visible.visibleBottom); r++)
+        for (let c = Math.max(minCol, visible.visibleLeft); c <= Math.min(maxCol, visible.visibleRight); c++) {
+            const cell = cellmanager.getCell(r, c);
+            const value = cell ? cell.value : null;
+            paintCell(ctx, container, rows, cols, r, c, value, selection, selectionarr);
+        }
+
+    // Paint row headers if visible
+    for (let r = Math.max(minRow, visible.visibleTop); r <= Math.min(maxRow, visible.visibleBottom); r++)
+        if (visible.visibleLeft === 0) paintCell(ctx, container, rows, cols, r, 0, r, selection, selectionarr);
+
+    // Paint column headers if visible
+    for (let c = Math.max(minCol, visible.visibleLeft); c <= Math.min(maxCol, visible.visibleRight); c++)
+        if (visible.visibleTop === 0) {
+            const columnLabel = getExcelColumnLabel(c - 1);
+            paintCell(ctx, container, rows, cols, 0, c, columnLabel, selection, selectionarr);
+        }
+}
+
+export function paintCell(
+    ctx: CanvasRenderingContext2D,
+    container: HTMLElement,
+    rows: Rows,
+    cols: Cols,
+    row: number,
+    col: number,
+    value: string | number | null,
+    activeSelection: SelectionRange,
+    selectionarr: SelectionRange[]
+) {
+    let x = 0;
+    for (let i = 0; i < col; i++) x += cols.widths[i];
+    let y = 0;
+    for (let i = 0; i < row; i++) y += rows.heights[i];
+    const w = cols.widths[col];
+    const h = rows.heights[row];
+    let drawX: number, drawY: number;
+    if (row === 0 && col === 0) { drawX = 0; drawY = 0; }
+    else if (row === 0) { drawX = x - container.scrollLeft; drawY = 0; }
+    else if (col === 0) { drawX = 0; drawY = y - container.scrollTop; }
+    else { drawX = x - container.scrollLeft; drawY = y - container.scrollTop; }
+
+    const isHeader = row === 0 || col === 0;
+    const isMultiSelectedHeader = isHeaderSelectedByAnySelection(row, col, selectionarr);
+
+    const minRow = Math.min(activeSelection.startRow, activeSelection.endRow);
+    const maxRow = Math.max(activeSelection.startRow, activeSelection.endRow);
+    const minCol = Math.min(activeSelection.startCol, activeSelection.endCol);
+    const maxCol = Math.max(activeSelection.startCol, activeSelection.endCol);
+
+    const selectionStartedFromRowHeader = activeSelection.startCol === 0;
+    const selectionStartedFromColHeader = activeSelection.startRow === 0;
+
+    const isSelectedColumnHeader =
+        row === 0 && col > 0 && selectionStartedFromColHeader &&
+        col >= minCol && col <= maxCol;
+
+    const isSelectedRowHeader =
+        col === 0 && row > 0 && selectionStartedFromRowHeader &&
+        row >= minRow && row <= maxRow;
+
+    const isHighlightedColumnHeader =
+        row === 0 && col > 0 &&
+        col >= minCol && col <= maxCol &&
+        !selectionStartedFromColHeader;
+
+    const isHighlightedRowHeader =
+        col === 0 && row > 0 &&
+        row >= minRow && row <= maxRow &&
+        !selectionStartedFromRowHeader;
+
+    // ---- DRAWING CELL BACKGROUND ----
+    ctx.clearRect(drawX, drawY, w, h);
+
+    if (isMultiSelectedHeader) {
+        ctx.fillStyle = "#0a753a";
+        ctx.fillRect(drawX, drawY, w, h);
+    }
+    else if (isSelectedColumnHeader || isSelectedRowHeader) {
+        ctx.fillStyle = "#0a753a";
+        ctx.fillRect(drawX, drawY, w, h);
+    }
+    else if (isHighlightedColumnHeader || isHighlightedRowHeader) {
+        ctx.fillStyle = "rgba(202,234,216,1)";
+        ctx.fillRect(drawX, drawY, w, h);
+    }
+    else if (isHeader) {
+        ctx.fillStyle = "rgba(245,245,245,1)";
+        ctx.fillRect(drawX, drawY, w, h);
+    }
+    else {
+        ctx.fillStyle = "rgba(202,234,216,1)";
+        ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
+    }
+
+    // ---- DRAWING CELL BORDERS ----
+    ctx.strokeStyle = "#e0e0e0";
+    ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
+
+    ctx.strokeStyle = "rgb(19, 126, 67)";
+    ctx.lineWidth = 2;
+
+    if (!isHeader) {
+        const isTopEdge = row === minRow;
+        const isBottomEdge = row === maxRow;
+        const isLeftEdge = col === minCol;
+        const isRightEdge = col === maxCol;
+        if (isTopEdge || isBottomEdge || isLeftEdge || isRightEdge) {
+            ctx.beginPath();
+            if (isTopEdge) { ctx.moveTo(drawX, drawY); ctx.lineTo(drawX + w, drawY); }
+            if (isBottomEdge) { ctx.moveTo(drawX, drawY + h); ctx.lineTo(drawX + w, drawY + h); }
+            if (isLeftEdge) { ctx.moveTo(drawX, drawY); ctx.lineTo(drawX, drawY + h); }
+            if (isRightEdge) { ctx.moveTo(drawX + w, drawY); ctx.lineTo(drawX + w, drawY + h); }
+            ctx.stroke();
+        }
+    }
+    // Header borders
+    if (isSelectedColumnHeader || isHighlightedColumnHeader) {
+        ctx.beginPath();
+        ctx.moveTo(drawX + 0.5, drawY + h - 0.5);
+        ctx.lineTo(drawX + w - 0.5, drawY + h - 0.5);
+        ctx.stroke();
+    }
+    if (isSelectedRowHeader || isHighlightedRowHeader) {
+        ctx.beginPath();
+        ctx.moveTo(drawX + w - 0.5, drawY + 0.5);
+        ctx.lineTo(drawX + w - 0.5, drawY + h - 0.5);
+        ctx.stroke();
+    }
+    ctx.lineWidth = 1;
+
+    // ---- DRAWING TEXT ----
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = (isSelectedColumnHeader || isSelectedRowHeader) ? "#FFFFFF" : "#000";
+    ctx.font = "12px Arial";
+    ctx.fillText(
+        value != null ? String(value) : "",
+        drawX + w / 2,
+        drawY + h / 2
+    );
+}
+
+/**
+ * Helper for multi-selected header
+ */
+function isHeaderSelectedByAnySelection(row: number, col: number, selectionarr: SelectionRange[]): boolean {
+    if (row === 0 && col > 0) {
+        // Column header
+        return selectionarr.some(sel =>
+            sel.startRow === 0 &&
+            col >= Math.min(sel.startCol, sel.endCol) &&
+            col <= Math.max(sel.startCol, sel.endCol)
+        );
+    } else if (col === 0 && row > 0) {
+        // Row header
+        return selectionarr.some(sel =>
+            sel.startCol === 0 &&
+            row >= Math.min(sel.startRow, sel.endRow) &&
+            row <= Math.max(sel.startRow, sel.endRow)
         );
     }
-
-    paintSelectedCells(startRow: number , startCol: number, endRow: number, endCol: number) {
-        const minRow = Math.min(startRow, endRow);
-        const maxRow = Math.max(startRow, endRow);
-        const minCol = Math.min(startCol, endCol);
-        const maxCol = Math.max(startCol, endCol);
-
-        for (let r = minRow; r <= maxRow; r++) {
-            for (let c = minCol; c <= maxCol; c++) {
-                const cell = this.cellmanager.getCell(r, c);
-                const value = cell ? cell.value : null;
-                this.paintCell(r, c, value, this.rows, this.cols);
-            }
-        }
-        for (let r = minRow; r <= maxRow; r++) {
-            const headerValue = r;
-            this.paintCell(r, 0, headerValue, this.rows, this.cols);
-        }
-        for (let c = minCol; c <= maxCol; c++) {
-            const columnLabel = getExcelColumnLabel(c - 1);
-            this.paintCell(0, c, columnLabel, this.rows, this.cols);
-        }
-        this.statistics?.max();
-    }
-
-    reapplySelectionHighlighting() {
-        if (this.activeSelection) {
-            const startRow = Math.min(this.activeSelection.startRow, this.activeSelection.endRow);
-            const endRow = Math.max(this.activeSelection.startRow, this.activeSelection.endRow);
-            const startCol = Math.min(this.activeSelection.startCol, this.activeSelection.endCol);
-            const endCol = Math.max(this.activeSelection.startCol, this.activeSelection.endCol);
-            this.paintSelectedCells(startRow, startCol, endRow, endCol);
-            let startX = 0;
-            for (let i = 0; i < startCol; i++) { startX += this.cols.widths[i]; }
-            let startY = 0;
-            for (let i = 0; i < startRow; i++) { startY += this.rows.heights[i]; }
-            let width = 0;
-            for (let i = startCol; i <= endCol; i++) { width += this.cols.widths[i]; }
-            let height = 0;
-            for (let i = startRow; i <= endRow; i++) { height += this.rows.heights[i]; }
-            const startTopX = startX - this.container.scrollLeft;
-            const startTopY = startY - this.container.scrollTop;
-            if (this.ctx) {
-                this.ctx.strokeStyle = "rgb(19, 126, 67,1)";
-                this.ctx.lineWidth = 1;
-                this.ctx.strokeRect(startTopX, startTopY, width, height);
-            }
-        }
-    }
-
-    // --- 1st group events: cell selection + drag selection ---
-    handlePointerDown(event: PointerEvent) {
-        this.startAutoScroll();
-        // console.log('cellSelectionManager: handlePointerDown');
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        // Ignore headers and corner cell
-        if (x < this.cols.widths[0] || y < this.rows.heights[0]) return;
-        const virtualX = x + this.container.scrollLeft;
-        const virtualY = y + this.container.scrollTop;
-        const col = findIndexFromCoord(virtualX, this.cols.widths);
-        const row = findIndexFromCoord(virtualY, this.rows.heights);
-        if (row < 1 || col < 1) return;
-        this.eventmanager?.handleCanvasClick(event);
-        this.griddrawer.rendervisible(this.rows, this.cols);
-        this.activeSelection = { 
-            startRow: row, 
-            startCol: col, 
-            endRow: row, 
-            endCol: col 
-        };
-        this.paintSelectedCells(row, col, row, col);
-        this.dragStartRow = row;
-        this.dragStartCol = col;
-        this.mouseMoveHandler = (event) => this.handlePointerMove(event);
-        this.container.addEventListener('pointermove', this.mouseMoveHandler);
-        this.dispatchSelectionChangeEvent();
-    }
-
-    handlePointerMove(event: PointerEvent) {
-        // console.log('cellSelectionManager: handlePointerMove');
-        this.lastX = event.clientX;
-        this.lastY = event.clientY;
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        const virtualX = x + this.container.scrollLeft;
-        const virtualY = y + this.container.scrollTop;
-        const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
-        const currentRow = findIndexFromCoord(virtualY, this.rows.heights);
-        if (!this.ctx) return;
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.griddrawer.rendervisible(this.rows, this.cols);
-        if (this.dragStartRow !== null && this.dragStartCol !== null) {
-            this.activeSelection = {
-                startRow: this.dragStartRow,
-                startCol: this.dragStartCol,
-                endRow: currentRow,
-                endCol: currentCol
-            };
-            this.dispatchSelectionChangeEvent();
-            this.extendSelection(currentRow, currentCol);
-        }
-    }
-
-    handlePointerUp(event: PointerEvent) {
-        this.stopAutoScroll();
-        if (this.mouseMoveHandler) {
-            this.container.removeEventListener('pointermove', this.mouseMoveHandler);
-            this.mouseMoveHandler = null;
-        }
-        this.lastX = 0;
-        this.lastY = 0;
-        this.dispatchSelectionChangeEvent();
-        // this.statistics?.printvalues();
-        // this.statistics?.sum();
-        // this.statistics?.min();
-        // this.statistics?.max();
-        // this.statistics?.avg();
-        // this.statistics?.count();
-    }
-
-    dispatchSelectionChangeEvent() {
-        if (!this.activeSelection) return;
-        const event = new CustomEvent('selection-changed', {
-            detail: {
-                selection: this.activeSelection
-            }
-        });
-        this.canvas.dispatchEvent(event);
-    }
-
-    // --- commented code duplicated ---
-    // attachCanvasEvents() {
-    //     this.canvas.addEventListener('pointerdown',(event) => this.handlePointerDown(event));
-    //     document.addEventListener('pointerup',(event) => this.handlePointerUp(event));
-    // }
-
-    //autoscroll functions
-    startAutoScroll() {
-        if(this.autoScrollInterval != null)return;
-        this.autoScrollInterval = window.setInterval(() => this.autoScrollLogic(), 60); 
-    }
-    stopAutoScroll() {
-        if (this.autoScrollInterval !== null) {
-            clearInterval(this.autoScrollInterval);
-            this.autoScrollInterval = null;
-        }
-    }
-    autoScrollLogic() {
-        if (!this.mouseMoveHandler) return;
-        if (this.lastX === 0 && this.lastY === 0) return;
-        const originalScrollLeft = this.container.scrollLeft;
-        const originalScrollTop = this.container.scrollTop;
-        const SCROLL_BUFFER_RIGHT = 50;
-        const SCROLL_BUFFER_LEFT = 250;
-        const SCROLL_BUFFER_BOTTOM = 2;
-        const SCROLL_BUFFER_TOP = 100;
-        const SCROLL_STEP = 20;
-        const viewportLeft = this.container.scrollLeft;
-        const viewportRight = viewportLeft + this.container.clientWidth;
-        const viewportTop = this.container.scrollTop;
-        const viewportBottom = viewportTop + this.container.clientHeight;
-        if (this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT) {
-            this.container.scrollLeft += SCROLL_STEP;
-        }
-        else if (this.lastX < SCROLL_BUFFER_LEFT) {
-            this.container.scrollLeft -= SCROLL_STEP;
-        }
-        if (this.lastY + this.container.scrollTop -50 > viewportBottom - SCROLL_BUFFER_BOTTOM) {
-            this.container.scrollTop += SCROLL_STEP;
-        }
-        else if (this.lastY < SCROLL_BUFFER_TOP) {
-            this.container.scrollTop -= SCROLL_STEP;
-        }
-        const didScroll = (this.container.scrollLeft !== originalScrollLeft) ||
-                          (this.container.scrollTop !== originalScrollTop);
-        if (didScroll && this.mouseMoveHandler) {
-            const syntheticEvent = new PointerEvent('pointermove', {
-                clientX: this.lastX,
-                clientY: this.lastY,
-                bubbles: true,
-                cancelable: true,
-                view: window
-            });
-            this.mouseMoveHandler(syntheticEvent);
-        }
-    }
-
-    // autoScrollLogic() {
-    //     // Don't proceed if the mouseMoveHandler has been removed
-    //     if (!this.mouseMoveHandler) {
-    //         return;
-    //     }
-    //     // Don't proceed if lastX/Y are reset (indicating pointer up)
-    //     if (this.lastX === 0 && this.lastY === 0) {
-    //         return;
-    //     }
-    //     const viewportLeft = this.container.scrollLeft;
-    //     const viewportRight = viewportLeft + this.container.clientWidth;
-    //     const viewportTop = this.container.scrollTop;
-    //     const viewportBottom = viewportTop + this.container.clientHeight;
-    //     const SCROLL_BUFFER_RIGHT = 50;
-    //     const SCROLL_BUFFER_LEFT = 250;
-    //     const SCROLL_BUFFER_BOTTOM = 35;
-    //     const SCROLL_BUFFER_TOP = 100;
-    //     const wouldScrollRight = this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT;
-    //     const wouldScrollLeft = this.lastX < SCROLL_BUFFER_LEFT;
-    //     const wouldScrollDown = this.lastY + this.container.scrollTop > viewportBottom - SCROLL_BUFFER_BOTTOM;
-    //     const wouldScrollUp = this.lastY < SCROLL_BUFFER_TOP;
-    //     const wouldScroll = wouldScrollRight || wouldScrollLeft || wouldScrollDown || wouldScrollUp;
-    //     if (wouldScroll && this.mouseMoveHandler) {
-    //         const syntheticEvent = new PointerEvent('pointermove', {
-    //             clientX: this.lastX,
-    //             clientY: this.lastY,
-    //             bubbles: true,
-    //             cancelable: true,
-    //             view: window
-    //         });
-    //         this.mouseMoveHandler(syntheticEvent);
-    //     }
-    // }
+    return false;
 }

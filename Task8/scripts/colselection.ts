@@ -118,6 +118,7 @@ export class ColumnSelectionManager {
     }
 
     handlePointerMove(event: PointerEvent) {
+        requestAnimationFrame(() => {
         this.lastX = event.clientX;
         this.lastY = event.clientY;
         const rect = this.canvas.getBoundingClientRect();
@@ -129,6 +130,7 @@ export class ColumnSelectionManager {
             this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
             Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
         }
+        });
     }
 
     handlePointerUp(event: PointerEvent) {

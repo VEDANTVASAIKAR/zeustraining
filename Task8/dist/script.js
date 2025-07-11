@@ -48,7 +48,7 @@ function resizeCanvasesWithDPI() {
 // Use this single function for both initial setup and resize events
 window.addEventListener('resize', resizeCanvasesWithDPI);
 resizeCanvasesWithDPI(); // Call immediately to set initial size
-const rows = new Rows(10000);
+const rows = new Rows(100000);
 const cols = new Cols(500);
 const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols, cellManager);
@@ -99,7 +99,7 @@ function loadData(data) {
     // Redraw the grid to show the new data
     grid.rendervisible(rows, cols);
 }
-let data = new GridDataGen(90);
+let data = new GridDataGen(100000);
 let values = data.generateData();
 // console.log(values);
 // Load the generated data into the grid

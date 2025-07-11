@@ -1,53 +1,137 @@
 import { getExcelColumnLabel } from "./utils.js";
 /**
  * Paints all selections in selectionarr (multi-selection).
- * This can be called independently for preview or always as part of paintSelectedCells.
+ * Only paints cells and headers that are in the visible region.
+ * Also paints rectangle overlays for selection blocks.
  */
 export function paintMultiSelections(ctx, griddrawer, rows, cols, cellmanager, container, selectionarr) {
+    const visible = calculateVisibleRegion(rows, cols, container);
     for (const sel of selectionarr) {
-        paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr);
+        paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible);
+        // Paint rectangle overlay for this block (transparent, on top of cells)
+        paintSelectionRectangle(ctx, rows, cols, container, sel, visible, false);
     }
 }
 /**
  * Main entry: Paints multi-selection and active selection.
- * This should be called on every selection change event, with both selection and selectionarr.
+ * Only visible region is painted. Also paints rectangle overlays.
  */
 export class Painter {
     static paintSelectedCells(ctx, griddrawer, rows, cols, cellmanager, container, selection, selectionarr) {
-        console.log(selection);
-        console.log(selectionarr);
         if (!ctx)
             return;
         griddrawer.rendervisible(rows, cols);
+        const visible = calculateVisibleRegion(rows, cols, container);
         // Paint all multi-selections first
-        paintMultiSelections(ctx, griddrawer, rows, cols, cellmanager, container, selectionarr);
+        for (const sel of selectionarr) {
+            paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible);
+            paintSelectionRectangle(ctx, rows, cols, container, sel, visible, false);
+        }
         // Then paint the current/active selection (topmost)
         if (selection) {
-            paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr);
+            paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible);
+            paintSelectionRectangle(ctx, rows, cols, container, selection, visible, true);
         }
     }
 }
-// Paint a block for a single selection
-function paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr) {
+// Calculate visible region (row/col indices) from container scroll and size
+function calculateVisibleRegion(rows, cols, container) {
+    const scrollLeft = container.scrollLeft;
+    const scrollTop = container.scrollTop;
+    const clientWidth = container.clientWidth;
+    const clientHeight = container.clientHeight;
+    // Find first and last visible column
+    let visibleLeft = 0, visibleRight = cols.n - 1;
+    let x = 0;
+    for (let c = 0; c < cols.n; c++) {
+        if (x + cols.widths[c] > scrollLeft) {
+            visibleLeft = c;
+            break;
+        }
+        x += cols.widths[c];
+    }
+    x = 0;
+    for (let c = 0; c < cols.n; c++) {
+        x += cols.widths[c];
+        if (x > scrollLeft + clientWidth) {
+            visibleRight = c;
+            break;
+        }
+    }
+    // Find first and last visible row
+    let visibleTop = 0, visibleBottom = rows.n - 1;
+    let y = 0;
+    for (let r = 0; r < rows.n; r++) {
+        if (y + rows.heights[r] > scrollTop) {
+            visibleTop = r;
+            break;
+        }
+        y += rows.heights[r];
+    }
+    y = 0;
+    for (let r = 0; r < rows.n; r++) {
+        y += rows.heights[r];
+        if (y > scrollTop + clientHeight) {
+            visibleBottom = r;
+            break;
+        }
+    }
+    return { visibleLeft, visibleRight, visibleTop, visibleBottom };
+}
+// Paint a block for a single selection, only for visible region
+function paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible) {
     const minRow = Math.min(selection.startRow, selection.endRow);
     const maxRow = Math.max(selection.startRow, selection.endRow);
     const minCol = Math.min(selection.startCol, selection.endCol);
     const maxCol = Math.max(selection.startCol, selection.endCol);
-    // Paint all normal cells
-    for (let r = minRow; r <= maxRow; r++)
-        for (let c = minCol; c <= maxCol; c++) {
+    // Paint all normal cells that are visible
+    for (let r = Math.max(minRow, visible.visibleTop); r <= Math.min(maxRow, visible.visibleBottom); r++)
+        for (let c = Math.max(minCol, visible.visibleLeft); c <= Math.min(maxCol, visible.visibleRight); c++) {
             const cell = cellmanager.getCell(r, c);
             const value = cell ? cell.value : null;
             paintCell(ctx, container, rows, cols, r, c, value, selection, selectionarr);
         }
-    // Paint row headers
-    for (let r = minRow; r <= maxRow; r++)
-        paintCell(ctx, container, rows, cols, r, 0, r, selection, selectionarr);
-    // Paint column headers
-    for (let c = minCol; c <= maxCol; c++) {
-        const columnLabel = getExcelColumnLabel(c - 1);
-        paintCell(ctx, container, rows, cols, 0, c, columnLabel, selection, selectionarr);
-    }
+    // Paint row headers if visible
+    for (let r = Math.max(minRow, visible.visibleTop); r <= Math.min(maxRow, visible.visibleBottom); r++)
+        if (visible.visibleLeft === 0)
+            paintCell(ctx, container, rows, cols, r, 0, r, selection, selectionarr);
+    // Paint column headers if visible
+    for (let c = Math.max(minCol, visible.visibleLeft); c <= Math.min(maxCol, visible.visibleRight); c++)
+        if (visible.visibleTop === 0) {
+            const columnLabel = getExcelColumnLabel(c - 1);
+            paintCell(ctx, container, rows, cols, 0, c, columnLabel, selection, selectionarr);
+        }
+}
+// Paints a rectangle overlay for a selection block, only in visible region
+function paintSelectionRectangle(ctx, rows, cols, container, selection, visible, isActive // true for main selection, false for multi-selection
+) {
+    const minRow = Math.max(Math.min(selection.startRow, selection.endRow), visible.visibleTop);
+    const maxRow = Math.min(Math.max(selection.startRow, selection.endRow), visible.visibleBottom);
+    const minCol = Math.max(Math.min(selection.startCol, selection.endCol), visible.visibleLeft);
+    const maxCol = Math.min(Math.max(selection.startCol, selection.endCol), visible.visibleRight);
+    // Compute top-left pixel of the rectangle
+    let x = 0, y = 0;
+    for (let i = 0; i < minCol; i++)
+        x += cols.widths[i];
+    for (let i = 0; i < minRow; i++)
+        y += rows.heights[i];
+    // Compute width and height of the selection rectangle
+    let w = 0, h = 0;
+    for (let i = minCol; i <= maxCol; i++)
+        w += cols.widths[i];
+    for (let i = minRow; i <= maxRow; i++)
+        h += rows.heights[i];
+    // Adjust for scroll position
+    const drawX = x - container.scrollLeft;
+    const drawY = y - container.scrollTop;
+    ctx.save();
+    ctx.globalAlpha = isActive ? 1 : 1;
+    ctx.strokeStyle = "rgb(19,126,67)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.rect(drawX, drawY, w, h);
+    ctx.stroke();
+    ctx.restore();
 }
 export function paintCell(ctx, container, rows, cols, row, col, value, activeSelection, selectionarr) {
     let x = 0;

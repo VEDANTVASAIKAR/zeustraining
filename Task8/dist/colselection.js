@@ -83,17 +83,19 @@ export class ColumnSelectionManager {
         }
     }
     handlePointerMove(event) {
-        this.lastX = event.clientX;
-        this.lastY = event.clientY;
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const virtualX = x + this.container.scrollLeft;
-        const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
-        if (this.selection && this.dragStartCol !== null) {
-            this.selection.endCol = currentCol;
-            this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
-            Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
-        }
+        requestAnimationFrame(() => {
+            this.lastX = event.clientX;
+            this.lastY = event.clientY;
+            const rect = this.canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const virtualX = x + this.container.scrollLeft;
+            const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
+            if (this.selection && this.dragStartCol !== null) {
+                this.selection.endCol = currentCol;
+                this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
+                Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+            }
+        });
     }
     handlePointerUp(event) {
         this.stopAutoScroll();
