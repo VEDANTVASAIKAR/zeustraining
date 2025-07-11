@@ -1,7 +1,7 @@
 export class ResizeRows {
     constructor(
     /** Reference to the Cols object managing column widths */
-    cols, rows, griddrawer, eventManager, selectionManager) {
+    cols, rows, griddrawer, eventManager, selectionManager, scrollRefresh = null) {
         this.cols = cols;
         this.rows = rows;
         this.griddrawer = griddrawer;
@@ -15,6 +15,7 @@ export class ResizeRows {
         this.resizingColLeft = null;
         /** Position of the preview line when resizing */
         this.previewLineY = null;
+        this.scrollRefresh = null;
         this.selection = null;
         // Get the main canvas element
         this.canvas = document.getElementById("canvas");
@@ -30,6 +31,7 @@ export class ResizeRows {
         this.container = document.querySelector('.container');
         this.eventManager = eventManager;
         this.selectionManager = selectionManager;
+        this.scrollRefresh = scrollRefresh;
         // Listen for selection changes
         this.canvas.addEventListener('selection-changed', (event) => {
             this.selection = event.detail.selection;
@@ -68,6 +70,7 @@ export class ResizeRows {
         }
     }
     handlePointerMove(event) {
+        console.log("Pointer move on row resize");
         if (this.resizingRow !== null) {
             const dy = event.clientY - this.startY;
             const newHeight = Math.max(10, this.startHeight + dy);

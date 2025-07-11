@@ -2,9 +2,12 @@ import { selectionManager } from "./selectionmanager";
 import { EventManager } from "./eventmanager";
 import { ResizeRows } from "./resizerows";
 import { ResizeCols } from "./resizecols";
+import { RowSelectionManager } from "./rowselection";   
+import { ColumnSelectionManager } from "./colselection";
+import { CellSelectionManager } from "./cellselection";    
 
 // Type for handlers that support hittest/pointer events
-type PointerHandler = selectionManager | ResizeRows | ResizeCols;
+type PointerHandler =  ResizeRows | ResizeCols | RowSelectionManager | ColumnSelectionManager | CellSelectionManager;
 
 export class PointerHandlers {
     eventarray: PointerHandler[] = [];
@@ -13,17 +16,20 @@ export class PointerHandlers {
     constructor(
         private container: HTMLElement,
         private eventmanager: EventManager, 
-        private selectionmanager: selectionManager,
         private resizerows: ResizeRows,
-        private resizecols: ResizeCols
+        private resizecols: ResizeCols,
+        private rowselection: RowSelectionManager,
+        private colselection: ColumnSelectionManager,  
+        private cellselection: CellSelectionManager    
     ) {
         // Order matters if you want priority on hit test
-        this.eventarray = [this.resizerows, this.resizecols, this.selectionmanager];
+        this.eventarray = [this.resizerows, this.resizecols, this.rowselection, this.colselection, this.cellselection];
         this.attachPointerEvents();
     }
 
     // Always show resize handles on any pointermove
     private handlePointerMove = (event: PointerEvent) => {
+
         this.eventmanager.showresizehandles(event);
 
         // If a handler is active (drag or resize), delegate pointermove to it
@@ -51,7 +57,7 @@ export class PointerHandlers {
 
     private attachPointerEvents() {
         // Attach pointermove permanently so resize handles always update
-        window.addEventListener('pointerdown', this.handlePointerDown);
+        this.container.addEventListener('pointerdown', this.handlePointerDown);
         window.addEventListener('pointermove', this.handlePointerMove);
         window.addEventListener('pointerup', this.handlePointerUp);
     }

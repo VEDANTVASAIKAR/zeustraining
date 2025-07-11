@@ -11,6 +11,13 @@ import { GridDataGen } from "./generatedata.js";
 import { PointerHandlers } from "./pointerhandlers.js";
 import { ResizeRows } from "./resizerows.js";
 import { ResizeCols } from "./resizecols.js"; 
+import { RowSelectionManager } from "./rowselection.js";
+import { ColumnSelectionManager } from "./colselection.js"; 
+import { CellSelectionManager } from "./cellselection.js";
+import { KeyboardCellSelection } from "./keyboardselection.js";
+import { Painter } from "./paint.js";
+import { ScrollRefresh } from "./scrollrefresh.js";
+import { SelectionInputManager } from "./positioninput.js"; 
 
 
 let selectedRow: number | null = null;
@@ -54,8 +61,8 @@ function resizeCanvasesWithDPI() {
 window.addEventListener('resize', resizeCanvasesWithDPI);
 resizeCanvasesWithDPI(); // Call immediately to set initial size
 
-const rows = new Rows(100);
-const cols = new Cols(50); 
+const rows = new Rows(10000);
+const cols = new Cols(500); 
 
 const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols,cellManager);
@@ -78,9 +85,17 @@ const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellM
 
 SelectionManager.seteventmanager(eventManager);
 grid.setSelectionManager(SelectionManager);
-const resizerows = new ResizeRows(cols, rows, grid, eventManager, SelectionManager);
-const resizecols = new ResizeCols(cols, rows, grid, eventManager, SelectionManager);
-const pointerHandlers = new PointerHandlers(container, eventManager, SelectionManager,resizerows,resizecols);
+const scrollRefresh = new ScrollRefresh(container,canvas,grid, rows, cols, cellManager);
+const resizerows = new ResizeRows(cols, rows, grid, eventManager, SelectionManager,scrollRefresh);
+const resizecols = new ResizeCols(cols, rows, grid, eventManager, SelectionManager,scrollRefresh);
+const rowSelectionManager = new RowSelectionManager(grid, rows, cols, cellManager, canvas, statistics,scrollRefresh);
+const colSelectionManager = new ColumnSelectionManager(grid, rows, cols, cellManager, canvas, statistics,scrollRefresh);
+const cellSelectionManager = new CellSelectionManager(grid, rows, cols, cellManager, canvas,statistics,scrollRefresh)
+const pointerHandlers = new PointerHandlers(container,eventManager,resizerows,resizecols,rowSelectionManager,colSelectionManager,cellSelectionManager);
+const keyboardSelection = new KeyboardCellSelection(grid, rows, cols, cellManager, canvas, statistics,scrollRefresh);
+const selectionInputManager = new SelectionInputManager(container,cellInput,grid,rows,cols,cellManager);
+
+
 
 /**
  * Loads data into the grid.
@@ -119,4 +134,6 @@ let values = data.generateData();
 // console.log(values);
 // Load the generated data into the grid
 loadData(values);
+
+
 

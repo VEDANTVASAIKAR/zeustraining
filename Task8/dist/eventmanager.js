@@ -65,13 +65,13 @@ export class EventManager {
             }
             // Only schedule a new rendering if we're not already in the middle of one
             if (!ticking) {
-                window.requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
                     // console.log("Rendering grid after scroll");
-                    this.grid.rendervisible(this.rows, this.cols);
+                    // this.grid.rendervisible(this.rows, this.cols);
                     // After rendering is complete, reapply any current selection highlighting
-                    if (this.selectionManager) {
-                        this.selectionManager.reapplySelectionHighlighting();
-                    }
+                    // if (this.selectionManager) {
+                    //     this.selectionManager.reapplySelectionHighlighting();
+                    // }
                     ticking = false;
                 });
                 ticking = true;

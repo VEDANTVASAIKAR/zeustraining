@@ -3,6 +3,7 @@ import { Rows } from "./rows.js";
 import { GridDrawer } from "./griddrawer.js";
 import { EventManager } from "./eventmanager.js";
 import { selectionManager } from "./selectionmanager.js";
+import { ScrollRefresh } from "./scrollrefresh.js";
 
 export class ResizeCols {
     /** Main canvas element */
@@ -21,6 +22,7 @@ export class ResizeCols {
     private previewLineX: number | null = null;
     container : HTMLElement;
     selection: { startRow: number; startCol: number; endRow: number; endCol: number; } | null = null;
+    scrollRefresh: ScrollRefresh | null = null;
 
     constructor(
         /** Reference to the Cols object managing column widths */
@@ -29,6 +31,7 @@ export class ResizeCols {
         private griddrawer: GridDrawer,
         private eventManager: EventManager, 
         private selectionManager: selectionManager, 
+        scrollRefresh: ScrollRefresh | null = null
         
     ){
 
@@ -54,11 +57,15 @@ export class ResizeCols {
 
       this.selectionManager = selectionManager;
 
+      this.scrollRefresh = scrollRefresh;
+
       // Listen for selection changes
       this.canvas.addEventListener('selection-changed', (event: any) => {
           this.selection = event.detail.selection;
           // console.log(this.selection);
       });
+
+
     }
 
     /**
@@ -81,6 +88,8 @@ export class ResizeCols {
     }
 
     handlePointerDown(event: PointerEvent) {
+        console.log("Pointer down on column resize");
+        
       if (this.hoveredColBorder !== null) {
             this.resizingCol = this.hoveredColBorder;
             this.startX = event.clientX; 

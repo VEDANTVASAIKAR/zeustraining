@@ -1,10 +1,12 @@
 export class PointerHandlers {
-    constructor(container, eventmanager, selectionmanager, resizerows, resizecols) {
+    constructor(container, eventmanager, resizerows, resizecols, rowselection, colselection, cellselection) {
         this.container = container;
         this.eventmanager = eventmanager;
-        this.selectionmanager = selectionmanager;
         this.resizerows = resizerows;
         this.resizecols = resizecols;
+        this.rowselection = rowselection;
+        this.colselection = colselection;
+        this.cellselection = cellselection;
         this.eventarray = [];
         this.eventfunction = null;
         // Always show resize handles on any pointermove
@@ -30,12 +32,12 @@ export class PointerHandlers {
             this.eventfunction = null;
         };
         // Order matters if you want priority on hit test
-        this.eventarray = [this.resizerows, this.resizecols, this.selectionmanager];
+        this.eventarray = [this.resizerows, this.resizecols, this.rowselection, this.colselection, this.cellselection];
         this.attachPointerEvents();
     }
     attachPointerEvents() {
         // Attach pointermove permanently so resize handles always update
-        window.addEventListener('pointerdown', this.handlePointerDown);
+        this.container.addEventListener('pointerdown', this.handlePointerDown);
         window.addEventListener('pointermove', this.handlePointerMove);
         window.addEventListener('pointerup', this.handlePointerUp);
     }

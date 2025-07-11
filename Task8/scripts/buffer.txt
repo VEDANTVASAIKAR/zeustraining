@@ -1,0 +1,1048 @@
+// Handles 2nd column selection for click, ctrl+click, and drag selection events separately
+
+import { Rows } from "./rows.js";
+import { Cols } from "./cols.js";
+import { findIndexFromCoord, getExcelColumnLabel } from "./utils.js";
+import { CellManager } from "./cellmanager.js";
+import { GridDrawer } from "./griddrawer.js";
+import { EventManager } from "./eventmanager.js";
+import { Statistics } from "./statistics.js";
+
+export class ColumnSelectionManager {
+    griddrawer: GridDrawer;
+    rows: Rows;
+    cols: Cols;
+    cellmanager: CellManager;
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D | null;
+    container: HTMLElement;
+    statistics : Statistics | null = null;
+    eventmanager : EventManager | null= null;
+
+    selectionarr : SelectionRange[] = [];
+    activeSelection: SelectionRange | null = null;
+    mouseMoveHandler: ((event: PointerEvent) => void) | null = null;
+    autoScrollInterval : null | number = null ;
+    lastX = 0;
+    lastY = 0;
+
+    constructor(
+        griddrawer: GridDrawer, 
+        rows: Rows, 
+        cols: Cols, 
+        cellmanager: CellManager, 
+        canvas: HTMLCanvasElement,
+        statistics : Statistics | null = null
+    ) {
+        this.container = document.querySelector('.container') as HTMLElement;
+        this.griddrawer = griddrawer;
+        this.rows = rows;
+        this.cols = cols;
+        this.cellmanager = cellmanager;
+        this.canvas = canvas;
+        this.ctx = this.canvas.getContext("2d");
+        this.statistics = statistics;
+    }
+
+    seteventmanager(em : EventManager){
+        this.eventmanager = em;
+    }
+
+    // attachCanvasEvents() {
+    //     this.canvas.addEventListener('pointerdown',(event) => this.handlePointerDown(event));
+    //     document.addEventListener('pointerup',(event) => this.handlePointerUp(event));
+    // }
+
+    handlePointerDown(event: PointerEvent) {
+        this.startAutoScroll();
+        // Column header selection only
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        if (y < this.rows.heights[0] && x > this.cols.widths[0]) {
+            const virtualX = x + this.container.scrollLeft;
+            const col = findIndexFromCoord(virtualX, this.cols.widths);
+
+            if(event.ctrlKey){
+                const colSelection: SelectionRange = {
+                    startRow: 0,
+                    startCol: col,
+                    endRow: this.rows.n - 1,
+                    endCol: col
+                };
+                this.selectionarr.push(colSelection);
+            } else {
+                this.selectionarr = [];
+            }
+            this.eventmanager?.setActiveCell(1, col);
+
+            this.activeSelection = {
+                startRow: 0,
+                startCol: col,
+                endRow: this.rows.n - 1,
+                endCol: col
+            };
+
+            this.mouseMoveHandler = (moveEvent) => {
+                const moveRect = this.canvas.getBoundingClientRect();
+                const moveX = moveEvent.clientX - moveRect.left + this.container.scrollLeft;
+                const currentCol = findIndexFromCoord(moveX, this.cols.widths);
+                if (currentCol > 0) {
+                    this.selectMultipleColumns(col, currentCol);
+                }
+            };
+
+            this.container.addEventListener('pointermove', this.mouseMoveHandler);
+            this.selectMultipleColumns(col, col);
+        }
+    }
+
+    handlePointerMove(event: PointerEvent) {
+        // Only for drag selection on column header
+        this.lastX = event.clientX;
+        this.lastY = event.clientY;
+        // No-op: logic handled in mouseMoveHandler set in pointerdown
+    }
+
+    handlePointerUp(event: PointerEvent) {
+        this.stopAutoScroll();
+        if (this.mouseMoveHandler) {
+            this.container.removeEventListener('pointermove', this.mouseMoveHandler);
+            this.mouseMoveHandler = null;
+        }
+        this.lastX = 0;
+        this.lastY = 0;
+        // this.statistics?.printvalues();
+        // this.statistics?.sum();
+        // this.statistics?.min();
+        // this.statistics?.max();
+        // this.statistics?.avg();
+        // this.statistics?.count();
+    }
+
+    selectMultipleColumns(startCol: number, endCol: number) {
+        startCol = Math.max(1, startCol);
+        endCol = Math.max(1, endCol);
+        const firstCol = Math.min(startCol, endCol);
+        const lastCol = Math.max(startCol, endCol);
+        this.griddrawer.rendervisible(this.rows, this.cols);
+        if(this.selectionarr.length > 0) {
+            for (let selection of this.selectionarr) {
+                this.paintSelectedCells(
+                    selection.startRow,
+                    selection.startCol,
+                    selection.endRow,
+                    selection.endCol
+                );
+            }
+        }
+        if (this.activeSelection) {
+            this.activeSelection = {
+                startRow: 0,
+                startCol: firstCol,
+                endRow: this.rows.n - 1,
+                endCol: lastCol
+            };
+        }
+        this.paintSelectedCells(
+            0,
+            firstCol,
+            this.rows.n - 1,
+            lastCol
+        );
+        // this.statistics?.sum();
+        // this.statistics?.min();
+        // this.statistics?.max();
+        // this.statistics?.avg();
+        // this.statistics?.count();
+    }
+
+    paintSelectedCells(startRow: number , startCol: number, endRow: number, endCol: number) {
+        const minRow = Math.min(startRow, endRow);
+        const maxRow = Math.max(startRow, endRow);
+        const minCol = Math.min(startCol, endCol);
+        const maxCol = Math.max(startCol, endCol);
+        for (let r = minRow; r <= maxRow; r++) {
+            for (let c = minCol; c <= maxCol; c++) {
+                const cell = this.cellmanager.getCell(r, c);
+                const value = cell ? cell.value : null;
+                this.paintCell(r, c, value, this.rows, this.cols);
+            }
+        }
+        for (let r = minRow; r <= maxRow; r++) {
+            const headerValue = r;
+            this.paintCell(r, 0, headerValue, this.rows, this.cols);
+        }
+        for (let c = minCol; c <= maxCol; c++) {
+            const columnLabel = getExcelColumnLabel(c - 1);
+            this.paintCell(0, c, columnLabel, this.rows, this.cols);
+        }
+        this.statistics?.max();
+    }
+
+    paintCell(
+        row: number,
+        col: number,
+        value: string | number | null,
+        rows: Rows,
+        cols: Cols,
+    ) {
+        if (!this.ctx || !this.activeSelection) return;
+        let x = 0;
+        for (let i = 0; i < col; i++) x += cols.widths[i];
+        let y = 0;
+        for (let i = 0; i < row; i++) y += rows.heights[i];
+        const w = cols.widths[col];
+        const h = rows.heights[row];
+        let drawX: number, drawY: number;
+        if (row === 0 && col === 0) { drawX = 0; drawY = 0; }
+        else if (row === 0) { drawX = x - this.container.scrollLeft; drawY = 0; }
+        else if (col === 0) { drawX = 0; drawY = y - this.container.scrollTop; }
+        else { drawX = x - this.container.scrollLeft; drawY = y - this.container.scrollTop; }
+        const isHeader = row === 0 || col === 0;
+        this.ctx.clearRect(drawX, drawY, w, h);
+        if (isHeader) {
+            this.ctx.fillStyle = "rgba(245,245,245,1)";
+            this.ctx.fillRect(drawX, drawY, w, h);
+        } else {
+            this.ctx.fillStyle = "rgba(202,234,216,1)";
+            this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
+        }
+        this.ctx.strokeStyle = "#e0e0e0";
+        this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
+        this.ctx.strokeStyle = "rgb(19, 126, 67)";
+        this.ctx.lineWidth = 2;
+        this.ctx.lineWidth = 1;
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        this.ctx.fillStyle = "#000";
+        this.ctx.font = "12px Arial";
+        this.ctx.fillText(
+            value != null ? String(value) : "",
+            drawX + w/2,
+            drawY + h/2
+        );
+    }
+
+    //autoscroll functions
+    startAutoScroll() {
+        if(this.autoScrollInterval != null)return;
+        this.autoScrollInterval = window.setInterval(() => this.autoScrollLogic(), 60); 
+    }
+    stopAutoScroll() {
+        if (this.autoScrollInterval !== null) {
+            clearInterval(this.autoScrollInterval);
+            this.autoScrollInterval = null;
+        }
+    }
+    autoScrollLogic() {
+        if (!this.mouseMoveHandler) return;
+        if (this.lastX === 0 && this.lastY === 0) return;
+        const originalScrollLeft = this.container.scrollLeft;
+        const originalScrollTop = this.container.scrollTop;
+        const SCROLL_BUFFER_RIGHT = 50;
+        const SCROLL_BUFFER_LEFT = 250;
+        const SCROLL_BUFFER_BOTTOM = 2;
+        const SCROLL_BUFFER_TOP = 100;
+        const SCROLL_STEP = 20;
+        const viewportLeft = this.container.scrollLeft;
+        const viewportRight = viewportLeft + this.container.clientWidth;
+        const viewportTop = this.container.scrollTop;
+        const viewportBottom = viewportTop + this.container.clientHeight;
+        if (this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT) {
+            this.container.scrollLeft += SCROLL_STEP;
+        }
+        else if (this.lastX < SCROLL_BUFFER_LEFT) {
+            this.container.scrollLeft -= SCROLL_STEP;
+        }
+        if (this.lastY + this.container.scrollTop -50 > viewportBottom - SCROLL_BUFFER_BOTTOM) {
+            this.container.scrollTop += SCROLL_STEP;
+        }
+        else if (this.lastY < SCROLL_BUFFER_TOP) {
+            this.container.scrollTop -= SCROLL_STEP;
+        }
+        const didScroll = (this.container.scrollLeft !== originalScrollLeft) ||
+                          (this.container.scrollTop !== originalScrollTop);
+        if (didScroll && this.mouseMoveHandler) {
+            const syntheticEvent = new PointerEvent('pointermove', {
+                clientX: this.lastX,
+                clientY: this.lastY,
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            this.mouseMoveHandler(syntheticEvent);
+        }
+    }
+
+    // autoScrollLogic() {
+    //     // Don't proceed if the mouseMoveHandler has been removed
+    //     if (!this.mouseMoveHandler) {
+    //         return;
+    //     }
+    //     // Don't proceed if lastX/Y are reset (indicating pointer up)
+    //     if (this.lastX === 0 && this.lastY === 0) {
+    //         return;
+    //     }
+    //     const viewportLeft = this.container.scrollLeft;
+    //     const viewportRight = viewportLeft + this.container.clientWidth;
+    //     const viewportTop = this.container.scrollTop;
+    //     const viewportBottom = viewportTop + this.container.clientHeight;
+    //     const SCROLL_BUFFER_RIGHT = 50;
+    //     const SCROLL_BUFFER_LEFT = 250;
+    //     const SCROLL_BUFFER_BOTTOM = 35;
+    //     const SCROLL_BUFFER_TOP = 100;
+    //     const wouldScrollRight = this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT;
+    //     const wouldScrollLeft = this.lastX < SCROLL_BUFFER_LEFT;
+    //     const wouldScrollDown = this.lastY + this.container.scrollTop > viewportBottom - SCROLL_BUFFER_BOTTOM;
+    //     const wouldScrollUp = this.lastY < SCROLL_BUFFER_TOP;
+    //     const wouldScroll = wouldScrollRight || wouldScrollLeft || wouldScrollDown || wouldScrollUp;
+    //     if (wouldScroll && this.mouseMoveHandler) {
+    //         const syntheticEvent = new PointerEvent('pointermove', {
+    //             clientX: this.lastX,
+    //             clientY: this.lastY,
+    //             bubbles: true,
+    //             cancelable: true,
+    //             view: window
+    //         });
+    //         this.mouseMoveHandler(syntheticEvent);
+    //     }
+    // }
+}
+
+interface SelectionRange {
+    startRow: number;
+    startCol: number;
+    endRow: number;
+    endCol: number;
+}
+// Handles 3rd row selection for click, ctrl+click, and drag selection events separately
+
+import { Rows } from "./rows.js";
+import { Cols } from "./cols.js";
+import { findIndexFromCoord, getExcelColumnLabel } from "./utils.js";
+import { CellManager } from "./cellmanager.js";
+import { GridDrawer } from "./griddrawer.js";
+import { EventManager } from "./eventmanager.js";
+import { Statistics } from "./statistics.js";
+
+export class RowSelectionManager {
+    griddrawer: GridDrawer;
+    rows: Rows;
+    cols: Cols;
+    cellmanager: CellManager;
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D | null;
+    container: HTMLElement;
+    statistics : Statistics | null = null;
+    eventmanager : EventManager | null= null;
+
+    selectionarr : SelectionRange[] = [];
+    activeSelection: SelectionRange | null = null;
+    mouseMoveHandler: ((event: PointerEvent) => void) | null = null;
+    autoScrollInterval : null | number = null ;
+    lastX = 0;
+    lastY = 0;
+
+    constructor(
+        griddrawer: GridDrawer, 
+        rows: Rows, 
+        cols: Cols, 
+        cellmanager: CellManager, 
+        canvas: HTMLCanvasElement,
+        statistics : Statistics | null = null
+    ) {
+        this.container = document.querySelector('.container') as HTMLElement;
+        this.griddrawer = griddrawer;
+        this.rows = rows;
+        this.cols = cols;
+        this.cellmanager = cellmanager;
+        this.canvas = canvas;
+        this.ctx = this.canvas.getContext("2d");
+        this.statistics = statistics;
+    }
+
+    seteventmanager(em : EventManager){
+        this.eventmanager = em;
+    }
+
+    // attachCanvasEvents() {
+    //     this.canvas.addEventListener('pointerdown',(event) => this.handlePointerDown(event));
+    //     document.addEventListener('pointerup',(event) => this.handlePointerUp(event));
+    // }
+
+    handlePointerDown(event: PointerEvent) {
+        this.startAutoScroll();
+        // Row header selection only
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        if (x < this.cols.widths[0] && y > this.rows.heights[0]) {
+            const virtualY = y + this.container.scrollTop;
+            const row = findIndexFromCoord(virtualY, this.rows.heights);
+            if (event.ctrlKey) {
+                const rowSelection = {
+                    startRow: row,
+                    startCol: 0,
+                    endRow: row,
+                    endCol: this.cols.n - 1
+                };
+                this.selectionarr.push(rowSelection);
+            } else {
+                this.selectionarr = [];
+            }
+            this.eventmanager?.setActiveCell(row, 1);
+
+            this.activeSelection = {
+                startRow: row,
+                startCol: 0,
+                endRow: row,
+                endCol: this.cols.n - 1
+            };
+
+            this.mouseMoveHandler = (moveEvent) => {
+                const moveRect = this.canvas.getBoundingClientRect();
+                const moveY = moveEvent.clientY - moveRect.top + this.container.scrollTop;
+                const currentRow = findIndexFromCoord(moveY, this.rows.heights);
+                if (currentRow > 0) {
+                    this.selectMultipleRows(row, currentRow);
+                }
+            };
+
+            this.container.addEventListener('pointermove', this.mouseMoveHandler);
+            this.selectMultipleRows(row, row);
+        }
+    }
+
+    handlePointerMove(event: PointerEvent) {
+        // Only for drag selection on row header
+        this.lastX = event.clientX;
+        this.lastY = event.clientY;
+        // No-op: logic handled in mouseMoveHandler set in pointerdown
+    }
+
+    handlePointerUp(event: PointerEvent) {
+        this.stopAutoScroll();
+        if (this.mouseMoveHandler) {
+            this.container.removeEventListener('pointermove', this.mouseMoveHandler);
+            this.mouseMoveHandler = null;
+        }
+        this.lastX = 0;
+        this.lastY = 0;
+        // this.statistics?.printvalues();
+        // this.statistics?.sum();
+        // this.statistics?.min();
+        // this.statistics?.max();
+        // this.statistics?.avg();
+        // this.statistics?.count();
+    }
+
+    selectMultipleRows(startRow: number, endRow: number) {
+        startRow = Math.max(1, startRow);
+        endRow = Math.max(1, endRow);
+        const firstRow = Math.min(startRow, endRow);
+        const lastRow = Math.max(startRow, endRow);
+        this.griddrawer.rendervisible(this.rows, this.cols);
+        for (const selection of this.selectionarr) {
+            this.paintSelectedCells(
+                selection.startRow,
+                selection.startCol,
+                selection.endRow,
+                selection.endCol
+            );
+        }
+        if (this.activeSelection) {
+            this.activeSelection = {
+                startRow: firstRow,
+                startCol: 0,
+                endRow: lastRow,
+                endCol: this.cols.n - 1
+            };
+        }
+        this.paintSelectedCells(
+            firstRow,
+            0,
+            lastRow,
+            this.cols.n - 1
+        );
+        // this.statistics?.sum();
+        // this.statistics?.min();
+        // this.statistics?.max();
+        // this.statistics?.avg();
+        // this.statistics?.count();
+    }
+
+    paintSelectedCells(startRow: number , startCol: number, endRow: number, endCol: number) {
+        const minRow = Math.min(startRow, endRow);
+        const maxRow = Math.max(startRow, endRow);
+        const minCol = Math.min(startCol, endCol);
+        const maxCol = Math.max(startCol, endCol);
+        for (let r = minRow; r <= maxRow; r++) {
+            for (let c = minCol; c <= maxCol; c++) {
+                const cell = this.cellmanager.getCell(r, c);
+                const value = cell ? cell.value : null;
+                this.paintCell(r, c, value, this.rows, this.cols);
+            }
+        }
+        for (let r = minRow; r <= maxRow; r++) {
+            const headerValue = r;
+            this.paintCell(r, 0, headerValue, this.rows, this.cols);
+        }
+        for (let c = minCol; c <= maxCol; c++) {
+            const columnLabel = getExcelColumnLabel(c - 1);
+            this.paintCell(0, c, columnLabel, this.rows, this.cols);
+        }
+        this.statistics?.max();
+    }
+
+    paintCell(
+        row: number,
+        col: number,
+        value: string | number | null,
+        rows: Rows,
+        cols: Cols,
+    ) {
+        if (!this.ctx || !this.activeSelection) return;
+        let x = 0;
+        for (let i = 0; i < col; i++) x += cols.widths[i];
+        let y = 0;
+        for (let i = 0; i < row; i++) y += rows.heights[i];
+        const w = cols.widths[col];
+        const h = rows.heights[row];
+        let drawX: number, drawY: number;
+        if (row === 0 && col === 0) { drawX = 0; drawY = 0; }
+        else if (row === 0) { drawX = x - this.container.scrollLeft; drawY = 0; }
+        else if (col === 0) { drawX = 0; drawY = y - this.container.scrollTop; }
+        else { drawX = x - this.container.scrollLeft; drawY = y - this.container.scrollTop; }
+        const isHeader = row === 0 || col === 0;
+        this.ctx.clearRect(drawX, drawY, w, h);
+        if (isHeader) {
+            this.ctx.fillStyle = "rgba(245,245,245,1)";
+            this.ctx.fillRect(drawX, drawY, w, h);
+        } else {
+            this.ctx.fillStyle = "rgba(202,234,216,1)";
+            this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
+        }
+        this.ctx.strokeStyle = "#e0e0e0";
+        this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
+        this.ctx.strokeStyle = "rgb(19, 126, 67)";
+        this.ctx.lineWidth = 2;
+        this.ctx.lineWidth = 1;
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        this.ctx.fillStyle = "#000";
+        this.ctx.font = "12px Arial";
+        this.ctx.fillText(
+            value != null ? String(value) : "",
+            drawX + w/2,
+            drawY + h/2
+        );
+    }
+
+    //autoscroll functions
+    startAutoScroll() {
+        if(this.autoScrollInterval != null)return;
+        this.autoScrollInterval = window.setInterval(() => this.autoScrollLogic(), 60); 
+    }
+    stopAutoScroll() {
+        if (this.autoScrollInterval !== null) {
+            clearInterval(this.autoScrollInterval);
+            this.autoScrollInterval = null;
+        }
+    }
+    autoScrollLogic() {
+        if (!this.mouseMoveHandler) return;
+        if (this.lastX === 0 && this.lastY === 0) return;
+        const originalScrollLeft = this.container.scrollLeft;
+        const originalScrollTop = this.container.scrollTop;
+        const SCROLL_BUFFER_RIGHT = 50;
+        const SCROLL_BUFFER_LEFT = 250;
+        const SCROLL_BUFFER_BOTTOM = 2;
+        const SCROLL_BUFFER_TOP = 100;
+        const SCROLL_STEP = 20;
+        const viewportLeft = this.container.scrollLeft;
+        const viewportRight = viewportLeft + this.container.clientWidth;
+        const viewportTop = this.container.scrollTop;
+        const viewportBottom = viewportTop + this.container.clientHeight;
+        if (this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT) {
+            this.container.scrollLeft += SCROLL_STEP;
+        }
+        else if (this.lastX < SCROLL_BUFFER_LEFT) {
+            this.container.scrollLeft -= SCROLL_STEP;
+        }
+        if (this.lastY + this.container.scrollTop -50 > viewportBottom - SCROLL_BUFFER_BOTTOM) {
+            this.container.scrollTop += SCROLL_STEP;
+        }
+        else if (this.lastY < SCROLL_BUFFER_TOP) {
+            this.container.scrollTop -= SCROLL_STEP;
+        }
+        const didScroll = (this.container.scrollLeft !== originalScrollLeft) ||
+                          (this.container.scrollTop !== originalScrollTop);
+        if (didScroll && this.mouseMoveHandler) {
+            const syntheticEvent = new PointerEvent('pointermove', {
+                clientX: this.lastX,
+                clientY: this.lastY,
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            this.mouseMoveHandler(syntheticEvent);
+        }
+    }
+
+    // autoScrollLogic() {
+    //     // Don't proceed if the mouseMoveHandler has been removed
+    //     if (!this.mouseMoveHandler) {
+    //         return;
+    //     }
+    //     // Don't proceed if lastX/Y are reset (indicating pointer up)
+    //     if (this.lastX === 0 && this.lastY === 0) {
+    //         return;
+    //     }
+    //     const viewportLeft = this.container.scrollLeft;
+    //     const viewportRight = viewportLeft + this.container.clientWidth;
+    //     const viewportTop = this.container.scrollTop;
+    //     const viewportBottom = viewportTop + this.container.clientHeight;
+    //     const SCROLL_BUFFER_RIGHT = 50;
+    //     const SCROLL_BUFFER_LEFT = 250;
+    //     const SCROLL_BUFFER_BOTTOM = 35;
+    //     const SCROLL_BUFFER_TOP = 100;
+    //     const wouldScrollRight = this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT;
+    //     const wouldScrollLeft = this.lastX < SCROLL_BUFFER_LEFT;
+    //     const wouldScrollDown = this.lastY + this.container.scrollTop > viewportBottom - SCROLL_BUFFER_BOTTOM;
+    //     const wouldScrollUp = this.lastY < SCROLL_BUFFER_TOP;
+    //     const wouldScroll = wouldScrollRight || wouldScrollLeft || wouldScrollDown || wouldScrollUp;
+    //     if (wouldScroll && this.mouseMoveHandler) {
+    //         const syntheticEvent = new PointerEvent('pointermove', {
+    //             clientX: this.lastX,
+    //             clientY: this.lastY,
+    //             bubbles: true,
+    //             cancelable: true,
+    //             view: window
+    //         });
+    //         this.mouseMoveHandler(syntheticEvent);
+    //     }
+    // }
+}
+
+interface SelectionRange {
+    startRow: number;
+    startCol: number;
+    endRow: number;
+    endCol: number;
+}
+// Handles 1st cell selection + drag cell selection events separately (pointer and pointer+key events only)
+
+import { Rows } from "./rows.js";
+import { Cols } from "./cols.js";
+import { findIndexFromCoord, getExcelColumnLabel } from "./utils.js";
+import { CellManager } from "./cellmanager.js";
+import { GridDrawer } from "./griddrawer.js";
+import { EventManager } from "./eventmanager.js";
+import { Statistics } from "./statistics.js";
+
+/**
+ * Manages single cell selection and drag selection (cell range) via pointer and pointer+key events only
+ */
+export class CellSelectionManager {
+    private dragStartRow: number | null = null;
+    private dragStartCol: number | null = null;
+    griddrawer: GridDrawer;
+    rows: Rows;
+    cols: Cols;
+    cellmanager: CellManager;
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D | null;
+    container: HTMLElement;
+    private mouseMoveHandler: ((event: PointerEvent) => void) | null = null;
+    public eventmanager : EventManager | null= null;
+    statistics : Statistics | null = null;
+
+    lastX = 0;
+    lastY = 0;
+    autoScrollInterval : null | number = null ;
+
+    activeSelection: {
+        startRow: number;
+        startCol: number; 
+        endRow: number;
+        endCol: number;
+    } | null = null;
+
+    cellInput: HTMLInputElement | null = null;
+    previousSelectedRow: number | null = null;
+    previousSelectedCol: number | null = null;
+
+    constructor(
+        griddrawer: GridDrawer, 
+        rows: Rows, 
+        cols: Cols, 
+        cellmanager: CellManager, 
+        canvas: HTMLCanvasElement,
+        statistics : Statistics | null = null
+    ) {
+        this.container = document.querySelector('.container') as HTMLElement;
+        this.griddrawer = griddrawer;
+        this.rows = rows;
+        this.cols = cols;
+        this.cellmanager = cellmanager;
+        this.canvas = canvas;
+        this.ctx = this.canvas.getContext("2d");
+        this.statistics = statistics;
+        this.cellInput = document.getElementById("cellInput") as HTMLInputElement;
+        // Only keep events for input saving, not selection via keyboard
+        this.cellInput?.addEventListener("input", (e) => {
+            if (this.activeSelection?.startRow !== null && this.activeSelection?.startCol !== null) {
+                const currentValue = this.cellInput?.value;
+                if(this.activeSelection && currentValue){
+                    this.cellmanager.setCell(
+                        this.activeSelection.startRow,
+                        this.activeSelection.startCol,
+                        currentValue
+                    );
+                }
+            }
+        });
+    }
+
+    seteventmanager(em : EventManager){
+        this.eventmanager = em;
+    }
+
+    // attachCanvasEvents() {
+    //     this.canvas.addEventListener('pointerdown',(event) => this.handlePointerDown(event));
+    //     document.addEventListener('pointerup',(event) => this.handlePointerUp(event));
+    // }
+
+    extendSelection(newEndRow: number, newEndCol: number) {
+        if (!this.activeSelection) return;
+        this.activeSelection = {
+            startRow: this.activeSelection.startRow,
+            startCol: this.activeSelection.startCol,
+            endRow: newEndRow,
+            endCol: newEndCol
+        };
+        this.griddrawer.rendervisible(this.rows, this.cols);
+        this.paintSelectedCells(
+            Math.min(this.activeSelection.startRow, this.activeSelection.endRow),
+            Math.min(this.activeSelection.startCol, this.activeSelection.endCol),
+            Math.max(this.activeSelection.startRow, this.activeSelection.endRow),
+            Math.max(this.activeSelection.startCol, this.activeSelection.endCol)
+        );
+        this.dispatchSelectionChangeEvent();
+    }
+
+    clearPreviousSelection() {
+        if (this.previousSelectedRow !== null) {
+            this.griddrawer.drawFixedRowHeader(
+                this.previousSelectedRow, 
+                this.rows, 
+                this.cols,
+                this.container.scrollTop
+            );
+        }
+        if (this.previousSelectedCol !== null) {
+            const columnLabel = getExcelColumnLabel(this.previousSelectedCol - 1);
+            this.griddrawer.drawFixedColumnHeader(
+                this.previousSelectedCol, 
+                this.rows, 
+                this.cols, 
+                this.container.scrollLeft
+            );
+        }
+        this.previousSelectedRow = null;
+        this.previousSelectedCol = null;
+    }
+
+    paintCell(
+        row: number,
+        col: number,
+        value: string | number | null,
+        rows: Rows,
+        cols: Cols,
+    ) {
+        if (!this.ctx || !this.activeSelection) return;
+        let x = 0;
+        for (let i = 0; i < col; i++) x += cols.widths[i];
+        let y = 0;
+        for (let i = 0; i < row; i++) y += rows.heights[i];
+        const w = cols.widths[col];
+        const h = rows.heights[row];
+        let drawX: number, drawY: number;
+        if (row === 0 && col === 0) { drawX = 0; drawY = 0; }
+        else if (row === 0) { drawX = x - this.container.scrollLeft; drawY = 0; }
+        else if (col === 0) { drawX = 0; drawY = y - this.container.scrollTop; }
+        else { drawX = x - this.container.scrollLeft; drawY = y - this.container.scrollTop; }
+
+        const isHeader = row === 0 || col === 0;
+        const minRow = Math.min(this.activeSelection.startRow, this.activeSelection.endRow);
+        const maxRow = Math.max(this.activeSelection.startRow, this.activeSelection.endRow);
+        const minCol = Math.min(this.activeSelection.startCol, this.activeSelection.endCol);
+        const maxCol = Math.max(this.activeSelection.startCol, this.activeSelection.endCol);
+
+        // ---- DRAWING CELL BACKGROUND ----
+        this.ctx.clearRect(drawX, drawY, w, h);
+        if (isHeader) {
+            this.ctx.fillStyle = "rgba(245,245,245,1)";
+            this.ctx.fillRect(drawX, drawY, w, h);
+        } else {
+            this.ctx.fillStyle = "rgba(202,234,216,1)";
+            this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
+        }
+
+        // ---- DRAWING CELL BORDERS ----
+        this.ctx.strokeStyle = "#e0e0e0";
+        this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
+        this.ctx.strokeStyle = "rgb(19, 126, 67)";
+        this.ctx.lineWidth = 2;
+        if (!isHeader) {
+            const isTopEdge = row === minRow;
+            const isBottomEdge = row === maxRow;
+            const isLeftEdge = col === minCol;
+            const isRightEdge = col === maxCol;
+            if (isTopEdge || isBottomEdge || isLeftEdge || isRightEdge) {
+                this.ctx.beginPath();
+                if (isTopEdge) { this.ctx.moveTo(drawX, drawY); this.ctx.lineTo(drawX + w, drawY); }
+                if (isBottomEdge) { this.ctx.moveTo(drawX, drawY + h); this.ctx.lineTo(drawX + w, drawY + h); }
+                if (isLeftEdge) { this.ctx.moveTo(drawX, drawY); this.ctx.lineTo(drawX, drawY + h); }
+                if (isRightEdge) { this.ctx.moveTo(drawX + w, drawY); this.ctx.lineTo(drawX + w, drawY + h); }
+                this.ctx.stroke();
+            }
+        }
+        this.ctx.lineWidth = 1;
+
+        // ---- DRAWING TEXT ----
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        this.ctx.fillStyle = "#000";
+        this.ctx.font = "12px Arial";
+        this.ctx.fillText(
+            value != null ? String(value) : "",
+            drawX + w/2,
+            drawY + h/2
+        );
+    }
+
+    paintSelectedCells(startRow: number , startCol: number, endRow: number, endCol: number) {
+        const minRow = Math.min(startRow, endRow);
+        const maxRow = Math.max(startRow, endRow);
+        const minCol = Math.min(startCol, endCol);
+        const maxCol = Math.max(startCol, endCol);
+
+        for (let r = minRow; r <= maxRow; r++) {
+            for (let c = minCol; c <= maxCol; c++) {
+                const cell = this.cellmanager.getCell(r, c);
+                const value = cell ? cell.value : null;
+                this.paintCell(r, c, value, this.rows, this.cols);
+            }
+        }
+        for (let r = minRow; r <= maxRow; r++) {
+            const headerValue = r;
+            this.paintCell(r, 0, headerValue, this.rows, this.cols);
+        }
+        for (let c = minCol; c <= maxCol; c++) {
+            const columnLabel = getExcelColumnLabel(c - 1);
+            this.paintCell(0, c, columnLabel, this.rows, this.cols);
+        }
+        this.statistics?.max();
+    }
+
+    reapplySelectionHighlighting() {
+        if (this.activeSelection) {
+            const startRow = Math.min(this.activeSelection.startRow, this.activeSelection.endRow);
+            const endRow = Math.max(this.activeSelection.startRow, this.activeSelection.endRow);
+            const startCol = Math.min(this.activeSelection.startCol, this.activeSelection.endCol);
+            const endCol = Math.max(this.activeSelection.startCol, this.activeSelection.endCol);
+            this.paintSelectedCells(startRow, startCol, endRow, endCol);
+            let startX = 0;
+            for (let i = 0; i < startCol; i++) { startX += this.cols.widths[i]; }
+            let startY = 0;
+            for (let i = 0; i < startRow; i++) { startY += this.rows.heights[i]; }
+            let width = 0;
+            for (let i = startCol; i <= endCol; i++) { width += this.cols.widths[i]; }
+            let height = 0;
+            for (let i = startRow; i <= endRow; i++) { height += this.rows.heights[i]; }
+            const startTopX = startX - this.container.scrollLeft;
+            const startTopY = startY - this.container.scrollTop;
+            if (this.ctx) {
+                this.ctx.strokeStyle = "rgb(19, 126, 67,1)";
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(startTopX, startTopY, width, height);
+            }
+        }
+    }
+
+    // --- 1st group events: cell selection + drag selection ---
+    handlePointerDown(event: PointerEvent) {
+        this.startAutoScroll();
+        // console.log('cellSelectionManager: handlePointerDown');
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        // Ignore headers and corner cell
+        if (x < this.cols.widths[0] || y < this.rows.heights[0]) return;
+        const virtualX = x + this.container.scrollLeft;
+        const virtualY = y + this.container.scrollTop;
+        const col = findIndexFromCoord(virtualX, this.cols.widths);
+        const row = findIndexFromCoord(virtualY, this.rows.heights);
+        if (row < 1 || col < 1) return;
+        this.eventmanager?.handleCanvasClick(event);
+        this.griddrawer.rendervisible(this.rows, this.cols);
+        this.activeSelection = { 
+            startRow: row, 
+            startCol: col, 
+            endRow: row, 
+            endCol: col 
+        };
+        this.paintSelectedCells(row, col, row, col);
+        this.dragStartRow = row;
+        this.dragStartCol = col;
+        this.mouseMoveHandler = (event) => this.handlePointerMove(event);
+        this.container.addEventListener('pointermove', this.mouseMoveHandler);
+        this.dispatchSelectionChangeEvent();
+    }
+
+    handlePointerMove(event: PointerEvent) {
+        // console.log('cellSelectionManager: handlePointerMove');
+        this.lastX = event.clientX;
+        this.lastY = event.clientY;
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const virtualX = x + this.container.scrollLeft;
+        const virtualY = y + this.container.scrollTop;
+        const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
+        const currentRow = findIndexFromCoord(virtualY, this.rows.heights);
+        if (!this.ctx) return;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.griddrawer.rendervisible(this.rows, this.cols);
+        if (this.dragStartRow !== null && this.dragStartCol !== null) {
+            this.activeSelection = {
+                startRow: this.dragStartRow,
+                startCol: this.dragStartCol,
+                endRow: currentRow,
+                endCol: currentCol
+            };
+            this.dispatchSelectionChangeEvent();
+            this.extendSelection(currentRow, currentCol);
+        }
+    }
+
+    handlePointerUp(event: PointerEvent) {
+        this.stopAutoScroll();
+        if (this.mouseMoveHandler) {
+            this.container.removeEventListener('pointermove', this.mouseMoveHandler);
+            this.mouseMoveHandler = null;
+        }
+        this.lastX = 0;
+        this.lastY = 0;
+        this.dispatchSelectionChangeEvent();
+        // this.statistics?.printvalues();
+        // this.statistics?.sum();
+        // this.statistics?.min();
+        // this.statistics?.max();
+        // this.statistics?.avg();
+        // this.statistics?.count();
+    }
+
+    dispatchSelectionChangeEvent() {
+        if (!this.activeSelection) return;
+        const event = new CustomEvent('selection-changed', {
+            detail: {
+                selection: this.activeSelection
+            }
+        });
+        this.canvas.dispatchEvent(event);
+    }
+
+    // --- commented code duplicated ---
+    // attachCanvasEvents() {
+    //     this.canvas.addEventListener('pointerdown',(event) => this.handlePointerDown(event));
+    //     document.addEventListener('pointerup',(event) => this.handlePointerUp(event));
+    // }
+
+    //autoscroll functions
+    startAutoScroll() {
+        if(this.autoScrollInterval != null)return;
+        this.autoScrollInterval = window.setInterval(() => this.autoScrollLogic(), 60); 
+    }
+    stopAutoScroll() {
+        if (this.autoScrollInterval !== null) {
+            clearInterval(this.autoScrollInterval);
+            this.autoScrollInterval = null;
+        }
+    }
+    autoScrollLogic() {
+        if (!this.mouseMoveHandler) return;
+        if (this.lastX === 0 && this.lastY === 0) return;
+        const originalScrollLeft = this.container.scrollLeft;
+        const originalScrollTop = this.container.scrollTop;
+        const SCROLL_BUFFER_RIGHT = 50;
+        const SCROLL_BUFFER_LEFT = 250;
+        const SCROLL_BUFFER_BOTTOM = 2;
+        const SCROLL_BUFFER_TOP = 100;
+        const SCROLL_STEP = 20;
+        const viewportLeft = this.container.scrollLeft;
+        const viewportRight = viewportLeft + this.container.clientWidth;
+        const viewportTop = this.container.scrollTop;
+        const viewportBottom = viewportTop + this.container.clientHeight;
+        if (this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT) {
+            this.container.scrollLeft += SCROLL_STEP;
+        }
+        else if (this.lastX < SCROLL_BUFFER_LEFT) {
+            this.container.scrollLeft -= SCROLL_STEP;
+        }
+        if (this.lastY + this.container.scrollTop -50 > viewportBottom - SCROLL_BUFFER_BOTTOM) {
+            this.container.scrollTop += SCROLL_STEP;
+        }
+        else if (this.lastY < SCROLL_BUFFER_TOP) {
+            this.container.scrollTop -= SCROLL_STEP;
+        }
+        const didScroll = (this.container.scrollLeft !== originalScrollLeft) ||
+                          (this.container.scrollTop !== originalScrollTop);
+        if (didScroll && this.mouseMoveHandler) {
+            const syntheticEvent = new PointerEvent('pointermove', {
+                clientX: this.lastX,
+                clientY: this.lastY,
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            this.mouseMoveHandler(syntheticEvent);
+        }
+    }
+
+    // autoScrollLogic() {
+    //     // Don't proceed if the mouseMoveHandler has been removed
+    //     if (!this.mouseMoveHandler) {
+    //         return;
+    //     }
+    //     // Don't proceed if lastX/Y are reset (indicating pointer up)
+    //     if (this.lastX === 0 && this.lastY === 0) {
+    //         return;
+    //     }
+    //     const viewportLeft = this.container.scrollLeft;
+    //     const viewportRight = viewportLeft + this.container.clientWidth;
+    //     const viewportTop = this.container.scrollTop;
+    //     const viewportBottom = viewportTop + this.container.clientHeight;
+    //     const SCROLL_BUFFER_RIGHT = 50;
+    //     const SCROLL_BUFFER_LEFT = 250;
+    //     const SCROLL_BUFFER_BOTTOM = 35;
+    //     const SCROLL_BUFFER_TOP = 100;
+    //     const wouldScrollRight = this.lastX + this.container.scrollLeft > viewportRight - SCROLL_BUFFER_RIGHT;
+    //     const wouldScrollLeft = this.lastX < SCROLL_BUFFER_LEFT;
+    //     const wouldScrollDown = this.lastY + this.container.scrollTop > viewportBottom - SCROLL_BUFFER_BOTTOM;
+    //     const wouldScrollUp = this.lastY < SCROLL_BUFFER_TOP;
+    //     const wouldScroll = wouldScrollRight || wouldScrollLeft || wouldScrollDown || wouldScrollUp;
+    //     if (wouldScroll && this.mouseMoveHandler) {
+    //         const syntheticEvent = new PointerEvent('pointermove', {
+    //             clientX: this.lastX,
+    //             clientY: this.lastY,
+    //             bubbles: true,
+    //             cancelable: true,
+    //             view: window
+    //         });
+    //         this.mouseMoveHandler(syntheticEvent);
+    //     }
+    // }
+}

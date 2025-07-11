@@ -3,6 +3,7 @@ import { Rows } from "./rows.js";
 import { GridDrawer } from "./griddrawer.js";
 import { EventManager } from "./eventmanager.js";
 import { selectionManager } from "./selectionmanager.js";
+import { ScrollRefresh } from "./scrollrefresh.js";
 
 export class ResizeRows {
     /** Main canvas element */
@@ -19,6 +20,7 @@ export class ResizeRows {
     private resizingColLeft: number | null = null;
     /** Position of the preview line when resizing */
     private previewLineY: number | null = null;
+    scrollRefresh: ScrollRefresh | null = null;
     container : HTMLElement;
     selection: { startRow: number; startCol: number; endRow: number; endCol: number; } | null = null;
 
@@ -29,6 +31,7 @@ export class ResizeRows {
         private griddrawer: GridDrawer,
         private eventManager: EventManager, 
         private selectionManager: selectionManager, 
+        scrollRefresh: ScrollRefresh | null = null
         
     ){
 
@@ -53,6 +56,8 @@ export class ResizeRows {
       this.eventManager = eventManager;
 
       this.selectionManager = selectionManager;
+
+      this.scrollRefresh = scrollRefresh;
 
       // Listen for selection changes
       this.canvas.addEventListener('selection-changed', (event: any) => {
@@ -98,7 +103,8 @@ export class ResizeRows {
     }
     
     handlePointerMove(event: PointerEvent) {
-
+        console.log("Pointer move on row resize");
+        
         if (this.resizingRow !== null) {
             const dy = event.clientY - this.startY;
             const newHeight = Math.max(10, this.startHeight + dy);

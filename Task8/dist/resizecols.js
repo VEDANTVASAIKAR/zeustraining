@@ -1,7 +1,7 @@
 export class ResizeCols {
     constructor(
     /** Reference to the Cols object managing column widths */
-    cols, rows, griddrawer, eventManager, selectionManager) {
+    cols, rows, griddrawer, eventManager, selectionManager, scrollRefresh = null) {
         this.cols = cols;
         this.rows = rows;
         this.griddrawer = griddrawer;
@@ -16,6 +16,7 @@ export class ResizeCols {
         /** Position of the preview line when resizing */
         this.previewLineX = null;
         this.selection = null;
+        this.scrollRefresh = null;
         // Get the main canvas element
         this.canvas = document.getElementById("canvas");
         // Get the overlay canvas for temporary visual elements
@@ -30,6 +31,7 @@ export class ResizeCols {
         this.container = document.querySelector('.container');
         this.eventManager = eventManager;
         this.selectionManager = selectionManager;
+        this.scrollRefresh = scrollRefresh;
         // Listen for selection changes
         this.canvas.addEventListener('selection-changed', (event) => {
             this.selection = event.detail.selection;
@@ -54,6 +56,7 @@ export class ResizeCols {
         this.overlayCtx.setLineDash([]); // Reset dash pattern
     }
     handlePointerDown(event) {
+        console.log("Pointer down on column resize");
         if (this.hoveredColBorder !== null) {
             this.resizingCol = this.hoveredColBorder;
             this.startX = event.clientX;
