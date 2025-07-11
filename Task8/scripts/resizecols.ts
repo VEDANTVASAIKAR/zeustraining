@@ -4,6 +4,8 @@ import { GridDrawer } from "./griddrawer.js";
 import { EventManager } from "./eventmanager.js";
 import { selectionManager } from "./selectionmanager.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
+import { Painter, SelectionRange } from "./paint.js";
+import { CellManager } from "./cellmanager.js";
 
 export class ResizeCols {
     /** Main canvas element */
@@ -21,8 +23,11 @@ export class ResizeCols {
     /** Position of the preview line when resizing */
     private previewLineX: number | null = null;
     container : HTMLElement;
-    selection: { startRow: number; startCol: number; endRow: number; endCol: number; } | null = null;
     scrollRefresh: ScrollRefresh | null = null;
+    selectionarr: SelectionRange[] = [];
+    selection: SelectionRange | null = null;
+    ctx: CanvasRenderingContext2D | null;
+    cellmanager: CellManager;
 
     constructor(
         /** Reference to the Cols object managing column widths */
@@ -31,6 +36,7 @@ export class ResizeCols {
         private griddrawer: GridDrawer,
         private eventManager: EventManager, 
         private selectionManager: selectionManager, 
+        cellmanager: CellManager,
         scrollRefresh: ScrollRefresh | null = null
         
     ){
@@ -58,14 +64,27 @@ export class ResizeCols {
       this.selectionManager = selectionManager;
 
       this.scrollRefresh = scrollRefresh;
+      this.ctx = this.canvas.getContext("2d");
+      this.cellmanager = cellmanager;
 
-      // Listen for selection changes
-      this.canvas.addEventListener('selection-changed', (event: any) => {
-          this.selection = event.detail.selection;
-          // console.log(this.selection);
-      });
+      this.listenSelectionChange();
 
 
+    }
+
+    listenSelectionChange() {
+            window.addEventListener('selection-changed', (e: any) => {
+                if (e.detail) {
+                    this.selection = e.detail.selection;
+                    this.selectionarr = e.detail.selectionarr;
+                    
+                    
+                    // Painter.paintSelectedCells(
+                    //     this.ctx!, this.griddrawer, this.rows, this.cols,
+                    //     this.cellmanager, this.container, this.selection, this.selectionarr
+                    // );
+                }
+            });
     }
 
     /**
@@ -130,6 +149,7 @@ export class ResizeCols {
     }
 
     handlePointerUp(event: PointerEvent) {
+        console.log(this.selection, this.selectionarr);
       // Only do this if a column is being resized and a preview line exists
         if (this.resizingCol !== null && this.previewLineX !== null && this.resizingColLeft !== null) {
             // Calculate the sum of all column widths before the one being resized
@@ -161,6 +181,10 @@ export class ResizeCols {
         this.resizingColLeft = null;
 
         window.removeEventListener('pointermove', this.handlePointerMove.bind(this));
+        Painter.paintSelectedCells(
+                        this.ctx!, this.griddrawer, this.rows, this.cols,
+                        this.cellmanager, this.container, this.selection, this.selectionarr
+                    );
     }
 
     /**

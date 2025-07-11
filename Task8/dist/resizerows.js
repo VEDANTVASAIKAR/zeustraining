@@ -1,7 +1,8 @@
+import { Painter } from "./paint.js";
 export class ResizeRows {
     constructor(
     /** Reference to the Cols object managing column widths */
-    cols, rows, griddrawer, eventManager, selectionManager, scrollRefresh = null) {
+    cols, rows, griddrawer, eventManager, selectionManager, cellmanager, scrollRefresh = null) {
         this.cols = cols;
         this.rows = rows;
         this.griddrawer = griddrawer;
@@ -16,6 +17,7 @@ export class ResizeRows {
         /** Position of the preview line when resizing */
         this.previewLineY = null;
         this.scrollRefresh = null;
+        this.selectionarr = [];
         this.selection = null;
         // Get the main canvas element
         this.canvas = document.getElementById("canvas");
@@ -32,10 +34,21 @@ export class ResizeRows {
         this.eventManager = eventManager;
         this.selectionManager = selectionManager;
         this.scrollRefresh = scrollRefresh;
-        // Listen for selection changes
-        this.canvas.addEventListener('selection-changed', (event) => {
-            this.selection = event.detail.selection;
-            // console.log(this.selection);
+        this.scrollRefresh = scrollRefresh;
+        this.ctx = this.canvas.getContext("2d");
+        this.cellmanager = cellmanager;
+        this.listenSelectionChange();
+    }
+    listenSelectionChange() {
+        window.addEventListener('selection-changed', (e) => {
+            if (e.detail) {
+                this.selection = e.detail.selection;
+                this.selectionarr = e.detail.selectionarr;
+                // Painter.paintSelectedCells(
+                //     this.ctx!, this.griddrawer, this.rows, this.cols,
+                //     this.cellmanager, this.container, this.selection, this.selectionarr
+                // );
+            }
         });
     }
     /**
@@ -117,6 +130,7 @@ export class ResizeRows {
         this.resizingRow = null;
         this.previewLineY = null;
         window.removeEventListener('pointermove', this.handlePointerMove.bind(this));
+        Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
     }
     /**
      HIT TEST
