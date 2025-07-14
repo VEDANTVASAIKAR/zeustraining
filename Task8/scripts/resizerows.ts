@@ -4,7 +4,7 @@ import { GridDrawer } from "./griddrawer.js";
 import { EventManager } from "./eventmanager.js";
 import { selectionManager } from "./selectionmanager.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
-import { Painter, SelectionRange } from "./paint.js";
+import { drawVisibleRowHeaders, Painter, SelectionRange } from "./paint.js";
 import { CellManager } from "./cellmanager.js";
 
 export class ResizeRows {
@@ -129,6 +129,7 @@ export class ResizeRows {
         console.log("Pointer move on row resize");
         
         if (this.resizingRow !== null) {
+            const { startRow, endRow, startCol, endCol } = this.griddrawer.getVisibleRange(this.rows, this.cols);
             const dy = event.clientY - this.startY;
             const newHeight = Math.max(10, this.startHeight + dy);
             this.rows.setHeight(this.resizingRow, newHeight);
@@ -145,6 +146,8 @@ export class ResizeRows {
             // Draw preview line horizontally on overlay
             const adjustedPreviewLineY = this.previewLineY - this.container.scrollTop;
             this.griddrawer.drawPreviewLineOverlayRow(adjustedPreviewLineY);
+            // this.griddrawer.drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols);
+            drawVisibleRowHeaders(startRow,endRow, this.rows, this.cols, this.container,this.ctx!,  this.selectionarr, this.selection!);
         }
 
     }

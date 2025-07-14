@@ -98,8 +98,12 @@ html, body {
   box-sizing: border-box;
   display: none;
   border: 2px solid #0a753a;
+  align-content: center;
+  justify-content: center;
 }
 
 input[type=text]:focus {
   outline: none;
+  justify-content: center;
+  align-content: center;
 }

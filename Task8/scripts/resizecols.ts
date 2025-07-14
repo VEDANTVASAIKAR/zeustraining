@@ -4,7 +4,7 @@ import { GridDrawer } from "./griddrawer.js";
 import { EventManager } from "./eventmanager.js";
 import { selectionManager } from "./selectionmanager.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
-import { Painter, SelectionRange } from "./paint.js";
+import { drawVisibleColumnHeaders, Painter, SelectionRange } from "./paint.js";
 import { CellManager } from "./cellmanager.js";
 
 export class ResizeCols {
@@ -127,6 +127,7 @@ export class ResizeCols {
     handlePointerMove(event: PointerEvent) {
 
         if (this.resizingCol !== null && this.resizingColLeft !== null) {
+            const { startRow, endRow, startCol, endCol } = this.griddrawer.getVisibleRange(this.rows, this.cols);
             const dx = event.clientX - this.startX;
             const newWidth = Math.max(10, this.startWidth + dx);
             this.cols.setWidth(this.resizingCol, newWidth);
@@ -144,6 +145,10 @@ export class ResizeCols {
             // Only draw preview line on overlay
             const adjustedPreviewLineX = this.previewLineX - this.container.scrollLeft;
             this.griddrawer.drawPreviewLineOverlay(adjustedPreviewLineX);
+
+            drawVisibleColumnHeaders(startRow,endRow, this.rows, this.cols, this.container,this.ctx!,  this.selectionarr, this.selection!);
+
+            // this.griddrawer.drawVisibleColumnHeaders(startCol,endCol,this.rows, this.cols);
         }
 
     }
