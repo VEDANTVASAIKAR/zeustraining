@@ -6,6 +6,10 @@ import { selectionManager } from "./selectionmanager.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
 import { drawVisibleColumnHeaders, Painter, SelectionRange } from "./paint.js";
 import { CellManager } from "./cellmanager.js";
+import { Commandpattern } from "./commandpattern.js";
+import { celleditcommand } from "./celleditcommand.js";
+import { resizeRowcommand } from "./resizerowcommand.js";
+import { resizeColCommand } from "./resizecolcommand.js";
 
 export class ResizeCols {
     /** Main canvas element */
@@ -28,6 +32,8 @@ export class ResizeCols {
     selection: SelectionRange | null = null;
     ctx: CanvasRenderingContext2D | null;
     cellmanager: CellManager;
+    commapndpattern: Commandpattern | null = null;
+    oldwidth: number =0
 
     constructor(
         /** Reference to the Cols object managing column widths */
@@ -37,7 +43,8 @@ export class ResizeCols {
         private eventManager: EventManager, 
         private selectionManager: selectionManager, 
         cellmanager: CellManager,
-        scrollRefresh: ScrollRefresh | null = null
+        scrollRefresh: ScrollRefresh | null = null,
+        commandpattern: Commandpattern 
         
     ){
 
@@ -66,6 +73,7 @@ export class ResizeCols {
       this.scrollRefresh = scrollRefresh;
       this.ctx = this.canvas.getContext("2d");
       this.cellmanager = cellmanager;
+      this.commapndpattern = commandpattern;
 
       this.listenSelectionChange();
 
@@ -159,6 +167,7 @@ export class ResizeCols {
         if (this.resizingCol !== null && this.previewLineX !== null && this.resizingColLeft !== null) {
             // Calculate the sum of all column widths before the one being resized
             let sum = 0;
+            let oldwidth = this.cols.widths[this.resizingCol];
             for (let i = 0; i < this.resizingCol; i++) {
                 sum += this.cols.widths[i];
             }
@@ -167,6 +176,11 @@ export class ResizeCols {
             
             // Update the width in the cols object
             this.cols.setWidth(this.resizingCol, finalWidth);
+           
+            this.commapndpattern?.execute(
+                new resizeColCommand(this.cols,this.resizingCol,finalWidth,this.startWidth,this.griddrawer)
+            );
+            
             // Disable the preview line
             this.griddrawer.ctx.clearRect(0, 0, this.griddrawer.canvas.width, this.griddrawer.canvas.height);
             //  Clear the overlay (removes preview line)

@@ -70,15 +70,17 @@ export class CellSelectionManager {
     }
     handlePointerDown(event) {
         console.log('cellselection handlePointerDown');
-        if (this.selection?.startRow !== null && this.selection?.startCol !== null) {
+        if (this.selection && this.selection?.startRow !== null && this.selection?.startCol !== null) {
+            let oldvalue = this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "";
+            ;
             const currentValue = this.cellInput?.value;
-            if (this.selection && currentValue) {
+            if (this.selection && currentValue && oldvalue && currentValue !== oldvalue) {
                 // this.cellmanager.setCell(
                 //     this.selection.startRow,
                 //     this.selection.startCol,
                 //     currentValue
                 // );
-                this.commandpattern?.execute(new celleditcommand(this.cellmanager, this.selection.startRow, this.selection.startCol, this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "", currentValue));
+                this.commandpattern?.execute(new celleditcommand(this.cellmanager, this.selection.startRow, this.selection.startCol, this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "", currentValue, this.griddrawer));
             }
         }
         this.startAutoScroll();

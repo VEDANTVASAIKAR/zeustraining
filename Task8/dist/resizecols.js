@@ -1,8 +1,9 @@
 import { drawVisibleColumnHeaders, Painter } from "./paint.js";
+import { resizeColCommand } from "./resizecolcommand.js";
 export class ResizeCols {
     constructor(
     /** Reference to the Cols object managing column widths */
-    cols, rows, griddrawer, eventManager, selectionManager, cellmanager, scrollRefresh = null) {
+    cols, rows, griddrawer, eventManager, selectionManager, cellmanager, scrollRefresh = null, commandpattern) {
         this.cols = cols;
         this.rows = rows;
         this.griddrawer = griddrawer;
@@ -19,6 +20,8 @@ export class ResizeCols {
         this.scrollRefresh = null;
         this.selectionarr = [];
         this.selection = null;
+        this.commapndpattern = null;
+        this.oldwidth = 0;
         // Get the main canvas element
         this.canvas = document.getElementById("canvas");
         // Get the overlay canvas for temporary visual elements
@@ -36,6 +39,7 @@ export class ResizeCols {
         this.scrollRefresh = scrollRefresh;
         this.ctx = this.canvas.getContext("2d");
         this.cellmanager = cellmanager;
+        this.commapndpattern = commandpattern;
         this.listenSelectionChange();
     }
     listenSelectionChange() {
@@ -108,6 +112,7 @@ export class ResizeCols {
         if (this.resizingCol !== null && this.previewLineX !== null && this.resizingColLeft !== null) {
             // Calculate the sum of all column widths before the one being resized
             let sum = 0;
+            let oldwidth = this.cols.widths[this.resizingCol];
             for (let i = 0; i < this.resizingCol; i++) {
                 sum += this.cols.widths[i];
             }
@@ -115,6 +120,7 @@ export class ResizeCols {
             const finalWidth = this.previewLineX - this.resizingColLeft;
             // Update the width in the cols object
             this.cols.setWidth(this.resizingCol, finalWidth);
+            this.commapndpattern?.execute(new resizeColCommand(this.cols, this.resizingCol, finalWidth, this.startWidth, this.griddrawer));
             // Disable the preview line
             this.griddrawer.ctx.clearRect(0, 0, this.griddrawer.canvas.width, this.griddrawer.canvas.height);
             //  Clear the overlay (removes preview line)

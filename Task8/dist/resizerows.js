@@ -1,8 +1,9 @@
 import { drawVisibleRowHeaders, Painter } from "./paint.js";
+import { resizeRowcommand } from "./resizerowcommand.js";
 export class ResizeRows {
     constructor(
     /** Reference to the Cols object managing column widths */
-    cols, rows, griddrawer, eventManager, selectionManager, cellmanager, scrollRefresh = null) {
+    cols, rows, griddrawer, eventManager, selectionManager, cellmanager, scrollRefresh = null, commandpattern) {
         this.cols = cols;
         this.rows = rows;
         this.griddrawer = griddrawer;
@@ -37,6 +38,7 @@ export class ResizeRows {
         this.scrollRefresh = scrollRefresh;
         this.ctx = this.canvas.getContext("2d");
         this.cellmanager = cellmanager;
+        this.commandpattern = commandpattern;
         this.listenSelectionChange();
     }
     listenSelectionChange() {
@@ -116,6 +118,7 @@ export class ResizeRows {
             const finalHeight = this.previewLineY - sum;
             // Update the height in the rows object
             this.rows.setHeight(this.resizingRow, finalHeight);
+            this.commandpattern?.execute(new resizeRowcommand(this.rows, this.resizingRow, finalHeight, this.startHeight, this.griddrawer));
             // Disable the preview line
             this.griddrawer.ctx.clearRect(0, 0, this.griddrawer.canvas.width, this.griddrawer.canvas.height);
             // Clear the overlay (removes preview line)

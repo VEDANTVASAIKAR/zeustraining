@@ -39,7 +39,7 @@ export class CellSelectionManager {
         cellmanager: CellManager,
         canvas: HTMLCanvasElement,
         statistics: Statistics | null = null,
-        scrollRefresh : ScrollRefresh | null = null,
+        scrollRefresh: ScrollRefresh | null = null,
         commandpattern: Commandpattern
     ) {
         this.container = document.querySelector('.container') as HTMLElement;
@@ -105,24 +105,26 @@ export class CellSelectionManager {
 
     handlePointerDown(event: PointerEvent) {
         console.log('cellselection handlePointerDown');
+        if (this.selection && this.selection?.startRow !== null && this.selection?.startCol !== null) {
+            let oldvalue: number | String | undefined = this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "";;
 
-        if (this.selection?.startRow !== null && this.selection?.startCol !== null) {
-                const currentValue = this.cellInput?.value;
-                if (this.selection && currentValue) {
-                    // this.cellmanager.setCell(
-                    //     this.selection.startRow,
-                    //     this.selection.startCol,
-                    //     currentValue
-                    // );
-                    this.commandpattern?.execute(
+
+            const currentValue = this.cellInput?.value;
+            if (this.selection && currentValue && oldvalue && currentValue !== oldvalue) {
+                // this.cellmanager.setCell(
+                //     this.selection.startRow,
+                //     this.selection.startCol,
+                //     currentValue
+                // );
+                this.commandpattern?.execute(
                     new celleditcommand(
-                        this.cellmanager, this.selection.startRow,this.selection.startCol, 
-                        this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "", currentValue)
-                    )
-                }
+                        this.cellmanager, this.selection.startRow, this.selection.startCol,
+                        this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "", currentValue, this.griddrawer)
+                )
+            }
         }
-        
-        
+
+
         this.startAutoScroll();
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
@@ -146,7 +148,7 @@ export class CellSelectionManager {
         this.dragStartCol = col;
         this.mouseMoveHandler = (event) => this.handlePointerMove(event);
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
-        this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
+        this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
     }
 
     handlePointerMove(event: PointerEvent) {
@@ -164,7 +166,7 @@ export class CellSelectionManager {
             if (this.selection && this.dragStartRow !== null && this.dragStartCol !== null) {
                 this.selection.endRow = currentRow;
                 this.selection.endCol = currentCol;
-                this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
+                this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
                 Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
             }
         });

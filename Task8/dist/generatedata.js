@@ -41,7 +41,7 @@ export class GridDataGen {
                 firstName,
                 lastName,
                 Age: age.toString(),
-                Salary: salary
+                Salary: salary.toString()
             });
         }
         return data;

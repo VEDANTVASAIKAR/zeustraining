@@ -49,7 +49,7 @@ function resizeCanvasesWithDPI() {
 // Use this single function for both initial setup and resize events
 window.addEventListener('resize', resizeCanvasesWithDPI);
 resizeCanvasesWithDPI(); // Call immediately to set initial size
-const rows = new Rows(100000);
+const rows = new Rows(1000);
 const cols = new Cols(500);
 const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols, cellManager);
@@ -67,8 +67,8 @@ const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellM
 SelectionManager.seteventmanager(eventManager);
 grid.setSelectionManager(SelectionManager);
 const scrollRefresh = new ScrollRefresh(container, canvas, grid, rows, cols, cellManager);
-const resizerows = new ResizeRows(cols, rows, grid, eventManager, SelectionManager, cellManager, scrollRefresh);
-const resizecols = new ResizeCols(cols, rows, grid, eventManager, SelectionManager, cellManager, scrollRefresh);
+const resizerows = new ResizeRows(cols, rows, grid, eventManager, SelectionManager, cellManager, scrollRefresh, commandpattern);
+const resizecols = new ResizeCols(cols, rows, grid, eventManager, SelectionManager, cellManager, scrollRefresh, commandpattern);
 const rowSelectionManager = new RowSelectionManager(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh);
 const colSelectionManager = new ColumnSelectionManager(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh);
 const cellSelectionManager = new CellSelectionManager(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh, commandpattern);

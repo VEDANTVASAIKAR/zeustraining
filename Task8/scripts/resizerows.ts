@@ -6,6 +6,8 @@ import { selectionManager } from "./selectionmanager.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
 import { drawVisibleRowHeaders, Painter, SelectionRange } from "./paint.js";
 import { CellManager } from "./cellmanager.js";
+import { Commandpattern } from "./commandpattern.js";
+import { resizeRowcommand } from "./resizerowcommand.js";
 
 export class ResizeRows {
     /** Main canvas element */
@@ -28,6 +30,8 @@ export class ResizeRows {
     selection: SelectionRange | null = null;
     ctx: CanvasRenderingContext2D | null;
     cellmanager: CellManager;
+    commandpattern: Commandpattern ;
+    
 
     constructor(
         /** Reference to the Cols object managing column widths */
@@ -37,7 +41,8 @@ export class ResizeRows {
         private eventManager: EventManager, 
         private selectionManager: selectionManager, 
         cellmanager: CellManager,
-        scrollRefresh: ScrollRefresh | null = null
+        scrollRefresh: ScrollRefresh | null = null,
+        commandpattern: Commandpattern
         
     ){
 
@@ -68,7 +73,7 @@ export class ResizeRows {
       this.scrollRefresh = scrollRefresh;
       this.ctx = this.canvas.getContext("2d");
       this.cellmanager = cellmanager;
-
+      this.commandpattern = commandpattern;
       this.listenSelectionChange();
 
 
@@ -167,6 +172,10 @@ export class ResizeRows {
             
             // Update the height in the rows object
             this.rows.setHeight(this.resizingRow, finalHeight);
+
+            this.commandpattern?.execute(
+                new resizeRowcommand(this.rows,this.resizingRow,finalHeight,this.startHeight,this.griddrawer)
+            );
 
             // Disable the preview line
             this.griddrawer.ctx.clearRect(0, 0, this.griddrawer.canvas.width, this.griddrawer.canvas.height);

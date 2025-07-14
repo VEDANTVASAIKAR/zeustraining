@@ -1,28 +1,36 @@
 import { Rows } from "./rows";
 import { Command } from "./command";
+import { GridDrawer } from "./griddrawer.js";   
 
-export class rowresizeRowcommand implements Command {
+export class resizeRowcommand implements Command {
     private rows: Rows;
     private colIndex: number;
-    private oldWidth: number;
-    private newWidth: number;
+    private oldHeight: number;
+    private newHeight: number;
+    griddrawer: GridDrawer;
 
-    constructor(rows: Rows, colIndex: number, newWidth: number) {
+    constructor(rows: Rows, colIndex: number, newHeight: number,oldHeight: number,griddrawer: GridDrawer) {
         this.rows = rows;
         this.colIndex = colIndex;
-        this.oldWidth = this.rows.getHeight(colIndex);
-        this.newWidth = newWidth;
+        this.oldHeight = oldHeight;
+        this.newHeight = newHeight;
+        this.griddrawer = griddrawer;
     }
 
     execute(): void {
-        this.rows.setHeight(this.colIndex, this.newWidth);
+        this.rows.setHeight(this.colIndex, this.newHeight);
+        this.griddrawer.paintSelectionsAndHeaders();
     }
 
     undo(): void {
-        this.rows.setHeight(this.colIndex, this.oldWidth);
+        this.rows.setHeight(this.colIndex, this.oldHeight);
+        this.griddrawer.paintSelectionsAndHeaders();
+
     }
 
     redo(): void {
         this.execute();
+        this.griddrawer.paintSelectionsAndHeaders();
+
     }
 }

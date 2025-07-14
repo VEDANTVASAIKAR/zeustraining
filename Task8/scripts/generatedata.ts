@@ -3,7 +3,7 @@ interface JSONData {
     firstName: string;
     lastName: string;
     Age: string;
-    Salary: number;
+    Salary: string;
 }
  
 /**
@@ -57,7 +57,7 @@ export class GridDataGen {
                 firstName,
                 lastName,
                 Age: age.toString(),
-                Salary: salary
+                Salary: salary.toString()
             });
         }
  

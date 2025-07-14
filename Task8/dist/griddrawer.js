@@ -1,4 +1,6 @@
 import { getExcelColumnLabel } from "./utils.js";
+import { Painter } from "./paint.js";
+import { drawVisibleColumnHeaders, drawVisibleRowHeaders } from "./paint.js";
 /**
  * GridDrawer class is responsible for all canvas rendering operations
  * It handles drawing the grid, cells, and optimization for large datasets
@@ -6,6 +8,8 @@ import { getExcelColumnLabel } from "./utils.js";
 export class GridDrawer {
     constructor(canvasId, rows, cols, cellmanager) {
         this.selectionManager = null;
+        this.selection = null;
+        this.selectionarr = [];
         this.canvas = document.getElementById(canvasId);
         this.container = document.querySelector('.container');
         this.overlay = document.getElementById('overlay');
@@ -24,6 +28,11 @@ export class GridDrawer {
         });
         this.rows = rows;
         this.cols = cols;
+        // Listen for selection changes
+        window.addEventListener('selection-changed', (event) => {
+            this.selection = event.detail.selection;
+            this.selectionarr = event.detail.selectionarr || [];
+        });
     }
     setSelectionManager(selectionManager) {
         this.selectionManager = selectionManager;
@@ -230,5 +239,13 @@ export class GridDrawer {
     }
     clearOverlay() {
         this.overlayCtx.clearRect(0, 0, this.overlay.width, this.overlay.height);
+    }
+    paintSelectionsAndHeaders(ctx = this.ctx, rows = this.rows, cols = this.cols, cellmanager = this.cellmanager, container = this.container, selection = this.selection, selectionarr = this.selectionarr) {
+        const { startRow, endRow, startCol, endCol } = this.getVisibleRange(rows, cols);
+        // Paint selected cells and overlays
+        Painter.paintSelectedCells(ctx, this, rows, cols, cellmanager, container, selection, selectionarr);
+        // Paint sticky headers last (on top)
+        drawVisibleColumnHeaders(startCol, endCol, rows, cols, container, ctx, selectionarr, selection);
+        drawVisibleRowHeaders(startRow, endRow, rows, cols, container, ctx, selectionarr, selection);
     }
 }

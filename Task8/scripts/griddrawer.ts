@@ -6,6 +6,7 @@ import { CellManager } from "./cellmanager.js";
 import { getExcelColumnLabel } from "./utils.js";
 import { selectionManager } from "./selectionmanager.js"; 
 import { paintCell, Painter, SelectionRange } from "./paint.js";
+import { drawVisibleColumnHeaders, drawVisibleRowHeaders } from "./paint.js";
 
 /**
  * GridDrawer class is responsible for all canvas rendering operations
@@ -21,6 +22,8 @@ export class GridDrawer {
   cols: Cols; 
   overlay: HTMLCanvasElement;
   overlayCtx: CanvasRenderingContext2D;
+  selection: { startRow: number; startCol: number; endRow: number; endCol: number; } | null = null;
+  selectionarr: { startRow: number; startCol: number; endRow: number; endCol: number; }[] = [];
 
   constructor(canvasId: string, rows: Rows, cols: Cols, cellmanager: CellManager) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -40,6 +43,11 @@ export class GridDrawer {
     });
     this.rows = rows;
     this.cols = cols;
+    // Listen for selection changes
+        window.addEventListener('selection-changed', (event: any) => {
+            this.selection = event.detail.selection;
+            this.selectionarr = event.detail.selectionarr || [];
+        });
   }
 
   setSelectionManager(selectionManager: selectionManager) {
@@ -268,4 +276,31 @@ export class GridDrawer {
   clearOverlay() {
     this.overlayCtx.clearRect(0, 0, this.overlay.width, this.overlay.height);
   }
+
+  public paintSelectionsAndHeaders(
+        ctx: CanvasRenderingContext2D = this.ctx,
+        rows: Rows = this.rows,
+        cols: Cols = this.cols,
+        cellmanager: CellManager = this.cellmanager,
+        container: HTMLElement = this.container,
+        selection: SelectionRange | null = this.selection,
+        selectionarr: SelectionRange[] = this.selectionarr
+    ) {
+        const { startRow, endRow, startCol, endCol } = this.getVisibleRange(rows, cols);
+
+        // Paint selected cells and overlays
+        Painter.paintSelectedCells(
+            ctx,
+            this,
+            rows,
+            cols,
+            cellmanager,
+            container,
+            selection,
+            selectionarr
+        );
+        // Paint sticky headers last (on top)
+        drawVisibleColumnHeaders(startCol, endCol, rows, cols, container, ctx, selectionarr, selection!);
+        drawVisibleRowHeaders(startRow, endRow, rows, cols, container, ctx, selectionarr, selection!);
+    }
 }
