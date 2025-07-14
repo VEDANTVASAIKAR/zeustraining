@@ -32,14 +32,12 @@ export class GridDrawer {
         for (let j = 1; j < cols.n; j++) {
             let label = getExcelColumnLabel(j - 1);
             this.cellmanager.setCell(0, j, label);
-            this.selectionManager?.paintCell(0, j, label, rows, cols);
         }
     }
     rowheaders(rows, cols) {
         for (let i = 1; i <= rows.n; i++) {
             let label = i;
             this.cellmanager.setCell(i, 0, label);
-            this.selectionManager?.paintCell(i, 0, label, rows, cols);
         }
     }
     /** Modular function: Calculate the visible row/col range */

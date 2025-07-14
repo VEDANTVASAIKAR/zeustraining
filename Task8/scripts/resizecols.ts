@@ -174,12 +174,9 @@ export class ResizeCols {
             // Redraw everything
             this.griddrawer.rendervisible(this.rows,this.cols)
             // }
-            if (this.selection){
-                    this.selectionManager.paintSelectedCells(this.selection?.startRow,this.selection?.startCol,this.selection?.endRow,this.selection?.endCol);
-                    // this.selectionManager.selectMultipleColumns(this.selection?.startCol, this.selection?.endCol);
-            }
             
-            this.eventManager.updateInputBoxIfVisible();
+            
+            
         }
         // Reset the resizingCol state
         this.resizingCol = null;

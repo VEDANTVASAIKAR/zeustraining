@@ -6,6 +6,8 @@ import { EventManager } from "./eventmanager.js";
 import { Statistics } from "./statistics.js";
 import { Painter, SelectionRange } from "./paint.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
+import { Commandpattern } from "./commandpattern.js";   
+import { celleditcommand } from "./celleditcommand.js";
 
 export class KeyboardCellSelection {
     griddrawer: GridDrawer;
@@ -21,6 +23,7 @@ export class KeyboardCellSelection {
     activeSelection: SelectionRange | null = null;
     cellInput: HTMLInputElement | null = null;
     selectionarr: SelectionRange[] = [];
+    commandpattern: Commandpattern ;
 
     constructor(
         griddrawer: GridDrawer,
@@ -29,7 +32,8 @@ export class KeyboardCellSelection {
         cellmanager: CellManager,
         canvas: HTMLCanvasElement,
         statistics: Statistics | null = null,
-        scrollRefresh : ScrollRefresh | null = null
+        scrollRefresh : ScrollRefresh | null = null,
+        Commandpattern: Commandpattern
     ) {
         this.container = document.querySelector('.container') as HTMLElement;
         this.griddrawer = griddrawer;
@@ -41,20 +45,23 @@ export class KeyboardCellSelection {
         this.statistics = statistics;
         this.cellInput = document.getElementById("cellInput") as HTMLInputElement;
         this.scrollRefresh = scrollRefresh;
+        this.commandpattern = Commandpattern;
         this.listenSelectionChange();
         this.initKeyboardEvents();
-        this.cellInput?.addEventListener("input", (e) => {
-            if (this.activeSelection?.startRow !== null && this.activeSelection?.startCol !== null) {
-                const currentValue = this.cellInput?.value;
-                if (this.activeSelection && currentValue) {
-                    this.cellmanager.setCell(
-                        this.activeSelection.startRow,
-                        this.activeSelection.startCol,
-                        currentValue
-                    );
-                }
-            }
-        });
+        // this.cellInput?.addEventListener("input", (e) => {
+        //     if (this.activeSelection?.startRow !== null && this.activeSelection?.startCol !== null) {
+        //         const currentValue = this.cellInput?.value;
+        //         if (this.activeSelection && currentValue) {
+
+                    
+        //             this.commandpattern?.execute(
+        //             new celleditcommand(
+        //                 this.cellmanager, this.activeSelection.startRow,this.activeSelection.startCol, 
+        //                 this.cellmanager.getCell(this.activeSelection.startRow, this.activeSelection.startCol)?.value || "", currentValue)
+        //             )
+        //         }
+        //     }
+        // });
     }
 
     seteventmanager(em: EventManager) {
@@ -98,6 +105,9 @@ export class KeyboardCellSelection {
         this.canvas.addEventListener('keydown', (e) => this.handleKeyDown(e));
     }
 
+
+    
+
     /**
      * Handles keydown events for selection manipulation
      * @param e The keyboard event
@@ -132,6 +142,7 @@ export class KeyboardCellSelection {
                     currentselectedcol = Math.min(this.cols.n - 1, currentselectedcol + 1);
                     moved = true;
                     break;
+
                 default:
                     // Focus cell input on typing keys
                     if (
@@ -152,7 +163,7 @@ export class KeyboardCellSelection {
                     endCol: currentselectedcol
                 };
 
-                this.eventmanager?.positionInput(currentselectedrow, currentselectedcol);
+                
 
                 // SCROLL LOGIC
                 this.scrollSelectedCellIntoView(this.activeSelection, this.rows, this.cols, this.container);
@@ -223,6 +234,8 @@ export class KeyboardCellSelection {
                 e.preventDefault();
             }
         }
+
+        // this.cellInput?.focus();
     }
 
     scrollSelectedCellIntoView(

@@ -15,6 +15,7 @@ import { CellSelectionManager } from "./cellselection.js";
 import { KeyboardCellSelection } from "./keyboardselection.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
 import { SelectionInputManager } from "./positioninput.js";
+import { Commandpattern } from "./commandpattern.js";
 let selectedRow = null;
 let selectedCol = null;
 let container = document.querySelector('.container');
@@ -59,7 +60,8 @@ const Inputdiv = document.getElementById("inputt");
 const cellInput = document.getElementById("cellInput");
 // pass grid and cellManager to event manager
 const statistics = new Statistics(canvas, cellManager);
-const SelectionManager = new selectionManager(grid, rows, cols, cellManager, canvas, statistics);
+const commandpattern = new Commandpattern();
+const SelectionManager = new selectionManager(grid, rows, cols, cellManager, canvas, statistics, commandpattern);
 statistics.setSelectionManager(SelectionManager);
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager, SelectionManager);
 SelectionManager.seteventmanager(eventManager);
@@ -69,10 +71,16 @@ const resizerows = new ResizeRows(cols, rows, grid, eventManager, SelectionManag
 const resizecols = new ResizeCols(cols, rows, grid, eventManager, SelectionManager, cellManager, scrollRefresh);
 const rowSelectionManager = new RowSelectionManager(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh);
 const colSelectionManager = new ColumnSelectionManager(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh);
-const cellSelectionManager = new CellSelectionManager(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh);
+const cellSelectionManager = new CellSelectionManager(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh, commandpattern);
 const pointerHandlers = new PointerHandlers(container, eventManager, resizerows, resizecols, rowSelectionManager, colSelectionManager, cellSelectionManager);
-const keyboardSelection = new KeyboardCellSelection(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh);
+const keyboardSelection = new KeyboardCellSelection(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh, commandpattern);
 const selectionInputManager = new SelectionInputManager(container, cellInput, grid, rows, cols, cellManager);
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'z')
+        commandpattern.undo();
+    if (e.ctrlKey && e.key === 'y')
+        commandpattern.redo();
+});
 /**
  * Loads data into the grid.
  * @param {any[]} data - An array of objects to load.

@@ -1,4 +1,4 @@
-import { Painter, SelectionRange } from "./paint.js";
+import { drawFixedColumnHeader, drawFixedRowHeader, drawVisibleColumnHeaders, drawVisibleRowHeaders, Painter, SelectionRange } from "./paint.js";
 import { Rows } from "./rows.js";
 import { Cols } from "./cols.js";
 import { CellManager } from "./cellmanager.js";
@@ -44,6 +44,8 @@ export class ScrollRefresh {
         this.container.addEventListener('scroll', () => {
             console.log(this.selection, this.selectionarr);
             requestAnimationFrame(() => {
+                const { startRow, endRow, startCol, endCol } = this.griddrawer.getVisibleRange(this.rows, this.cols);
+                
                 Painter.paintSelectedCells(
                 this.ctx,
                 this.griddrawer,
@@ -54,6 +56,8 @@ export class ScrollRefresh {
                 this.selection,
                 this.selectionarr
                 ); 
+                drawVisibleColumnHeaders(startCol, endCol, this.rows, this.cols, this.container,this.ctx,this.selectionarr,this.selection!);
+                drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection!);           
             });
             
         });

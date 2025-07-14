@@ -72,6 +72,8 @@ export class Painter {
         selection: SelectionRange | null,
         selectionarr: SelectionRange[]
     ) {
+        const { startRow, endRow, startCol, endCol } = griddrawer.getVisibleRange(rows, cols);
+
         if (!ctx) return;
         // Ensure grid is rendered (not responsible for selection painting)
         griddrawer.rendervisible(rows, cols);
@@ -90,6 +92,9 @@ export class Painter {
             paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible);
             paintSelectionRectangle(ctx, rows, cols, container, selection, visible, true);
         }
+        drawVisibleColumnHeaders(startCol, endCol, rows, cols, container,ctx,selectionarr,selection!);
+        drawVisibleRowHeaders(startRow, endRow, rows, cols, container, ctx, selectionarr, selection!);           
+
     }
 }
 
@@ -225,11 +230,14 @@ function paintSelectionRectangle(
     visible: { visibleLeft: number; visibleRight: number; visibleTop: number; visibleBottom: number },
     isActive: boolean // true for main selection, false for multi-selection
 ) {
-    // Clamp selection rectangle to visible region
-    const minRow = Math.max(Math.min(selection.startRow, selection.endRow), visible.visibleTop);
-    const maxRow = Math.min(Math.max(selection.startRow, selection.endRow), visible.visibleBottom);
-    const minCol = Math.max(Math.min(selection.startCol, selection.endCol), visible.visibleLeft);
-    const maxCol = Math.min(Math.max(selection.startCol, selection.endCol), visible.visibleRight);
+    // Clamp to data region (never include header row/col)
+    const minRow = Math.max(1, Math.max(Math.min(selection.startRow, selection.endRow), visible.visibleTop));
+    const maxRow = Math.max(1, Math.min(Math.max(selection.startRow, selection.endRow), visible.visibleBottom));
+    const minCol = Math.max(1, Math.max(Math.min(selection.startCol, selection.endCol), visible.visibleLeft));
+    const maxCol = Math.max(1, Math.min(Math.max(selection.startCol, selection.endCol), visible.visibleRight));
+
+    // If selection is entirely in header, don't draw
+    if (minRow > maxRow || minCol > maxCol) return;
 
     // Compute top-left pixel of the rectangle
     let x = 0, y = 0;
@@ -247,7 +255,6 @@ function paintSelectionRectangle(
 
     ctx.save();
     ctx.globalAlpha = 1;
-    // Highlight color/border: do NOT change color, just draw the rectangle
     ctx.strokeStyle = "rgb(19,126,67)";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -542,6 +549,25 @@ export function drawFixedRowHeader(row: number, col:number, rows: Rows, cols: Co
             ctx.fillStyle = "rgba(245,245,245,0.95)";
             ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
         }
+
+    // Header borders (bottom for col headers, right for row headers)
+    if (isSelectedColumnHeader || isHighlightedColumnHeader) {
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#0a753a";
+        ctx.beginPath();
+        ctx.moveTo(drawX + 0.5, drawY + h - 0.5);
+        ctx.lineTo(drawX + w - 0.5, drawY + h - 0.5);
+        ctx.stroke();
+    }
+    if (isSelectedRowHeader || isHighlightedRowHeader) {
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#0a753a";
+        ctx.beginPath();
+        ctx.moveTo(drawX + w - 0.5, drawY + 0.5);
+        ctx.lineTo(drawX + w - 0.5, drawY + h - 0.5);
+        ctx.stroke();
+    }
+    ctx.lineWidth = 1;
     
     ctx.strokeStyle = "#e0e0e0";
     ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
@@ -613,13 +639,32 @@ export function drawFixedColumnHeader(row: number, col: number, rows: Rows, cols
         ctx.fillRect(drawX + 0.5, drawY + 0.5, w - 1, h - 1);
     }
 
+    // Header borders (bottom for col headers, right for row headers)
+    if (isSelectedColumnHeader || isHighlightedColumnHeader) {
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#0a753a";
+        ctx.beginPath();
+        ctx.moveTo(drawX + 0.5, drawY + h - 0.5);
+        ctx.lineTo(drawX + w - 0.5, drawY + h - 0.5);
+        ctx.stroke();
+    }
+    if (isSelectedRowHeader || isHighlightedRowHeader) {
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#0a753a";
+        ctx.beginPath();
+        ctx.moveTo(drawX + w - 0.5, drawY + 0.5);
+        ctx.lineTo(drawX + w - 0.5, drawY + h - 0.5);
+        ctx.stroke();
+    }
+    ctx.lineWidth = 1;
+
     ctx.strokeStyle = "#e0e0e0";
     ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
     ctx.fillStyle = "#000";
     ctx.font = "12px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(String(col), drawX + w / 2, drawY + h / 2);
+    ctx.fillText(getExcelColumnLabel(col - 1), drawX + w / 2, drawY + h / 2);
 }
 
 /** Modular function: Draw all column headers in visible range */

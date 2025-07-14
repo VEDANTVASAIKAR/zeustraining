@@ -7,6 +7,8 @@ import { EventManager } from "./eventmanager.js";
 import { Statistics } from "./statistics.js";
 import { Painter, SelectionRange } from "./paint.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
+import { Commandpattern } from "./commandpattern.js";
+import { celleditcommand } from "./celleditcommand.js";
 
 export class CellSelectionManager {
     griddrawer: GridDrawer;
@@ -18,7 +20,7 @@ export class CellSelectionManager {
     container: HTMLElement;
     statistics: Statistics | null = null;
     eventmanager: EventManager | null = null;
-
+    commandpattern: Commandpattern;
     selectionarr: SelectionRange[] = [];
     selection: SelectionRange | null = null;
     dragStartRow: number | null = null;
@@ -37,7 +39,8 @@ export class CellSelectionManager {
         cellmanager: CellManager,
         canvas: HTMLCanvasElement,
         statistics: Statistics | null = null,
-        scrollRefresh : ScrollRefresh | null = null
+        scrollRefresh : ScrollRefresh | null = null,
+        commandpattern: Commandpattern
     ) {
         this.container = document.querySelector('.container') as HTMLElement;
         this.griddrawer = griddrawer;
@@ -50,15 +53,16 @@ export class CellSelectionManager {
         this.cellInput = document.getElementById("cellInput") as HTMLInputElement;
         this.scrollRefresh = scrollRefresh;
         this.listenSelectionChange();
+        this.commandpattern = commandpattern;
         this.cellInput?.addEventListener("input", (e) => {
             if (this.selection?.startRow !== null && this.selection?.startCol !== null) {
                 const currentValue = this.cellInput?.value;
                 if (this.selection && currentValue) {
-                    this.cellmanager.setCell(
-                        this.selection.startRow,
-                        this.selection.startCol,
-                        currentValue
-                    );
+                    // this.cellmanager.setCell(
+                    //     this.selection.startRow,
+                    //     this.selection.startCol,
+                    //     currentValue
+                    // );
                 }
             }
         });
@@ -101,6 +105,23 @@ export class CellSelectionManager {
 
     handlePointerDown(event: PointerEvent) {
         console.log('cellselection handlePointerDown');
+
+        if (this.selection?.startRow !== null && this.selection?.startCol !== null) {
+                const currentValue = this.cellInput?.value;
+                if (this.selection && currentValue) {
+                    // this.cellmanager.setCell(
+                    //     this.selection.startRow,
+                    //     this.selection.startCol,
+                    //     currentValue
+                    // );
+                    this.commandpattern?.execute(
+                    new celleditcommand(
+                        this.cellmanager, this.selection.startRow,this.selection.startCol, 
+                        this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "", currentValue)
+                    )
+                }
+        }
+        
         
         this.startAutoScroll();
         const rect = this.canvas.getBoundingClientRect();

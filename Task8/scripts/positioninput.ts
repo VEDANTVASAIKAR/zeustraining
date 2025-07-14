@@ -94,7 +94,8 @@ export class SelectionInputManager {
 
     // Get cell value for input
     const cell = this.cellmanager.getCell(startRow, startCol);
-    const value = cell && cell.value !== undefined && cell.value !== null ? String(cell.value) : "";
+    // const value = cell && cell.value !== undefined && cell.value !== null ? String(cell.value) : "";
+    const value = this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || ""
 
     // Calculate left/top based on cell position and scroll
     const left = this.getCellLeft(startCol) ;
@@ -108,7 +109,7 @@ export class SelectionInputManager {
     this.cellInput.style.width = `${width}px`;
     this.cellInput.style.height = `${height}px`;
     this.cellInput.style.display = "block";
-    this.cellInput.value = value;
+    this.cellInput.value = value.toString();
   }
 
   /** Helper to get left position of a column */

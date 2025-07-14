@@ -5,7 +5,7 @@ import { CELL_WIDTH, CELL_HEIGHT } from "./constants.js";
 import { CellManager } from "./cellmanager.js";
 import { getExcelColumnLabel } from "./utils.js";
 import { selectionManager } from "./selectionmanager.js"; 
-import { Painter, SelectionRange } from "./paint.js";
+import { paintCell, Painter, SelectionRange } from "./paint.js";
 
 /**
  * GridDrawer class is responsible for all canvas rendering operations
@@ -50,7 +50,7 @@ export class GridDrawer {
     for (let j = 1; j < cols.n; j++) {
       let label = getExcelColumnLabel(j - 1);
       this.cellmanager.setCell(0, j, label);
-      this.selectionManager?.paintCell(0, j, label, rows, cols);
+      
     }     
   }
 
@@ -58,7 +58,7 @@ export class GridDrawer {
     for (let i = 1; i <= rows.n; i++) {
       let label = i;
       this.cellmanager.setCell(i, 0, label);
-      this.selectionManager?.paintCell(i, 0, label, rows, cols);
+     
     }
   }
 

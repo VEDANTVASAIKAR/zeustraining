@@ -1,6 +1,6 @@
 import { Painter } from "./paint.js";
 export class KeyboardCellSelection {
-    constructor(griddrawer, rows, cols, cellmanager, canvas, statistics = null, scrollRefresh = null) {
+    constructor(griddrawer, rows, cols, cellmanager, canvas, statistics = null, scrollRefresh = null, Commandpattern) {
         this.statistics = null;
         this.eventmanager = null;
         this.scrollRefresh = null;
@@ -17,16 +17,21 @@ export class KeyboardCellSelection {
         this.statistics = statistics;
         this.cellInput = document.getElementById("cellInput");
         this.scrollRefresh = scrollRefresh;
+        this.commandpattern = Commandpattern;
         this.listenSelectionChange();
         this.initKeyboardEvents();
-        this.cellInput?.addEventListener("input", (e) => {
-            if (this.activeSelection?.startRow !== null && this.activeSelection?.startCol !== null) {
-                const currentValue = this.cellInput?.value;
-                if (this.activeSelection && currentValue) {
-                    this.cellmanager.setCell(this.activeSelection.startRow, this.activeSelection.startCol, currentValue);
-                }
-            }
-        });
+        // this.cellInput?.addEventListener("input", (e) => {
+        //     if (this.activeSelection?.startRow !== null && this.activeSelection?.startCol !== null) {
+        //         const currentValue = this.cellInput?.value;
+        //         if (this.activeSelection && currentValue) {
+        //             this.commandpattern?.execute(
+        //             new celleditcommand(
+        //                 this.cellmanager, this.activeSelection.startRow,this.activeSelection.startCol, 
+        //                 this.cellmanager.getCell(this.activeSelection.startRow, this.activeSelection.startCol)?.value || "", currentValue)
+        //             )
+        //         }
+        //     }
+        // });
     }
     seteventmanager(em) {
         this.eventmanager = em;
@@ -102,7 +107,6 @@ export class KeyboardCellSelection {
                     endRow: currentselectedrow,
                     endCol: currentselectedcol
                 };
-                this.eventmanager?.positionInput(currentselectedrow, currentselectedcol);
                 // SCROLL LOGIC
                 this.scrollSelectedCellIntoView(this.activeSelection, this.rows, this.cols, this.container);
                 // Visual update and dispatch
@@ -148,6 +152,7 @@ export class KeyboardCellSelection {
                 e.preventDefault();
             }
         }
+        // this.cellInput?.focus();
     }
     scrollSelectedCellIntoView(activeSelection, rows, cols, container) {
         // Compute cell's absolute position and dimensions in the virtual grid

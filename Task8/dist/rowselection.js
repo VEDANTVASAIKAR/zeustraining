@@ -70,7 +70,6 @@ export class RowSelectionManager {
             else {
                 this.selectionarr = [];
             }
-            this.eventmanager?.setActiveCell(row, 1);
             this.selection = {
                 startRow: row,
                 startCol: 0,

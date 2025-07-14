@@ -177,12 +177,7 @@ export class ResizeRows {
             // Redraw everything
             this.griddrawer.rendervisible(this.rows, this.cols)
 
-            // If a selection exists, repaint it
-            if (this.selection){
-                    this.selectionManager.paintSelectedCells(this.selection?.startRow,this.selection?.startCol,this.selection?.endRow,this.selection?.endCol);
-                    // this.selectionManager.selectMultipleRows(this.selection?.startRow, this.selection?.endRow);
-            }
-            this.eventManager.updateInputBoxIfVisible();
+           
         }
         // Reset the resizingRow state
         this.resizingRow = null;

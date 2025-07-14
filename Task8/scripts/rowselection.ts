@@ -106,7 +106,7 @@ export class RowSelectionManager {
                 this.selectionarr = [];
             }
 
-            this.eventmanager?.setActiveCell(row, 1);
+            
 
             this.selection = {
                 startRow: row,

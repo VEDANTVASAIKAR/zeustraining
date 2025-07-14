@@ -68,7 +68,6 @@ export class ColumnSelectionManager {
             else {
                 this.selectionarr = [];
             }
-            this.eventmanager?.setActiveCell(1, col);
             this.selection = {
                 startRow: 0,
                 startCol: col,
