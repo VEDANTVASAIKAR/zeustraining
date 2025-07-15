@@ -1,4 +1,3 @@
-import { findIndexFromCoord } from "./utils.js";
 /**
  * Manages all event listeners for the grid and input elements.
  */
@@ -43,34 +42,33 @@ export class EventManager {
         console.log('eventmanager: handledblClick');
         this.cellInput.focus();
     }
-    handleCanvasClick(event) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        // Add scroll offset to get position in the virtual grid
-        const virtualX = x + this.container.scrollLeft;
-        const virtualY = y + this.container.scrollTop;
-        const col = findIndexFromCoord(virtualX, this.cols.widths);
-        const row = findIndexFromCoord(virtualY, this.rows.heights);
-        // avoid editing headers
-        if (row <= 0 || col <= 0)
-            return;
-        // Check if clicking on an already selected cell with visible input
-        const isSameCell = (row === this.selectedRow && col === this.selectedCol);
-        if (isSameCell && this.cellInput.style.display === "block") {
-            // Prevent the browser's default focus behavior for the input
-            event.preventDefault();
-            event.stopPropagation();
-            // Important: Explicitly keep focus on the canvas
-            this.canvas.focus();
-            return;
-        }
-        this.selectedRow = row;
-        this.selectedCol = col;
-        // this.notifySelectionChange();
-        // Keep focus on the canvas instead of the input
-        this.canvas.focus();
-    }
+    // handleCanvasClick(event: PointerEvent) {
+    //     const rect = this.canvas.getBoundingClientRect();
+    //     const x = event.clientX - rect.left;
+    //     const y = event.clientY - rect.top;
+    //     // Add scroll offset to get position in the virtual grid
+    //     const virtualX = x + this.container.scrollLeft;
+    //     const virtualY = y + this.container.scrollTop;
+    //     const col = findIndexFromCoord(virtualX, this.cols.widths);
+    //     const row = findIndexFromCoord(virtualY, this.rows.heights);
+    //     // avoid editing headers
+    //     if (row <= 0 || col <= 0) return;
+    //     // Check if clicking on an already selected cell with visible input
+    //     const isSameCell = (row === this.selectedRow && col === this.selectedCol);
+    //     if (isSameCell && this.cellInput.style.display === "block") {
+    //         // Prevent the browser's default focus behavior for the input
+    //         event.preventDefault();
+    //         event.stopPropagation();
+    //         // Important: Explicitly keep focus on the canvas
+    //         this.canvas.focus();
+    //         return;
+    //     }
+    //     this.selectedRow = row;
+    //     this.selectedCol = col;
+    //     // this.notifySelectionChange();
+    //     // Keep focus on the canvas instead of the input
+    //     this.canvas.focus();
+    // }
     showresizehandles(event) {
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;

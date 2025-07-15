@@ -1,4 +1,5 @@
 import { Painter } from "./paint.js";
+import { celleditcommand } from "./celleditcommand.js";
 export class KeyboardCellSelection {
     constructor(griddrawer, rows, cols, cellmanager, canvas, statistics = null, scrollRefresh = null, Commandpattern) {
         this.statistics = null;
@@ -16,6 +17,7 @@ export class KeyboardCellSelection {
         this.ctx = this.canvas.getContext("2d");
         this.statistics = statistics;
         this.cellInput = document.getElementById("cellInput");
+        // this.cellInput?.addEventListener('keydown', (e) => this.handleKeyDown(e));
         this.scrollRefresh = scrollRefresh;
         this.commandpattern = Commandpattern;
         this.listenSelectionChange();
@@ -55,8 +57,8 @@ export class KeyboardCellSelection {
     }
     initKeyboardEvents() {
         // Make canvas focusable if not already
-        this.canvas.tabIndex = 0;
-        this.canvas.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        // this.canvas.tabIndex = 0;
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
     }
     /**
      * Handles keydown events for selection manipulation
@@ -74,21 +76,26 @@ export class KeyboardCellSelection {
                 case 'ArrowUp':
                     if (currentselectedrow > 1) {
                         currentselectedrow -= 1;
+                        this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol);
                         moved = true;
                     }
                     break;
                 case 'ArrowDown':
                     currentselectedrow = Math.min(this.rows.n - 1, currentselectedrow + 1);
+                    this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol);
+                    this.cellInput?.blur();
                     moved = true;
                     break;
                 case 'ArrowLeft':
                     if (currentselectedcol > 1) {
                         currentselectedcol -= 1;
+                        this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol);
                         moved = true;
                     }
                     break;
                 case 'ArrowRight':
                     currentselectedcol = Math.min(this.cols.n - 1, currentselectedcol + 1);
+                    this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol);
                     moved = true;
                     break;
                 default:
@@ -97,7 +104,7 @@ export class KeyboardCellSelection {
                         !e.ctrlKey && !e.altKey && !e.metaKey &&
                         !['ArrowUp', 'ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) {
                         this.cellInput?.focus();
-                        e.preventDefault();
+                        // e.preventDefault();
                     }
             }
             if (moved) {
@@ -180,6 +187,26 @@ export class KeyboardCellSelection {
         }
         else if (cellTop + cellHeight > viewportBottom) {
             container.scrollTop = cellTop + cellHeight - container.clientHeight;
+        }
+    }
+    updateInputValue(row, col) {
+        let oldvalue = this.cellmanager.getCell(row, col)?.value || "";
+        ;
+        const currentValue = this.cellInput?.value;
+        console.log('cellselection handlePointerDown currentValue:', currentValue);
+        console.log('cellselection handlePointerDown oldvalue:', oldvalue);
+        if (this.activeSelection && currentValue && currentValue !== oldvalue) {
+            // this.cellmanager.setCell(
+            //     row,
+            //     col,
+            //     currentValue
+            // );
+            this.commandpattern?.execute(new celleditcommand(this.cellmanager, row, col, this.cellmanager.getCell(row, col)?.value || "", currentValue, this.griddrawer, this.cellInput));
+        }
+    }
+    updateinputvalue() {
+        if (this.cellInput && this.activeSelection) {
+            this.cellInput.value = this.cellmanager.getCell(this.activeSelection?.startRow, this.activeSelection?.startCol)?.value?.toString() || "";
         }
     }
 }

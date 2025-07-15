@@ -19,6 +19,7 @@ import { Painter } from "./paint.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
 import { SelectionInputManager } from "./positioninput.js"; 
 import { Commandpattern } from "./commandpattern.js";
+import { Cornercell } from "./cornercell.js";
 
 
 let selectedRow: number | null = null;
@@ -62,7 +63,7 @@ function resizeCanvasesWithDPI() {
 window.addEventListener('resize', resizeCanvasesWithDPI);
 resizeCanvasesWithDPI(); // Call immediately to set initial size
 
-const rows = new Rows(1000);
+const rows = new Rows(100000);
 const cols = new Cols(500); 
 
 const cellManager = new CellManager();
@@ -91,9 +92,11 @@ const resizerows = new ResizeRows(cols, rows, grid, eventManager, SelectionManag
 const resizecols = new ResizeCols(cols, rows, grid, eventManager, SelectionManager,cellManager,scrollRefresh,commandpattern);
 const rowSelectionManager = new RowSelectionManager(grid, rows, cols, cellManager, canvas, statistics,scrollRefresh);
 const colSelectionManager = new ColumnSelectionManager(grid, rows, cols, cellManager, canvas, statistics,scrollRefresh);
-const cellSelectionManager = new CellSelectionManager(grid, rows, cols, cellManager, canvas,statistics,scrollRefresh,commandpattern)
-const pointerHandlers = new PointerHandlers(container,eventManager,resizerows,resizecols,rowSelectionManager,colSelectionManager,cellSelectionManager);
 const keyboardSelection = new KeyboardCellSelection(grid, rows, cols, cellManager, canvas, statistics,scrollRefresh,commandpattern);
+const cellSelectionManager = new CellSelectionManager(grid, rows, cols, cellManager, canvas,statistics,scrollRefresh,commandpattern,keyboardSelection);
+const cornercell = new Cornercell(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh);
+const pointerHandlers = new PointerHandlers(container,eventManager,resizerows,resizecols,rowSelectionManager,colSelectionManager,cellSelectionManager,cornercell);
+
 const selectionInputManager = new SelectionInputManager(container,cellInput,grid,rows,cols,cellManager);
 
 document.addEventListener('keydown', (e) => {
@@ -112,11 +115,13 @@ function loadData(data: any[]) {
 
     // Get headers from the first object's keys
     const headers = Object.keys(data[0]);
+    console.log("Headers:", headers);
+    
 
     // Populate column headers (starting from col 1)
     headers.forEach((header, colIndex) => {
         // We use colIndex + 1 because column 0 is for row numbers.
-        cellManager.setCell(0, colIndex + 1, header);
+        cellManager.setCell(1, colIndex +1 , header);
     });
 
     // Populate data rows
@@ -124,7 +129,7 @@ function loadData(data: any[]) {
         // We use rowIndex + 1 because row 0 is for headers.
         headers.forEach((header, colIndex) => {
             // colIndex + 1 to align with headers
-            cellManager.setCell(rowIndex + 1, colIndex + 1, dataRow[header]);
+            cellManager.setCell(rowIndex + 2, colIndex + 1, dataRow[header]);
         });
     });
 
@@ -133,7 +138,7 @@ function loadData(data: any[]) {
 }
 
 
-let data = new GridDataGen(100000);
+let data = new GridDataGen(1000);
 let values = data.generateData();
 // console.log(values);
 // Load the generated data into the grid

@@ -87,6 +87,7 @@ export class ResizeCols {
                     this.selectionarr = e.detail.selectionarr;
                     
                     
+                    
                     // Painter.paintSelectedCells(
                     //     this.ctx!, this.griddrawer, this.rows, this.cols,
                     //     this.cellmanager, this.container, this.selection, this.selectionarr

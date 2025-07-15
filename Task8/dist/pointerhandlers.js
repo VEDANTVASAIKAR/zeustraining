@@ -1,5 +1,5 @@
 export class PointerHandlers {
-    constructor(container, eventmanager, resizerows, resizecols, rowselection, colselection, cellselection) {
+    constructor(container, eventmanager, resizerows, resizecols, rowselection, colselection, cellselection, cornercell) {
         this.container = container;
         this.eventmanager = eventmanager;
         this.resizerows = resizerows;
@@ -7,6 +7,7 @@ export class PointerHandlers {
         this.rowselection = rowselection;
         this.colselection = colselection;
         this.cellselection = cellselection;
+        this.cornercell = cornercell;
         this.eventarray = [];
         this.eventfunction = null;
         // Always show resize handles on any pointermove
@@ -32,7 +33,7 @@ export class PointerHandlers {
             this.eventfunction = null;
         };
         // Order matters if you want priority on hit test
-        this.eventarray = [this.resizerows, this.resizecols, this.rowselection, this.colselection, this.cellselection];
+        this.eventarray = [this.resizerows, this.resizecols, this.rowselection, this.colselection, this.cellselection, this.cornercell];
         this.attachPointerEvents();
     }
     attachPointerEvents() {

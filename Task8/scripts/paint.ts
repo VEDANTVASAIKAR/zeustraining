@@ -390,15 +390,25 @@ export function paintCell(
     ctx.lineWidth = 1;
 
     // ---- DRAWING TEXT ----
-    ctx.textAlign = "center";
+    // console.log(typeof value, value);
+    
+    ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     ctx.fillStyle = (isSelectedColumnHeader || isSelectedRowHeader) ? "#FFFFFF" : "#000";
     ctx.font = "12px Arial";
-    ctx.fillText(
-        value != null ? String(value) : "",
-        drawX + w / 2,
-        drawY + h / 2
-    );
+    let parsedNum = parseFloat(value != null ? value.toString() : "");
+    if (!isNaN(parsedNum)) {
+        ctx.textAlign = "right";
+        ctx.fillText(value != null ? value.toString() : "", drawX + w - 8, drawY + h / 2);
+    } else {
+        ctx.textAlign = "left";
+        ctx.fillText(value != null ? value.toString() : "", drawX + 8, drawY + h / 2);
+    }
+    // ctx.fillText(
+    //     value != null ? String(value) : "",
+    //     drawX + w / 2,
+    //     drawY + h / 2
+    // );
 }
 
 /**
@@ -573,9 +583,8 @@ export function drawFixedRowHeader(row: number, col:number, rows: Rows, cols: Co
     ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
     ctx.fillStyle = "#000";
     ctx.font = "12px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(String(row), drawX + w / 2, drawY + h / 2);
+    ctx.textAlign = "right";
+    ctx.fillText(row.toString(), drawX + w - 8, drawY + h / 2);
   }
 
 /** Modular function: Draw all row headers in visible range */

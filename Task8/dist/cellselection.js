@@ -2,7 +2,7 @@ import { findIndexFromCoord } from "./utils.js";
 import { Painter } from "./paint.js";
 import { celleditcommand } from "./celleditcommand.js";
 export class CellSelectionManager {
-    constructor(griddrawer, rows, cols, cellmanager, canvas, statistics = null, scrollRefresh = null, commandpattern) {
+    constructor(griddrawer, rows, cols, cellmanager, canvas, statistics = null, scrollRefresh = null, commandpattern, keyboardSelection = null) {
         this.statistics = null;
         this.eventmanager = null;
         this.selectionarr = [];
@@ -15,6 +15,7 @@ export class CellSelectionManager {
         this.lastY = 0;
         this.scrollRefresh = null;
         this.cellInput = null;
+        this.keyboardSelection = null;
         this.container = document.querySelector('.container');
         this.griddrawer = griddrawer;
         this.rows = rows;
@@ -27,6 +28,7 @@ export class CellSelectionManager {
         this.scrollRefresh = scrollRefresh;
         this.listenSelectionChange();
         this.commandpattern = commandpattern;
+        this.keyboardSelection = keyboardSelection;
         this.cellInput?.addEventListener("input", (e) => {
             if (this.selection?.startRow !== null && this.selection?.startCol !== null) {
                 const currentValue = this.cellInput?.value;
@@ -53,6 +55,7 @@ export class CellSelectionManager {
         });
     }
     dispatchSelectionChangeEvent(selection, selectionarr) {
+        console.log('idid');
         const event = new CustomEvent('selection-changed', {
             detail: { selection, selectionarr }
         });
@@ -74,13 +77,15 @@ export class CellSelectionManager {
             let oldvalue = this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "";
             ;
             const currentValue = this.cellInput?.value;
-            if (this.selection && currentValue && oldvalue && currentValue !== oldvalue) {
+            console.log('cellselection handlePointerDown currentValue:', currentValue);
+            console.log('cellselection handlePointerDown oldvalue:', oldvalue);
+            if (this.selection && currentValue && currentValue !== oldvalue) {
                 // this.cellmanager.setCell(
                 //     this.selection.startRow,
                 //     this.selection.startCol,
                 //     currentValue
                 // );
-                this.commandpattern?.execute(new celleditcommand(this.cellmanager, this.selection.startRow, this.selection.startCol, this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "", currentValue, this.griddrawer));
+                this.commandpattern?.execute(new celleditcommand(this.cellmanager, this.selection.startRow, this.selection.startCol, this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "", currentValue, this.griddrawer, this.cellInput, this.keyboardSelection));
             }
         }
         this.startAutoScroll();
@@ -95,7 +100,6 @@ export class CellSelectionManager {
         const row = findIndexFromCoord(virtualY, this.rows.heights);
         if (row < 1 || col < 1)
             return;
-        this.eventmanager?.handleCanvasClick(event);
         this.selection = {
             startRow: row,
             startCol: col,

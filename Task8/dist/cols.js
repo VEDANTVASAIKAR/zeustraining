@@ -4,7 +4,7 @@
 export class Cols {
     /**
      * @param {number} n The number of columns.
-     * @param {number} defaultWidth The default width of each column.
+     * @param {number[]} widths Optional array of column widths.
      */
     constructor(
     /** @type {number} Number of columns */
@@ -15,8 +15,10 @@ export class Cols {
         this.widths = widths;
         // Give each column the default width if not provided
         if (this.widths.length === 0) {
-            this.widths = Array(n).fill(100); // You can use a constant if you prefer
+            this.widths = Array(n).fill(100); // Default width for all columns
         }
+        // Ensure the first column is always 40
+        this.widths[0] = 50;
     }
     /**
      * @param {number} colIndex Index of the column.

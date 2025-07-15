@@ -52,25 +52,25 @@ export class Statistics {
         const ranges = this.selectionarr && this.selectionarr.length > 0
             ? this.selectionarr
             : (this.selection ? [this.selection] : []);
-        for (const range of ranges) {
-            const { startRow, startCol, endRow, endCol } = range;
-            for (let row = startRow; row <= endRow; row++) {
-                for (let col = startCol; col <= endCol; col++) {
-                    const cell = this.cellManager.getCell(row, col);
-                    if (cell) {
-                        selectedCells.push(cell);
-                    }
-                    else {
-                        selectedCells.push({
-                            row: row,
-                            col: col,
-                            value: null,
-                            isSelected: true
-                        });
-                    }
-                }
+        // Utility to check if a cell is in any normalized range
+        function isCellInRanges(row, col, ranges) {
+            return ranges.some(range => {
+                const rowStart = Math.min(range.startRow, range.endRow);
+                const rowEnd = Math.max(range.startRow, range.endRow);
+                const colStart = Math.min(range.startCol, range.endCol);
+                const colEnd = Math.max(range.startCol, range.endCol);
+                return (row >= rowStart && row <= rowEnd &&
+                    col >= colStart && col <= colEnd);
+            });
+        }
+        // Iterate only over cells that exist in cellMap
+        for (const [key, cell] of this.cellManager.cellMap.entries()) {
+            const { row, col } = cell;
+            if (isCellInRanges(row, col, ranges)) {
+                selectedCells.push(cell);
             }
         }
+        console.log('Selected cells:', selectedCells);
         return selectedCells;
     }
     printvalues() {

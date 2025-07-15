@@ -1,9 +1,11 @@
 export class Commandpattern {
-    constructor() {
+    constructor(keyboardSelection = null) {
         /** Stack of executed commands for undo functionality */
         this.undostack = [];
         /** Stack of undone commands for redo functionality */
         this.redostack = [];
+        this.keyboardSelection = null;
+        this.keyboardSelection = keyboardSelection;
     }
     execute(cmd) {
         cmd.execute();
@@ -11,6 +13,7 @@ export class Commandpattern {
         this.redostack = [];
         console.log("EXec Undo", this.undostack);
         console.log("Exec Redo", this.redostack);
+        this.keyboardSelection?.updateinputvalue();
     }
     /**
      * Undoes the last executed command.
@@ -22,6 +25,7 @@ export class Commandpattern {
             cmd.undo();
             this.redostack.push(cmd);
         }
+        this.keyboardSelection?.updateinputvalue();
         console.log("UndoFn Undo", this.undostack);
         console.log("UndoFn Redo", this.redostack);
     }
@@ -35,6 +39,7 @@ export class Commandpattern {
             cmd.redo();
             this.undostack.push(cmd);
         }
+        this.keyboardSelection?.updateinputvalue();
         console.log("RedoFn Undo", this.undostack);
         console.log("RedoFn Redo", this.redostack);
     }

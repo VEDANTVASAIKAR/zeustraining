@@ -177,9 +177,8 @@ export class GridDrawer {
     this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
     this.ctx.fillStyle = "#000";
     this.ctx.font = "12px Arial";
-    this.ctx.textAlign = "center";
-    this.ctx.textBaseline = "middle";
-    this.ctx.fillText(String(row), drawX + w / 2, drawY + h / 2);
+    this.ctx.textAlign = "right";
+    this.ctx.fillText(row.toString(), drawX + w - 8, drawY + h / 2);
   }
 
   drawFixedColumnHeader(col: number, rows: Rows, cols: Cols, scrollLeft: number) {
@@ -224,29 +223,16 @@ export class GridDrawer {
     this.ctx.clearRect(drawX, drawY, w, h);
     this.ctx.strokeStyle = "#e0e0e0";
     this.ctx.strokeRect(drawX + 0.5, drawY + 0.5, w, h);
-    if (isHeader) {
-      this.ctx.textAlign = "center";
-      this.ctx.textBaseline = "middle";
-      this.ctx.fillStyle = "rgba(245,245,245,1)";
-      this.ctx.fillRect(drawX + 0.5, drawY + 0.5, w, h);
-      this.ctx.fillStyle = "#000";
-      this.ctx.font = "12px Arial";
-      this.ctx.fillText(
-        value != null ? String(value) : "",
-        drawX + w / 2,
-        drawY + h / 2
-      );
+    this.ctx.fillStyle = 'black'
+    let parsedNum = parseFloat(value != null ? value.toString() : "");
+     if (!isNaN(parsedNum)) {
+        this.ctx.textAlign = "right";
+        this.ctx.fillText(value != null ? value.toString() : "", drawX + w - 8, drawY + h / 2);
     } else {
-      this.ctx.textAlign = "center";
-      this.ctx.textBaseline = "middle";
-      this.ctx.fillStyle = "#000";
-      this.ctx.font = "12px Arial";
-      this.ctx.fillText(
-        value != null ? String(value) : "",
-        drawX + w / 2,
-        drawY + h / 2
-      );
+        this.ctx.textAlign = "left";
+        this.ctx.fillText(value != null ? value.toString() : "", drawX + 8, drawY + h / 2);
     }
+  
   }
 
   drawPreviewLineOverlay(x: number) {

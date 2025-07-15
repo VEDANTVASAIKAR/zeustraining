@@ -110,6 +110,8 @@ export class SelectionInputManager {
     this.cellInput.style.height = `${height}px`;
     this.cellInput.style.display = "block";
     this.cellInput.value = value.toString();
+  
+    
   }
 
   /** Helper to get left position of a column */

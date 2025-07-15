@@ -5,9 +5,10 @@ import { ResizeCols } from "./resizecols";
 import { RowSelectionManager } from "./rowselection";   
 import { ColumnSelectionManager } from "./colselection";
 import { CellSelectionManager } from "./cellselection";    
+import { Cornercell } from "./cornercell";
 
 // Type for handlers that support hittest/pointer events
-type PointerHandler =  ResizeRows | ResizeCols | RowSelectionManager | ColumnSelectionManager | CellSelectionManager;
+type PointerHandler =  ResizeRows | ResizeCols | RowSelectionManager | ColumnSelectionManager | CellSelectionManager | Cornercell;
 
 export class PointerHandlers {
     eventarray: PointerHandler[] = [];
@@ -20,10 +21,11 @@ export class PointerHandlers {
         private resizecols: ResizeCols,
         private rowselection: RowSelectionManager,
         private colselection: ColumnSelectionManager,  
-        private cellselection: CellSelectionManager    
+        private cellselection: CellSelectionManager,
+        private cornercell: Cornercell
     ) {
         // Order matters if you want priority on hit test
-        this.eventarray = [this.resizerows, this.resizecols, this.rowselection, this.colselection, this.cellselection];
+        this.eventarray = [this.resizerows, this.resizecols, this.rowselection, this.colselection, this.cellselection,this.cornercell];
         this.attachPointerEvents();
     }
 
