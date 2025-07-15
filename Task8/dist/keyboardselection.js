@@ -159,7 +159,7 @@ export class KeyboardCellSelection {
                 e.preventDefault();
             }
         }
-        // this.cellInput?.focus();
+        // this.cellInput?.blur();
     }
     scrollSelectedCellIntoView(activeSelection, rows, cols, container) {
         // Compute cell's absolute position and dimensions in the virtual grid

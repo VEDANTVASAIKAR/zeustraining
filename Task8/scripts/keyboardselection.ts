@@ -244,7 +244,7 @@ export class KeyboardCellSelection {
             }
         }
 
-        // this.cellInput?.focus();
+        // this.cellInput?.blur();
     }
 
     scrollSelectedCellIntoView(

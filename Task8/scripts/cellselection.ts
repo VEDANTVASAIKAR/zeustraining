@@ -58,18 +58,18 @@ export class CellSelectionManager {
         this.listenSelectionChange();
         this.commandpattern = commandpattern;
         this.keyboardSelection = keyboardSelection;
-        this.cellInput?.addEventListener("input", (e) => {
-            if (this.selection?.startRow !== null && this.selection?.startCol !== null) {
-                const currentValue = this.cellInput?.value;
-                if (this.selection && currentValue) {
-                    // this.cellmanager.setCell(
-                    //     this.selection.startRow,
-                    //     this.selection.startCol,
-                    //     currentValue
-                    // );
-                }
-            }
-        });
+        // this.cellInput?.addEventListener("input", (e) => {
+        //     if (this.selection?.startRow !== null && this.selection?.startCol !== null) {
+        //         const currentValue = this.cellInput?.value;
+        //         if (this.selection && currentValue) {
+        //             // this.cellmanager.setCell(
+        //             //     this.selection.startRow,
+        //             //     this.selection.startCol,
+        //             //     currentValue
+        //             // );
+        //         }
+        //     }
+        // });
     }
 
     seteventmanager(em: EventManager) {
@@ -160,6 +160,8 @@ export class CellSelectionManager {
         this.mouseMoveHandler = (event) => this.handlePointerMove(event);
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
         this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
+
+        this.cellInput?.blur()
     }
 
     handlePointerMove(event: PointerEvent) {

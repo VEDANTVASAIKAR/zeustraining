@@ -94,6 +94,10 @@ export class SelectionInputManager {
 
     // Get cell value for input
     const cell = this.cellmanager.getCell(startRow, startCol);
+    console.log(`Positioning input on cell (${startRow}, ${startCol}) with value:`, cell?.value);
+    console.log(this.selection.startRow, this.selection.startCol);
+    
+    
     // const value = cell && cell.value !== undefined && cell.value !== null ? String(cell.value) : "";
     const value = this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || ""
 
