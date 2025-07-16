@@ -70,7 +70,7 @@ export class Statistics {
                 selectedCells.push(cell);
             }
         }
-        console.log('Selected cells:', selectedCells);
+        // console.log('Selected cells:', selectedCells);
         return selectedCells;
     }
     printvalues() {

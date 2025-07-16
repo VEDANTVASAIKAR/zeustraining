@@ -42,7 +42,7 @@ export class ScrollRefresh {
 
         // Attach the scroll event permanently
         this.container.addEventListener('scroll', () => {
-            console.log(this.selection, this.selectionarr);
+            // console.log(this.selection, this.selectionarr);
             requestAnimationFrame(() => {
                 const { startRow, endRow, startCol, endCol } = this.griddrawer.getVisibleRange(this.rows, this.cols);
                 

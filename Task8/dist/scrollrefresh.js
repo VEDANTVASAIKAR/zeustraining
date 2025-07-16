@@ -19,7 +19,7 @@ export class ScrollRefresh {
         this.listenSelectionChange();
         // Attach the scroll event permanently
         this.container.addEventListener('scroll', () => {
-            console.log(this.selection, this.selectionarr);
+            // console.log(this.selection, this.selectionarr);
             requestAnimationFrame(() => {
                 const { startRow, endRow, startCol, endCol } = this.griddrawer.getVisibleRange(this.rows, this.cols);
                 Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);

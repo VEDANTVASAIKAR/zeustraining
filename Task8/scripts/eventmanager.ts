@@ -61,7 +61,7 @@ export class EventManager {
     
 
     handledblClick(event : MouseEvent){
-        console.log('eventmanager: handledblClick');
+        // console.log('eventmanager: handledblClick');
         
         this.cellInput.focus();
     }

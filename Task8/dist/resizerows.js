@@ -73,7 +73,7 @@ export class ResizeRows {
         this.overlayCtx.setLineDash([]); // Reset dash pattern
     }
     handlePointerDown(event) {
-        console.log("Pointer down on row resize");
+        // console.log("Pointer down on row resize");
         if (this.hoveredRowBorder !== null) {
             this.resizingRow = this.hoveredRowBorder;
             this.startY = event.clientY;
@@ -87,7 +87,7 @@ export class ResizeRows {
         }
     }
     handlePointerMove(event) {
-        console.log("Pointer move on row resize");
+        // console.log("Pointer move on row resize");
         if (this.resizingRow !== null) {
             const { startRow, endRow, startCol, endCol } = this.griddrawer.getVisibleRange(this.rows, this.cols);
             const dy = event.clientY - this.startY;
@@ -112,7 +112,7 @@ export class ResizeRows {
         }
     }
     handlePointerUp(event) {
-        console.log("Pointer up on row resize");
+        // console.log("Pointer up on row resize");
         // Only do this if a row is being resized and a preview line exists
         if (this.resizingRow !== null && this.previewLineY !== null) {
             // Calculate the sum of all row heights before the one being resized

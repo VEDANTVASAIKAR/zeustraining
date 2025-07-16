@@ -81,7 +81,7 @@ export class RowSelectionManager {
     }
 
     handlePointerDown(event: PointerEvent) {
-        console.log('rowselection handlePointerDown');
+        // console.log('rowselection handlePointerDown');
         
         this.startAutoScroll();
         const rect = this.canvas.getBoundingClientRect();
@@ -100,7 +100,7 @@ export class RowSelectionManager {
                     endCol: this.cols.n - 1
                 };
                 this.selectionarr.push(rowSelection);
-                console.log("Row selection array:", this.selectionarr);
+                // console.log("Row selection array:", this.selectionarr);
                 
             } else {
                 this.selectionarr = [];
@@ -117,7 +117,7 @@ export class RowSelectionManager {
             this.dragStartRow = row;
             this.mouseMoveHandler = (moveEvent) => this.handlePointerMovee(moveEvent);
             this.container.addEventListener('pointermove', this.mouseMoveHandler);
-            console.log(this.selectionarr);
+            // console.log(this.selectionarr);
             
             // Paint multi-selection and active selection
             Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);

@@ -83,7 +83,7 @@ export class Cornercell {
     }
 
     handlePointerDown(event: PointerEvent) {
-        console.log('corner handlePointerDown');
+        // console.log('corner handlePointerDown');
         
         this.startAutoScroll();
         const rect = this.canvas.getBoundingClientRect();

@@ -84,7 +84,7 @@ export class Statistics {
             }
         }
 
-        console.log('Selected cells:', selectedCells);
+        // console.log('Selected cells:', selectedCells);
 
         return selectedCells;
     }

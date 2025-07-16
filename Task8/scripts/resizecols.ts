@@ -120,7 +120,7 @@ export class ResizeCols {
     }
 
     handlePointerDown(event: PointerEvent) {
-        console.log("Pointer down on column resize");
+        // console.log("Pointer down on column resize");
         
       if (this.hoveredColBorder !== null) {
             this.resizingCol = this.hoveredColBorder;
@@ -170,7 +170,7 @@ export class ResizeCols {
     }
 
     handlePointerUp(event: PointerEvent) {
-        console.log(this.selection, this.selectionarr);
+        // console.log(this.selection, this.selectionarr);
       // Only do this if a column is being resized and a preview line exists
         if (this.resizingCol !== null && this.previewLineX !== null && this.resizingColLeft !== null) {
             // Calculate the sum of all column widths before the one being resized

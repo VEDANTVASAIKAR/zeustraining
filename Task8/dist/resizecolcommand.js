@@ -3,7 +3,7 @@ export class resizeColCommand {
         this.cols = cols;
         this.colIndex = colIndex;
         this.oldWidth = oldWidth;
-        console.log(this.oldWidth);
+        // console.log(this.oldWidth);
         this.newWidth = newWidth;
         this.griddrawer = griddrawer;
     }

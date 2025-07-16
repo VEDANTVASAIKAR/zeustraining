@@ -55,7 +55,7 @@ export class CellSelectionManager {
         });
     }
     dispatchSelectionChangeEvent(selection, selectionarr) {
-        console.log('idid');
+        // console.log('idid');
         const event = new CustomEvent('selection-changed', {
             detail: { selection, selectionarr }
         });
@@ -77,8 +77,8 @@ export class CellSelectionManager {
             let oldvalue = this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "";
             ;
             const currentValue = this.cellInput?.value;
-            console.log('cellselection handlePointerDown currentValue:', currentValue);
-            console.log('cellselection handlePointerDown oldvalue:', oldvalue);
+            // console.log('cellselection handlePointerDown currentValue:', currentValue);
+            // console.log('cellselection handlePointerDown oldvalue:', oldvalue);
             if (this.selection && currentValue && currentValue !== oldvalue) {
                 // this.cellmanager.setCell(
                 //     this.selection.startRow,

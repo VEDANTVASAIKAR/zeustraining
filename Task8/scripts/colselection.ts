@@ -80,7 +80,7 @@ export class ColumnSelectionManager {
     }
 
     handlePointerDown(event: PointerEvent) {
-        console.log('colselection handlePointerDown');
+        // console.log('colselection handlePointerDown');
         
         this.startAutoScroll();
         const rect = this.canvas.getBoundingClientRect();

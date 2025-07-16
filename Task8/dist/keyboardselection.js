@@ -49,7 +49,7 @@ export class KeyboardCellSelection {
     }
     dispatchSelectionChangeEvent(selection) {
         // Always pass [] for selectionarr for keyboard event
-        console.log(selection);
+        // console.log(selection);
         const event = new CustomEvent('selection-changed', {
             detail: { selection, selectionarr: [] }
         });
@@ -193,8 +193,8 @@ export class KeyboardCellSelection {
         let oldvalue = this.cellmanager.getCell(row, col)?.value || "";
         ;
         const currentValue = this.cellInput?.value;
-        console.log('cellselection handlePointerDown currentValue:', currentValue);
-        console.log('cellselection handlePointerDown oldvalue:', oldvalue);
+        // console.log('cellselection handlePointerDown currentValue:', currentValue);
+        // console.log('cellselection handlePointerDown oldvalue:', oldvalue);
         if (this.activeSelection && currentValue && currentValue !== oldvalue) {
             // this.cellmanager.setCell(
             //     row,

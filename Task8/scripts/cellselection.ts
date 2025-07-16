@@ -90,7 +90,7 @@ export class CellSelectionManager {
     }
 
     dispatchSelectionChangeEvent(selection: SelectionRange, selectionarr: SelectionRange[]) {
-        console.log('idid');
+        // console.log('idid');
         
         const event = new CustomEvent('selection-changed', {
             detail: { selection, selectionarr }
@@ -118,8 +118,8 @@ export class CellSelectionManager {
 
 
             const currentValue = this.cellInput?.value;
-            console.log('cellselection handlePointerDown currentValue:', currentValue);
-            console.log('cellselection handlePointerDown oldvalue:', oldvalue);
+            // console.log('cellselection handlePointerDown currentValue:', currentValue);
+            // console.log('cellselection handlePointerDown oldvalue:', oldvalue);
             
             
             if (this.selection && currentValue  && currentValue !== oldvalue) {

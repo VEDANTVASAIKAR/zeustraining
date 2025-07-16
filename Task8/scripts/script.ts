@@ -115,7 +115,7 @@ function loadData(data: any[]) {
 
     // Get headers from the first object's keys
     const headers = Object.keys(data[0]);
-    console.log("Headers:", headers);
+    // console.log("Headers:", headers);
     
 
     // Populate column headers (starting from col 1)

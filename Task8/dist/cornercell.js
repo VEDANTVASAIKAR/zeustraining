@@ -50,7 +50,7 @@ export class Cornercell {
         return row === 0 && col === 0;
     }
     handlePointerDown(event) {
-        console.log('corner handlePointerDown');
+        // console.log('corner handlePointerDown');
         this.startAutoScroll();
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;

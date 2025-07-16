@@ -119,7 +119,7 @@ export class ResizeRows {
     }
 
     handlePointerDown(event: PointerEvent) {
-        console.log("Pointer down on row resize");
+        // console.log("Pointer down on row resize");
         
       if (this.hoveredRowBorder !== null) {
             this.resizingRow = this.hoveredRowBorder;
@@ -136,7 +136,7 @@ export class ResizeRows {
     }
     
     handlePointerMove(event: PointerEvent) {
-        console.log("Pointer move on row resize");
+        // console.log("Pointer move on row resize");
         
         if (this.resizingRow !== null) {
             const { startRow, endRow, startCol, endCol } = this.griddrawer.getVisibleRange(this.rows, this.cols);
@@ -168,7 +168,7 @@ export class ResizeRows {
     }
 
     handlePointerUp(event: PointerEvent) {
-        console.log("Pointer up on row resize");
+        // console.log("Pointer up on row resize");
         
       // Only do this if a row is being resized and a preview line exists
         if (this.resizingRow !== null && this.previewLineY !== null) {

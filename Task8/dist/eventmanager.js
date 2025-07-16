@@ -39,7 +39,7 @@ export class EventManager {
         this.canvas.addEventListener("dblclick", (event) => this.handledblClick(event));
     }
     handledblClick(event) {
-        console.log('eventmanager: handledblClick');
+        // console.log('eventmanager: handledblClick');
         this.cellInput.focus();
     }
     // handleCanvasClick(event: PointerEvent) {
