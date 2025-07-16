@@ -1,4 +1,4 @@
-import { drawVisibleColumnHeaders, drawVisibleRowHeaders, Painter } from "./paint.js";
+import { paintCell, drawVisibleColumnHeaders, drawVisibleRowHeaders, Painter } from "./paint.js";
 /**
  * ScrollRefresh: listens to 'selection-changed' events and paints on scroll,
  * always using the latest selection and selectionarr from the dispatched event.
@@ -25,6 +25,8 @@ export class ScrollRefresh {
                 Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
                 drawVisibleColumnHeaders(startCol, endCol, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection);
                 drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection);
+                //cornercell
+                paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr);
             });
         });
     }

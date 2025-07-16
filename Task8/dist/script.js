@@ -65,18 +65,18 @@ const commandpattern = new Commandpattern();
 const SelectionManager = new selectionManager(grid, rows, cols, cellManager, canvas, statistics, commandpattern);
 statistics.setSelectionManager(SelectionManager);
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager, SelectionManager);
+const selectionInputManager = new SelectionInputManager(container, cellInput, grid, rows, cols, cellManager);
 SelectionManager.seteventmanager(eventManager);
 grid.setSelectionManager(SelectionManager);
 const scrollRefresh = new ScrollRefresh(container, canvas, grid, rows, cols, cellManager);
-const resizerows = new ResizeRows(cols, rows, grid, eventManager, SelectionManager, cellManager, scrollRefresh, commandpattern);
-const resizecols = new ResizeCols(cols, rows, grid, eventManager, SelectionManager, cellManager, scrollRefresh, commandpattern);
+const resizerows = new ResizeRows(cols, rows, grid, eventManager, SelectionManager, cellManager, scrollRefresh, commandpattern, selectionInputManager);
+const resizecols = new ResizeCols(cols, rows, grid, eventManager, SelectionManager, cellManager, scrollRefresh, commandpattern, selectionInputManager);
 const rowSelectionManager = new RowSelectionManager(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh);
 const colSelectionManager = new ColumnSelectionManager(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh);
 const keyboardSelection = new KeyboardCellSelection(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh, commandpattern);
 const cellSelectionManager = new CellSelectionManager(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh, commandpattern, keyboardSelection);
 const cornercell = new Cornercell(grid, rows, cols, cellManager, canvas, statistics, scrollRefresh);
 const pointerHandlers = new PointerHandlers(container, eventManager, resizerows, resizecols, rowSelectionManager, colSelectionManager, cellSelectionManager, cornercell);
-const selectionInputManager = new SelectionInputManager(container, cellInput, grid, rows, cols, cellManager);
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key === 'z')
         commandpattern.undo();

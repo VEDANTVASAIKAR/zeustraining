@@ -1,9 +1,9 @@
-import { drawVisibleRowHeaders, Painter } from "./paint.js";
+import { drawVisibleRowHeaders, Painter, paintCell } from "./paint.js";
 import { resizeRowcommand } from "./resizerowcommand.js";
 export class ResizeRows {
     constructor(
     /** Reference to the Cols object managing column widths */
-    cols, rows, griddrawer, eventManager, selectionManager, cellmanager, scrollRefresh = null, commandpattern) {
+    cols, rows, griddrawer, eventManager, selectionManager, cellmanager, scrollRefresh = null, commandpattern, selectioninputmanager = null) {
         this.cols = cols;
         this.rows = rows;
         this.griddrawer = griddrawer;
@@ -20,6 +20,7 @@ export class ResizeRows {
         this.scrollRefresh = null;
         this.selectionarr = [];
         this.selection = null;
+        this.selectioninputmanager = null;
         // Get the main canvas element
         this.canvas = document.getElementById("canvas");
         // Get the overlay canvas for temporary visual elements
@@ -39,6 +40,7 @@ export class ResizeRows {
         this.ctx = this.canvas.getContext("2d");
         this.cellmanager = cellmanager;
         this.commandpattern = commandpattern;
+        this.selectioninputmanager = selectioninputmanager;
         this.listenSelectionChange();
     }
     listenSelectionChange() {
@@ -104,6 +106,10 @@ export class ResizeRows {
             // this.griddrawer.drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols);
             drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection);
         }
+        //cornercell
+        if (this.selection) {
+            paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr);
+        }
     }
     handlePointerUp(event) {
         console.log("Pointer up on row resize");
@@ -125,12 +131,15 @@ export class ResizeRows {
             this.griddrawer.clearOverlay();
             // Redraw everything
             this.griddrawer.rendervisible(this.rows, this.cols);
+            this.selectioninputmanager?.positionInputOnSelection();
         }
         // Reset the resizingRow state
         this.resizingRow = null;
         this.previewLineY = null;
         window.removeEventListener('pointermove', this.handlePointerMove.bind(this));
         Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+        //cornercell
+        paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr);
     }
     /**
      HIT TEST

@@ -1,9 +1,9 @@
-import { drawVisibleColumnHeaders, Painter } from "./paint.js";
+import { drawVisibleColumnHeaders, paintCell, Painter } from "./paint.js";
 import { resizeColCommand } from "./resizecolcommand.js";
 export class ResizeCols {
     constructor(
     /** Reference to the Cols object managing column widths */
-    cols, rows, griddrawer, eventManager, selectionManager, cellmanager, scrollRefresh = null, commandpattern) {
+    cols, rows, griddrawer, eventManager, selectionManager, cellmanager, scrollRefresh = null, commandpattern, selectioninputmanager = null) {
         this.cols = cols;
         this.rows = rows;
         this.griddrawer = griddrawer;
@@ -22,6 +22,7 @@ export class ResizeCols {
         this.selection = null;
         this.commapndpattern = null;
         this.oldwidth = 0;
+        this.selectioninputmanager = null;
         // Get the main canvas element
         this.canvas = document.getElementById("canvas");
         // Get the overlay canvas for temporary visual elements
@@ -40,6 +41,7 @@ export class ResizeCols {
         this.ctx = this.canvas.getContext("2d");
         this.cellmanager = cellmanager;
         this.commapndpattern = commandpattern;
+        this.selectioninputmanager = selectioninputmanager;
         this.listenSelectionChange();
     }
     listenSelectionChange() {
@@ -102,7 +104,11 @@ export class ResizeCols {
             // Only draw preview line on overlay
             const adjustedPreviewLineX = this.previewLineX - this.container.scrollLeft;
             this.griddrawer.drawPreviewLineOverlay(adjustedPreviewLineX);
-            drawVisibleColumnHeaders(startRow, endRow, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection);
+            if (this.selection) {
+                drawVisibleColumnHeaders(startRow, endRow, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection);
+                //cornercell
+                paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr);
+            }
             // this.griddrawer.drawVisibleColumnHeaders(startCol,endCol,this.rows, this.cols);
         }
     }
@@ -128,12 +134,15 @@ export class ResizeCols {
             // Redraw everything
             this.griddrawer.rendervisible(this.rows, this.cols);
             // }
+            this.selectioninputmanager?.positionInputOnSelection();
         }
         // Reset the resizingCol state
         this.resizingCol = null;
         this.resizingColLeft = null;
         window.removeEventListener('pointermove', this.handlePointerMove.bind(this));
         Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+        //cornercell
+        paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr);
     }
     /**
      HIT TEST

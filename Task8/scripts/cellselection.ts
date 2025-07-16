@@ -5,7 +5,7 @@ import { CellManager } from "./cellmanager.js";
 import { GridDrawer } from "./griddrawer.js";
 import { EventManager } from "./eventmanager.js";
 import { Statistics } from "./statistics.js";
-import { Painter, SelectionRange } from "./paint.js";
+import { Painter, SelectionRange, paintCell } from "./paint.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
 import { Commandpattern } from "./commandpattern.js";
 import { celleditcommand } from "./celleditcommand.js";
@@ -160,6 +160,9 @@ export class CellSelectionManager {
         this.mouseMoveHandler = (event) => this.handlePointerMove(event);
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
         this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
+        //cornercell
+        paintCell(this.ctx!, this.container, this.rows, this.cols,
+        0,0,null, this.selection!, this.selectionarr);
 
         this.cellInput?.blur()
     }
@@ -194,6 +197,9 @@ export class CellSelectionManager {
         }
         this.lastX = 0;
         this.lastY = 0;
+                    //cornercell
+            paintCell(this.ctx!, this.container, this.rows, this.cols,
+                0,0,null, this.selection!, this.selectionarr);
     }
 
     startAutoScroll() {

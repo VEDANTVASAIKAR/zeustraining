@@ -4,12 +4,13 @@ import { GridDrawer } from "./griddrawer.js";
 import { EventManager } from "./eventmanager.js";
 import { selectionManager } from "./selectionmanager.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
-import { drawVisibleColumnHeaders, Painter, SelectionRange } from "./paint.js";
+import { drawVisibleColumnHeaders, paintCell, Painter, SelectionRange } from "./paint.js";
 import { CellManager } from "./cellmanager.js";
 import { Commandpattern } from "./commandpattern.js";
 import { celleditcommand } from "./celleditcommand.js";
 import { resizeRowcommand } from "./resizerowcommand.js";
 import { resizeColCommand } from "./resizecolcommand.js";
+import { SelectionInputManager } from "./positioninput.js";
 
 export class ResizeCols {
     /** Main canvas element */
@@ -34,6 +35,7 @@ export class ResizeCols {
     cellmanager: CellManager;
     commapndpattern: Commandpattern | null = null;
     oldwidth: number =0
+    selectioninputmanager : SelectionInputManager | null = null;
 
     constructor(
         /** Reference to the Cols object managing column widths */
@@ -44,7 +46,8 @@ export class ResizeCols {
         private selectionManager: selectionManager, 
         cellmanager: CellManager,
         scrollRefresh: ScrollRefresh | null = null,
-        commandpattern: Commandpattern 
+        commandpattern: Commandpattern ,
+        selectioninputmanager: SelectionInputManager | null = null
         
     ){
 
@@ -74,6 +77,7 @@ export class ResizeCols {
       this.ctx = this.canvas.getContext("2d");
       this.cellmanager = cellmanager;
       this.commapndpattern = commandpattern;
+      this.selectioninputmanager = selectioninputmanager;
 
       this.listenSelectionChange();
 
@@ -154,9 +158,12 @@ export class ResizeCols {
             // Only draw preview line on overlay
             const adjustedPreviewLineX = this.previewLineX - this.container.scrollLeft;
             this.griddrawer.drawPreviewLineOverlay(adjustedPreviewLineX);
-
+            if(this.selection){
             drawVisibleColumnHeaders(startRow,endRow, this.rows, this.cols, this.container,this.ctx!,  this.selectionarr, this.selection!);
-
+            //cornercell
+            paintCell(this.ctx!, this.container, this.rows, this.cols,
+                0,0,null, this.selection, this.selectionarr);
+            }
             // this.griddrawer.drawVisibleColumnHeaders(startCol,endCol,this.rows, this.cols);
         }
 
@@ -189,6 +196,8 @@ export class ResizeCols {
             // Redraw everything
             this.griddrawer.rendervisible(this.rows,this.cols)
             // }
+            this.selectioninputmanager?.positionInputOnSelection();
+            
             
             
             
@@ -202,6 +211,10 @@ export class ResizeCols {
                         this.ctx!, this.griddrawer, this.rows, this.cols,
                         this.cellmanager, this.container, this.selection, this.selectionarr
                     );
+        //cornercell
+        paintCell(this.ctx!, this.container, this.rows, this.cols,
+        0,0,null, this.selection!, this.selectionarr);
+        
     }
 
     /**

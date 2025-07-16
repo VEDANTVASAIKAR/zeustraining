@@ -65,7 +65,7 @@ export class SelectionInputManager {
    * Sets input size to match the cell.
    * Hides input if selection is invalid.
    */
-  private positionInputOnSelection() {
+  positionInputOnSelection() {
     if (!this.selection) {
       this.cellInput.style.display = "none";
       return;

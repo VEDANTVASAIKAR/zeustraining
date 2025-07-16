@@ -1,5 +1,5 @@
 import { findIndexFromCoord } from "./utils.js";
-import { Painter } from "./paint.js";
+import { Painter, paintCell } from "./paint.js";
 import { celleditcommand } from "./celleditcommand.js";
 export class CellSelectionManager {
     constructor(griddrawer, rows, cols, cellmanager, canvas, statistics = null, scrollRefresh = null, commandpattern, keyboardSelection = null) {
@@ -113,6 +113,8 @@ export class CellSelectionManager {
         this.mouseMoveHandler = (event) => this.handlePointerMove(event);
         this.container.addEventListener('pointermove', this.mouseMoveHandler);
         this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
+        //cornercell
+        paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr);
         this.cellInput?.blur();
     }
     handlePointerMove(event) {
@@ -142,6 +144,8 @@ export class CellSelectionManager {
         }
         this.lastX = 0;
         this.lastY = 0;
+        //cornercell
+        paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr);
     }
     startAutoScroll() {
         if (this.autoScrollInterval != null)

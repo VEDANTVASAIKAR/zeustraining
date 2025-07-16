@@ -4,10 +4,12 @@ import { GridDrawer } from "./griddrawer.js";
 import { EventManager } from "./eventmanager.js";
 import { selectionManager } from "./selectionmanager.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
-import { drawVisibleRowHeaders, Painter, SelectionRange } from "./paint.js";
+import { drawVisibleRowHeaders, Painter, SelectionRange, paintCell } from "./paint.js";
 import { CellManager } from "./cellmanager.js";
 import { Commandpattern } from "./commandpattern.js";
 import { resizeRowcommand } from "./resizerowcommand.js";
+import { SelectionInputManager } from "./positioninput.js";
+
 
 export class ResizeRows {
     /** Main canvas element */
@@ -31,6 +33,7 @@ export class ResizeRows {
     ctx: CanvasRenderingContext2D | null;
     cellmanager: CellManager;
     commandpattern: Commandpattern ;
+    selectioninputmanager: SelectionInputManager | null = null;
     
 
     constructor(
@@ -42,7 +45,8 @@ export class ResizeRows {
         private selectionManager: selectionManager, 
         cellmanager: CellManager,
         scrollRefresh: ScrollRefresh | null = null,
-        commandpattern: Commandpattern
+        commandpattern: Commandpattern,
+        selectioninputmanager: SelectionInputManager | null = null
         
     ){
 
@@ -74,6 +78,7 @@ export class ResizeRows {
       this.ctx = this.canvas.getContext("2d");
       this.cellmanager = cellmanager;
       this.commandpattern = commandpattern;
+      this.selectioninputmanager = selectioninputmanager;
       this.listenSelectionChange();
 
 
@@ -154,6 +159,11 @@ export class ResizeRows {
             // this.griddrawer.drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols);
             drawVisibleRowHeaders(startRow,endRow, this.rows, this.cols, this.container,this.ctx!,  this.selectionarr, this.selection!);
         }
+        //cornercell
+        if (this.selection){
+            paintCell(this.ctx!, this.container, this.rows, this.cols,
+            0,0,null, this.selection, this.selectionarr);
+        }            
 
     }
 
@@ -186,6 +196,10 @@ export class ResizeRows {
             // Redraw everything
             this.griddrawer.rendervisible(this.rows, this.cols)
 
+            this.selectioninputmanager?.positionInputOnSelection();
+            
+            
+
            
         }
         // Reset the resizingRow state
@@ -197,6 +211,9 @@ export class ResizeRows {
                         this.ctx!, this.griddrawer, this.rows, this.cols,
                         this.cellmanager, this.container, this.selection, this.selectionarr
                     );
+        //cornercell
+        paintCell(this.ctx!, this.container, this.rows, this.cols,
+        0,0,null, this.selection!, this.selectionarr);
     }
 
     /**

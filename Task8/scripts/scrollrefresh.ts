@@ -1,4 +1,4 @@
-import { drawFixedColumnHeader, drawFixedRowHeader, drawVisibleColumnHeaders, drawVisibleRowHeaders, Painter, SelectionRange } from "./paint.js";
+import { drawFixedColumnHeader, paintCell, drawVisibleColumnHeaders, drawVisibleRowHeaders, Painter, SelectionRange } from "./paint.js";
 import { Rows } from "./rows.js";
 import { Cols } from "./cols.js";
 import { CellManager } from "./cellmanager.js";
@@ -57,8 +57,11 @@ export class ScrollRefresh {
                 this.selectionarr
                 ); 
                 drawVisibleColumnHeaders(startCol, endCol, this.rows, this.cols, this.container,this.ctx,this.selectionarr,this.selection!);
-                drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection!);           
-            });
+                drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection!);      
+                //cornercell
+                paintCell(this.ctx!, this.container, this.rows, this.cols,
+                0,0,null, this.selection!, this.selectionarr);    
+            })
             
         });
     }
