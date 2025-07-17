@@ -76,11 +76,15 @@ export class ColumnSelectionManager {
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
+        console.log(x);
+        console.log(y);
+        
+        
         return y < this.rows.heights[0] && x > this.cols.widths[0];
     }
 
     handlePointerDown(event: PointerEvent) {
-        // console.log('colselection handlePointerDown');
+        console.log('colselection handlePointerDown');
         
         this.startAutoScroll();
         const rect = this.canvas.getBoundingClientRect();
@@ -98,7 +102,7 @@ export class ColumnSelectionManager {
                     endCol: col
                 };
                 this.selectionarr.push(colSelection);
-            } else {
+            } else if (!event.ctrlKey && this.selectionarr.length > 0) {
                 this.selectionarr = [];
             }
 
@@ -109,6 +113,8 @@ export class ColumnSelectionManager {
                 endCol: col
             };
             this.dragStartCol = col;
+            console.log(col);
+            
             this.mouseMoveHandler = (moveEvent) => this.handlePointerMove(moveEvent);
             this.container.addEventListener('pointermove', this.mouseMoveHandler);
             Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
@@ -124,9 +130,15 @@ export class ColumnSelectionManager {
         const x = event.clientX - rect.left;
         const virtualX = x + this.container.scrollLeft;
         const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
+        console.log(`Current column: ${currentCol}, Drag start column: ${this.dragStartCol}`);
+        
         if (this.selection && this.dragStartCol !== null) {
             this.selection.endCol = currentCol;
-            this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
+            
+            
+            
+            
+            
             Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
         }
         });
@@ -138,6 +150,14 @@ export class ColumnSelectionManager {
             this.container.removeEventListener('pointermove', this.mouseMoveHandler);
             this.mouseMoveHandler = null;
         }
+        if (this.selection) {
+            this.selectionarr.push(this.selection);
+            this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
+        }
+        console.log(this.selection);
+        
+        console.log(this.selectionarr);
+        
         this.lastX = 0;
         this.lastY = 0;
     }

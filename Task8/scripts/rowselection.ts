@@ -81,7 +81,7 @@ export class RowSelectionManager {
     }
 
     handlePointerDown(event: PointerEvent) {
-        // console.log('rowselection handlePointerDown');
+        console.log('rowselection handlePointerDown');
         
         this.startAutoScroll();
         const rect = this.canvas.getBoundingClientRect();
@@ -102,7 +102,7 @@ export class RowSelectionManager {
                 this.selectionarr.push(rowSelection);
                 // console.log("Row selection array:", this.selectionarr);
                 
-            } else {
+            } else if (!event.ctrlKey && this.selectionarr.length > 0) {
                 this.selectionarr = [];
             }
 
@@ -115,17 +115,16 @@ export class RowSelectionManager {
                 endCol: this.cols.n - 1
             };
             this.dragStartRow = row;
-            this.mouseMoveHandler = (moveEvent) => this.handlePointerMovee(moveEvent);
+            this.mouseMoveHandler = (moveEvent) => this.handlePointerMove(moveEvent);
             this.container.addEventListener('pointermove', this.mouseMoveHandler);
-            // console.log(this.selectionarr);
+            console.log(this.selectionarr);
             
             // Paint multi-selection and active selection
             Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
-            this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
         }
     }
 
-    handlePointerMovee(event: PointerEvent) {
+    handlePointerMove(event: PointerEvent) {
         this.lastX = event.clientX;
         this.lastY = event.clientY;
         const rect = this.canvas.getBoundingClientRect();
@@ -133,7 +132,7 @@ export class RowSelectionManager {
         const virtualY = y + this.container.scrollTop;
         const currentRow = findIndexFromCoord(virtualY, this.rows.heights);
 
-        if (this.selection && this.dragStartRow !== null && !event.ctrlKey) {
+        if (this.selection && this.dragStartRow !== null ) {
             this.selection.endRow = currentRow;
             this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
             // Paint multi-selection and active selection
@@ -147,6 +146,11 @@ export class RowSelectionManager {
             this.container.removeEventListener('pointermove', this.mouseMoveHandler);
             this.mouseMoveHandler = null;
         }
+        if (this.selection) {
+            this.selectionarr.push(this.selection);
+            this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
+        }
+        
         this.lastX = 0;
         this.lastY = 0;
     }

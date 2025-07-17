@@ -33,6 +33,7 @@ export class CellSelectionManager {
     scrollRefresh: ScrollRefresh | null = null;
     cellInput: HTMLInputElement | null = null;
     keyboardSelection: KeyboardCellSelection | null = null;
+    rect : DOMRect ;
 
     constructor(
         griddrawer: GridDrawer,
@@ -58,6 +59,10 @@ export class CellSelectionManager {
         this.listenSelectionChange();
         this.commandpattern = commandpattern;
         this.keyboardSelection = keyboardSelection;
+        this.rect = this.canvas.getBoundingClientRect();
+        window.addEventListener('resize', () => {
+            this.rect = this.canvas.getBoundingClientRect();    
+        })
         // this.cellInput?.addEventListener("input", (e) => {
         //     if (this.selection?.startRow !== null && this.selection?.startCol !== null) {
         //         const currentValue = this.cellInput?.value;
@@ -138,9 +143,9 @@ export class CellSelectionManager {
 
 
         this.startAutoScroll();
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
+        // const thisrect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - this.rect.left;
+        const y = event.clientY - this.rect.top;
         if (x < this.cols.widths[0] || y < this.rows.heights[0]) return;
         const virtualX = x + this.container.scrollLeft;
         const virtualY = y + this.container.scrollTop;
@@ -172,9 +177,11 @@ export class CellSelectionManager {
         requestAnimationFrame(() => {
             this.lastX = event.clientX;
             this.lastY = event.clientY;
-            const rect = this.canvas.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
+            
+        
+            
+            const x = event.clientX - this.rect.left;
+            const y = event.clientY - this.rect.top;
             const virtualX = x + this.container.scrollLeft;
             const virtualY = y + this.container.scrollTop;
             const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
@@ -182,7 +189,6 @@ export class CellSelectionManager {
             if (this.selection && this.dragStartRow !== null && this.dragStartCol !== null) {
                 this.selection.endRow = currentRow;
                 this.selection.endCol = currentCol;
-                this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
                 Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
             }
         });

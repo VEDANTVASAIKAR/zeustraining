@@ -138,7 +138,7 @@ function loadData(data: any[]) {
 }
 
 
-let data = new GridDataGen(1000);
+let data = new GridDataGen(100000);
 let values = data.generateData();
 // console.log(values);
 // Load the generated data into the grid

@@ -93,7 +93,7 @@ function loadData(data) {
     }
     // Get headers from the first object's keys
     const headers = Object.keys(data[0]);
-    console.log("Headers:", headers);
+    // console.log("Headers:", headers);
     // Populate column headers (starting from col 1)
     headers.forEach((header, colIndex) => {
         // We use colIndex + 1 because column 0 is for row numbers.
@@ -110,7 +110,7 @@ function loadData(data) {
     // Redraw the grid to show the new data
     grid.rendervisible(rows, cols);
 }
-let data = new GridDataGen(1000);
+let data = new GridDataGen(100000);
 let values = data.generateData();
 // console.log(values);
 // Load the generated data into the grid
