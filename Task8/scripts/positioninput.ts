@@ -44,16 +44,17 @@ export class SelectionInputManager {
       if (e.detail) {
         this.selection = e.detail.selection;
         this.selectionarr = e.detail.selectionarr;
-        Painter.paintSelectedCells(
-          this.griddrawer.ctx,
-          this.griddrawer,
-          this.rows,
-          this.cols,
-          this.cellmanager,
-          this.container,
-          this.selection,
-          this.selectionarr
-        );
+        // Painter.paintSelectedCells(
+        //   this.griddrawer.ctx,
+        //   this.griddrawer,
+        //   this.rows,
+        //   this.cols,
+        //   this.cellmanager,
+        //   this.container,
+        //   this.selection,
+        //   this.selectionarr,
+        //   e
+        // );
         this.positionInputOnSelection();
       }
     });

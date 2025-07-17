@@ -1,5 +1,5 @@
 import { findIndexFromCoord } from "./utils.js";
-import { Painter } from "./paint.js";
+import { Painter, paintCell } from "./paint.js";
 export class Cornercell {
     constructor(griddrawer, rows, cols, cellmanager, canvas, statistics = null, scrollRefresh = null) {
         this.statistics = null;
@@ -31,7 +31,10 @@ export class Cornercell {
             if (e.detail) {
                 this.selection = e.detail.selection;
                 this.selectionarr = e.detail.selectionarr;
-                Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+                // Painter.paintSelectedCells(
+                //     this.ctx!, this.griddrawer, this.rows, this.cols,
+                //     this.cellmanager, this.container, this.selection, this.selectionarr,e
+                // );
             }
         });
     }
@@ -66,8 +69,10 @@ export class Cornercell {
         this.selectionarr = [];
         if (this.selection) {
             // Paint multi-selection and active selection
-            Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+            Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr, event);
             this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
+            //cornercell
+            paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr, event);
         }
     }
     handlePointerMovee(event) {

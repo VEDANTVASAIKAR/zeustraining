@@ -61,11 +61,11 @@ const Inputdiv = document.getElementById("inputt");
 const cellInput = document.getElementById("cellInput");
 // pass grid and cellManager to event manager
 const statistics = new Statistics(canvas, cellManager);
-const commandpattern = new Commandpattern();
+const selectionInputManager = new SelectionInputManager(container, cellInput, grid, rows, cols, cellManager);
+const commandpattern = new Commandpattern(selectionInputManager);
 const SelectionManager = new selectionManager(grid, rows, cols, cellManager, canvas, statistics, commandpattern);
 statistics.setSelectionManager(SelectionManager);
 const eventManager = new EventManager(canvas, cellInput, rows, cols, grid, cellManager, SelectionManager);
-const selectionInputManager = new SelectionInputManager(container, cellInput, grid, rows, cols, cellManager);
 SelectionManager.seteventmanager(eventManager);
 grid.setSelectionManager(SelectionManager);
 const scrollRefresh = new ScrollRefresh(container, canvas, grid, rows, cols, cellManager);

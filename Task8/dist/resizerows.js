@@ -1,4 +1,4 @@
-import { drawVisibleRowHeaders, Painter, paintCell } from "./paint.js";
+import { drawVisibleRowHeaders, paintCell } from "./paint.js";
 import { resizeRowcommand } from "./resizerowcommand.js";
 export class ResizeRows {
     constructor(
@@ -108,7 +108,7 @@ export class ResizeRows {
         }
         //cornercell
         if (this.selection) {
-            paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr);
+            paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr, event);
         }
     }
     handlePointerUp(event) {
@@ -124,7 +124,7 @@ export class ResizeRows {
             const finalHeight = this.previewLineY - sum;
             // Update the height in the rows object
             this.rows.setHeight(this.resizingRow, finalHeight);
-            this.commandpattern?.execute(new resizeRowcommand(this.rows, this.resizingRow, finalHeight, this.startHeight, this.griddrawer));
+            this.commandpattern?.execute(new resizeRowcommand(this.rows, this.resizingRow, finalHeight, this.startHeight, this.griddrawer, event));
             // Disable the preview line
             this.griddrawer.ctx.clearRect(0, 0, this.griddrawer.canvas.width, this.griddrawer.canvas.height);
             // Clear the overlay (removes preview line)
@@ -137,9 +137,12 @@ export class ResizeRows {
         this.resizingRow = null;
         this.previewLineY = null;
         window.removeEventListener('pointermove', this.handlePointerMove.bind(this));
-        Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+        // Painter.paintSelectedCells(
+        //                 this.ctx!, this.griddrawer, this.rows, this.cols,
+        //                 this.cellmanager, this.container, this.selection, this.selectionarr,event
+        //             );
         //cornercell
-        paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr);
+        paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr, event);
     }
     /**
      HIT TEST

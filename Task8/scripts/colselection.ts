@@ -5,7 +5,7 @@ import { CellManager } from "./cellmanager.js";
 import { GridDrawer } from "./griddrawer.js";
 import { EventManager } from "./eventmanager.js";
 import { Statistics } from "./statistics.js";
-import { Painter, SelectionRange } from "./paint.js";
+import { Painter, SelectionRange,drawCornerCell,paintCell } from "./paint.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
 
 export class ColumnSelectionManager {
@@ -57,10 +57,10 @@ export class ColumnSelectionManager {
             if (e.detail) {
                 this.selection = e.detail.selection;
                 this.selectionarr = e.detail.selectionarr;
-                Painter.paintSelectedCells(
-                    this.ctx!, this.griddrawer, this.rows, this.cols,
-                    this.cellmanager, this.container, this.selection, this.selectionarr
-                );
+                // Painter.paintSelectedCells(
+                //     this.ctx!, this.griddrawer, this.rows, this.cols,
+                //     this.cellmanager, this.container, this.selection, this.selectionarr,e
+                // );
             }
         });
     }
@@ -117,7 +117,10 @@ export class ColumnSelectionManager {
             
             this.mouseMoveHandler = (moveEvent) => this.handlePointerMove(moveEvent);
             this.container.addEventListener('pointermove', this.mouseMoveHandler);
-            Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+            Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr,event);
+            //cornercell
+            paintCell(this.ctx!, this.container, this.rows, this.cols,
+                            0,0,null, this.selection!, this.selectionarr,event);   
             this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
         }
     }
@@ -139,7 +142,10 @@ export class ColumnSelectionManager {
             
             
             
-            Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+            Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr,event);
+            //cornercell
+            paintCell(this.ctx!, this.container, this.rows, this.cols,
+                            0,0,null, this.selection!, this.selectionarr,event); 
         }
         });
     }

@@ -5,7 +5,7 @@ import { CellManager } from "./cellmanager.js";
 import { GridDrawer } from "./griddrawer.js";
 import { EventManager } from "./eventmanager.js";
 import { Statistics } from "./statistics.js";
-import { Painter, SelectionRange } from "./paint.js";
+import { Painter, SelectionRange, paintCell } from "./paint.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
 
 export class Cornercell {
@@ -58,10 +58,10 @@ export class Cornercell {
             if (e.detail) {
                 this.selection = e.detail.selection;
                 this.selectionarr = e.detail.selectionarr;
-                Painter.paintSelectedCells(
-                    this.ctx!, this.griddrawer, this.rows, this.cols,
-                    this.cellmanager, this.container, this.selection, this.selectionarr
-                );
+                // Painter.paintSelectedCells(
+                //     this.ctx!, this.griddrawer, this.rows, this.cols,
+                //     this.cellmanager, this.container, this.selection, this.selectionarr,e
+                // );
             }
         });
     }
@@ -102,8 +102,11 @@ export class Cornercell {
         if (this.selection){
 
             // Paint multi-selection and active selection
-            Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+            Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr,event);
             this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
+            //cornercell
+            paintCell(this.ctx!, this.container, this.rows, this.cols,
+            0,0,null, this.selection!, this.selectionarr,event); 
         }
         
     }

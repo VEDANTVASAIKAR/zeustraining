@@ -74,16 +74,17 @@ export class KeyboardCellSelection {
             if (e.detail) {
                 this.activeSelection = e.detail.selection;
                 this.selectionarr = e.detail.selectionarr;
-                Painter.paintSelectedCells(
-                    this.ctx!,
-                    this.griddrawer,
-                    this.rows,
-                    this.cols,
-                    this.cellmanager,
-                    this.container,
-                    this.activeSelection,
-                    this.selectionarr
-                );
+                // Painter.paintSelectedCells(
+                //     this.ctx!,
+                //     this.griddrawer,
+                //     this.rows,
+                //     this.cols,
+                //     this.cellmanager,
+                //     this.container,
+                //     this.activeSelection,
+                //     this.selectionarr
+                //     ,e
+                // );
             }
         });
     }
@@ -126,26 +127,26 @@ export class KeyboardCellSelection {
                 case 'ArrowUp':
                     if (currentselectedrow > 1) {
                         currentselectedrow -= 1;
-                        this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol);
+                        this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol,e);
                         moved = true;
                     }
                     break;
                 case 'ArrowDown':
                     currentselectedrow = Math.min(this.rows.n - 1, currentselectedrow + 1);
-                    this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol);
+                    this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol,e);
                     this.cellInput?.blur();
                     moved = true;
                     break;
                 case 'ArrowLeft':
                     if (currentselectedcol > 1) {
                         currentselectedcol -= 1;
-                        this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol);
+                        this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol,e);
                         moved = true;
                     }
                     break;
                 case 'ArrowRight':
                     currentselectedcol = Math.min(this.cols.n - 1, currentselectedcol + 1);
-                    this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol);
+                    this.updateInputValue(this.activeSelection.startRow, this.activeSelection.startCol,e);
                     moved = true;
                     
                     
@@ -186,7 +187,8 @@ export class KeyboardCellSelection {
                     this.cellmanager,
                     this.container,
                     this.activeSelection,
-                    []
+                    [],
+                    e
                 );
                 this.dispatchSelectionChangeEvent(this.activeSelection);
                 e.preventDefault();
@@ -237,7 +239,8 @@ export class KeyboardCellSelection {
                     this.cellmanager,
                     this.container,
                     this.activeSelection,
-                    []
+                    [],
+                    e
                 );
                 this.dispatchSelectionChangeEvent(this.activeSelection);
                 e.preventDefault();
@@ -283,7 +286,7 @@ export class KeyboardCellSelection {
         }
     }
 
-    updateInputValue(row: number, col: number) {
+    updateInputValue(row: number, col: number,event : KeyboardEvent | PointerEvent) {
         
         let oldvalue: number | String | undefined = this.cellmanager.getCell(row, col)?.value || "";;
 
@@ -301,8 +304,15 @@ export class KeyboardCellSelection {
                 // );
                 this.commandpattern?.execute(
                     new celleditcommand(
-                        this.cellmanager, row, col,
-                        this.cellmanager.getCell(row, col)?.value || "", currentValue, this.griddrawer,this.cellInput)
+                        this.cellmanager, 
+                        row, 
+                        col,
+                        this.cellmanager.getCell(row, col)?.value || "", 
+                        currentValue, 
+                        this.griddrawer,
+                        this.cellInput,
+                        this,
+                        event)
                 )
             }
     }
@@ -310,6 +320,7 @@ export class KeyboardCellSelection {
     updateinputvalue() {
         if (this.cellInput && this.activeSelection) {   
         this.cellInput.value = this.cellmanager.getCell(this.activeSelection?.startRow, this.activeSelection?.startCol)?.value?.toString() || "";
+        
         }
     }
 }

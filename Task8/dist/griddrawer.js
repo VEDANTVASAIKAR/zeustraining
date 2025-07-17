@@ -1,5 +1,5 @@
 import { getExcelColumnLabel } from "./utils.js";
-import { Painter } from "./paint.js";
+import { Painter, drawCornerCell } from "./paint.js";
 import { drawVisibleColumnHeaders, drawVisibleRowHeaders } from "./paint.js";
 /**
  * GridDrawer class is responsible for all canvas rendering operations
@@ -234,12 +234,13 @@ export class GridDrawer {
     clearOverlay() {
         this.overlayCtx.clearRect(0, 0, this.overlay.width, this.overlay.height);
     }
-    paintSelectionsAndHeaders(ctx = this.ctx, rows = this.rows, cols = this.cols, cellmanager = this.cellmanager, container = this.container, selection = this.selection, selectionarr = this.selectionarr) {
-        const { startRow, endRow, startCol, endCol } = this.getVisibleRange(rows, cols);
+    paintSelectionsAndHeaders(event) {
+        const { startRow, endRow, startCol, endCol } = this.getVisibleRange(this.rows, this.cols);
         // Paint selected cells and overlays
-        Painter.paintSelectedCells(ctx, this, rows, cols, cellmanager, container, selection, selectionarr);
+        Painter.paintSelectedCells(this.ctx, this, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr, event);
         // Paint sticky headers last (on top)
-        drawVisibleColumnHeaders(startCol, endCol, rows, cols, container, ctx, selectionarr, selection);
-        drawVisibleRowHeaders(startRow, endRow, rows, cols, container, ctx, selectionarr, selection);
+        drawVisibleColumnHeaders(startCol, endCol, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection);
+        drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection);
+        drawCornerCell(this.rows, this.cols, this.container, this.ctx);
     }
 }

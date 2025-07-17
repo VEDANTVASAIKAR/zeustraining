@@ -5,7 +5,7 @@ import { CELL_WIDTH, CELL_HEIGHT } from "./constants.js";
 import { CellManager } from "./cellmanager.js";
 import { getExcelColumnLabel } from "./utils.js";
 import { selectionManager } from "./selectionmanager.js"; 
-import { paintCell, Painter, SelectionRange } from "./paint.js";
+import { paintCell, Painter, SelectionRange, drawCornerCell } from "./paint.js";
 import { drawVisibleColumnHeaders, drawVisibleRowHeaders } from "./paint.js";
 
 /**
@@ -265,29 +265,26 @@ export class GridDrawer {
   }
 
   public paintSelectionsAndHeaders(
-        ctx: CanvasRenderingContext2D = this.ctx,
-        rows: Rows = this.rows,
-        cols: Cols = this.cols,
-        cellmanager: CellManager = this.cellmanager,
-        container: HTMLElement = this.container,
-        selection: SelectionRange | null = this.selection,
-        selectionarr: SelectionRange[] = this.selectionarr
+        
+        event : PointerEvent | KeyboardEvent
     ) {
-        const { startRow, endRow, startCol, endCol } = this.getVisibleRange(rows, cols);
+        const { startRow, endRow, startCol, endCol } = this.getVisibleRange(this.rows, this.cols);
 
         // Paint selected cells and overlays
         Painter.paintSelectedCells(
-            ctx,
+            this.ctx,
             this,
-            rows,
-            cols,
-            cellmanager,
-            container,
-            selection,
-            selectionarr
+            this.rows,
+            this.cols,
+            this.cellmanager,
+            this.container,
+            this.selection,
+            this.selectionarr
+            ,event
         );
         // Paint sticky headers last (on top)
-        drawVisibleColumnHeaders(startCol, endCol, rows, cols, container, ctx, selectionarr, selection!);
-        drawVisibleRowHeaders(startRow, endRow, rows, cols, container, ctx, selectionarr, selection!);
+        drawVisibleColumnHeaders(startCol, endCol, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection!);
+        drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection!);
+        drawCornerCell(this.rows, this.cols, this.container, this.ctx);
     }
 }

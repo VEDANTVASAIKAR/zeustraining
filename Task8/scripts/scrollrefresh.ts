@@ -41,9 +41,9 @@ export class ScrollRefresh {
         this.listenSelectionChange();
 
         // Attach the scroll event permanently
-        this.container.addEventListener('scroll', () => {
+        this.container.addEventListener('scroll', (e : any) => {
             // console.log(this.selection, this.selectionarr);
-            requestAnimationFrame(() => {
+            requestAnimationFrame((e : any) => {
                 const { startRow, endRow, startCol, endCol } = this.griddrawer.getVisibleRange(this.rows, this.cols);
                 
                 Painter.paintSelectedCells(
@@ -54,13 +54,14 @@ export class ScrollRefresh {
                 this.cellmanager,
                 this.container,
                 this.selection,
-                this.selectionarr
+                this.selectionarr,
+                e
                 ); 
                 drawVisibleColumnHeaders(startCol, endCol, this.rows, this.cols, this.container,this.ctx,this.selectionarr,this.selection!);
                 drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection!);      
                 //cornercell
                 paintCell(this.ctx!, this.container, this.rows, this.cols,
-                0,0,null, this.selection!, this.selectionarr);    
+                0,0,null, this.selection!, this.selectionarr,e);    
             })
             
         });

@@ -162,7 +162,7 @@ export class ResizeRows {
         //cornercell
         if (this.selection){
             paintCell(this.ctx!, this.container, this.rows, this.cols,
-            0,0,null, this.selection, this.selectionarr);
+            0,0,null, this.selection, this.selectionarr,event);
         }            
 
     }
@@ -184,7 +184,7 @@ export class ResizeRows {
             this.rows.setHeight(this.resizingRow, finalHeight);
 
             this.commandpattern?.execute(
-                new resizeRowcommand(this.rows,this.resizingRow,finalHeight,this.startHeight,this.griddrawer)
+                new resizeRowcommand(this.rows,this.resizingRow,finalHeight,this.startHeight,this.griddrawer,event)
             );
 
             // Disable the preview line
@@ -207,13 +207,13 @@ export class ResizeRows {
         this.previewLineY = null;
       
         window.removeEventListener('pointermove', this.handlePointerMove.bind(this));
-        Painter.paintSelectedCells(
-                        this.ctx!, this.griddrawer, this.rows, this.cols,
-                        this.cellmanager, this.container, this.selection, this.selectionarr
-                    );
+        // Painter.paintSelectedCells(
+        //                 this.ctx!, this.griddrawer, this.rows, this.cols,
+        //                 this.cellmanager, this.container, this.selection, this.selectionarr,event
+        //             );
         //cornercell
         paintCell(this.ctx!, this.container, this.rows, this.cols,
-        0,0,null, this.selection!, this.selectionarr);
+        0,0,null, this.selection!, this.selectionarr,event);
     }
 
     /**

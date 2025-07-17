@@ -8,29 +8,31 @@ export class resizeRowcommand implements Command {
     private oldHeight: number;
     private newHeight: number;
     griddrawer: GridDrawer;
+    event : KeyboardEvent | PointerEvent ;
 
-    constructor(rows: Rows, colIndex: number, newHeight: number,oldHeight: number,griddrawer: GridDrawer) {
+    constructor(rows: Rows, colIndex: number, newHeight: number,oldHeight: number,griddrawer: GridDrawer,event : KeyboardEvent | PointerEvent ) {
         this.rows = rows;
         this.colIndex = colIndex;
         this.oldHeight = oldHeight;
         this.newHeight = newHeight;
         this.griddrawer = griddrawer;
+        this.event = event
     }
 
     execute(): void {
         this.rows.setHeight(this.colIndex, this.newHeight);
-        this.griddrawer.paintSelectionsAndHeaders();
+        // this.griddrawer.paintSelectionsAndHeaders();
     }
 
     undo(): void {
         this.rows.setHeight(this.colIndex, this.oldHeight);
-        this.griddrawer.paintSelectionsAndHeaders();
+        // this.griddrawer.paintSelectionsAndHeaders();
 
     }
 
     redo(): void {
         this.execute();
-        this.griddrawer.paintSelectionsAndHeaders();
+        // this.griddrawer.paintSelectionsAndHeaders();
 
     }
 }

@@ -1,5 +1,6 @@
 import { Command } from './command';
 import { KeyboardCellSelection } from './keyboardselection';
+import { SelectionInputManager } from './positioninput';
 
 export class Commandpattern {
 
@@ -9,18 +10,17 @@ export class Commandpattern {
     private redostack: Command[] = [];
 
     keyboardSelection: KeyboardCellSelection | null = null;
+    selectioninputmanager : SelectionInputManager | null = null;
 
-    constructor(keyboardSelection: KeyboardCellSelection | null = null) {
-        this.keyboardSelection = keyboardSelection;
+    constructor(selectionimputmanager : SelectionInputManager) {
+        this.selectioninputmanager = selectionimputmanager
     }
 
     execute(cmd: Command) {
         cmd.execute();
         this.undostack.push(cmd);
         this.redostack = [];
-        // console.log("EXec Undo", this.undostack);
-        // console.log("Exec Redo", this.redostack);
-        this.keyboardSelection?.updateinputvalue();
+        this.selectioninputmanager?.positionInputOnSelection()
     }
 
     /**
@@ -33,9 +33,8 @@ export class Commandpattern {
             cmd.undo();
             this.redostack.push(cmd);
         }
-        this.keyboardSelection?.updateinputvalue();
-        // console.log("UndoFn Undo", this.undostack);
-        // console.log("UndoFn Redo", this.redostack);
+        this.selectioninputmanager?.positionInputOnSelection()
+
     }
 
     /**
@@ -48,9 +47,8 @@ export class Commandpattern {
             cmd.redo();
             this.undostack.push(cmd);
         }
-        this.keyboardSelection?.updateinputvalue();
-        // console.log("RedoFn Undo", this.undostack);
-        // console.log("RedoFn Redo", this.redostack);
+        this.selectioninputmanager?.positionInputOnSelection()
+
     }
 
 }

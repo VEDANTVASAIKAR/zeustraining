@@ -162,7 +162,7 @@ export class ResizeCols {
             drawVisibleColumnHeaders(startRow,endRow, this.rows, this.cols, this.container,this.ctx!,  this.selectionarr, this.selection!);
             //cornercell
             paintCell(this.ctx!, this.container, this.rows, this.cols,
-                0,0,null, this.selection, this.selectionarr);
+                0,0,null, this.selection, this.selectionarr,event);
             }
             // this.griddrawer.drawVisibleColumnHeaders(startCol,endCol,this.rows, this.cols);
         }
@@ -186,7 +186,7 @@ export class ResizeCols {
             this.cols.setWidth(this.resizingCol, finalWidth);
            
             this.commapndpattern?.execute(
-                new resizeColCommand(this.cols,this.resizingCol,finalWidth,this.startWidth,this.griddrawer)
+                new resizeColCommand(this.cols,this.resizingCol,finalWidth,this.startWidth,this.griddrawer,event)
             );
             
             // Disable the preview line
@@ -209,11 +209,11 @@ export class ResizeCols {
         window.removeEventListener('pointermove', this.handlePointerMove.bind(this));
         Painter.paintSelectedCells(
                         this.ctx!, this.griddrawer, this.rows, this.cols,
-                        this.cellmanager, this.container, this.selection, this.selectionarr
+                        this.cellmanager, this.container, this.selection, this.selectionarr,event
                     );
         //cornercell
         paintCell(this.ctx!, this.container, this.rows, this.cols,
-        0,0,null, this.selection!, this.selectionarr);
+        0,0,null, this.selection!, this.selectionarr,event);
         
     }
 

@@ -12,12 +12,12 @@ import { getExcelColumnLabel } from "./utils.js";
  * @param container - Scrollable container element
  * @param selectionarr - Array of selection ranges (multi-selection)
  */
-export function paintMultiSelections(ctx, griddrawer, rows, cols, cellmanager, container, selectionarr) {
+export function paintMultiSelections(ctx, griddrawer, rows, cols, cellmanager, container, selectionarr, event) {
     // Calculate the visible region for performance
     const visible = calculateVisibleRegion(rows, cols, container);
     for (const sel of selectionarr) {
         // Paint the selection block, cell-by-cell, but only within visible region
-        paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible);
+        paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible, event);
         // Paint a rectangle overlay for the selection block (drawn on top of cells)
         paintSelectionRectangle(ctx, rows, cols, container, sel, visible, false);
     }
@@ -36,7 +36,7 @@ export function paintMultiSelections(ctx, griddrawer, rows, cols, cellmanager, c
  * @param selectionarr - Array of multi-selection ranges
  */
 export class Painter {
-    static paintSelectedCells(ctx, griddrawer, rows, cols, cellmanager, container, selection, selectionarr) {
+    static paintSelectedCells(ctx, griddrawer, rows, cols, cellmanager, container, selection, selectionarr, event) {
         const { startRow, endRow, startCol, endCol } = griddrawer.getVisibleRange(rows, cols);
         if (!ctx)
             return;
@@ -46,12 +46,12 @@ export class Painter {
         const visible = calculateVisibleRegion(rows, cols, container);
         // Paint all multi-selections first (lower z-order)
         for (const sel of selectionarr) {
-            paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible);
+            paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible, event);
             paintSelectionRectangle(ctx, rows, cols, container, sel, visible, false);
         }
         // Paint the current/active selection last (topmost z-order)
         if (selection) {
-            paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible);
+            paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible, event);
             paintSelectionRectangle(ctx, rows, cols, container, selection, visible, true);
         }
         drawVisibleColumnHeaders(startCol, endCol, rows, cols, container, ctx, selectionarr, selection);
@@ -124,7 +124,7 @@ function calculateVisibleRegion(rows, cols, container) {
  * @param selectionarr - Array of multi-selection ranges (for header highlighting)
  * @param visible - Object with visible row/col indices
  */
-function paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible) {
+function paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible, event) {
     const minRow = Math.min(selection.startRow, selection.endRow);
     const maxRow = Math.max(selection.startRow, selection.endRow);
     const minCol = Math.min(selection.startCol, selection.endCol);
@@ -135,17 +135,17 @@ function paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection,
             // Get cell value; can be null if not loaded
             const cell = cellmanager.getCell(r, c);
             const value = cell ? cell.value : null;
-            paintCell(ctx, container, rows, cols, r, c, value, selection, selectionarr);
+            paintCell(ctx, container, rows, cols, r, c, value, selection, selectionarr, event);
         }
     // Paint row headers if visible (first column)
     for (let r = Math.max(minRow, visible.visibleTop); r <= Math.min(maxRow, visible.visibleBottom); r++)
         if (visible.visibleLeft === 0)
-            paintCell(ctx, container, rows, cols, r, 0, r, selection, selectionarr);
+            paintCell(ctx, container, rows, cols, r, 0, r, selection, selectionarr, event);
     // Paint column headers if visible (first row)
     for (let c = Math.max(minCol, visible.visibleLeft); c <= Math.min(maxCol, visible.visibleRight); c++)
         if (visible.visibleTop === 0) {
             const columnLabel = getExcelColumnLabel(c - 1);
-            paintCell(ctx, container, rows, cols, 0, c, columnLabel, selection, selectionarr);
+            paintCell(ctx, container, rows, cols, 0, c, columnLabel, selection, selectionarr, event);
         }
 }
 /**
@@ -207,7 +207,10 @@ function paintSelectionRectangle(ctx, rows, cols, container, selection, visible,
  * @param activeSelection - Current selection range
  * @param selectionarr - All multi-selections (for multi-selected header state)
  */
-export function paintCell(ctx, container, rows, cols, row, col, value, activeSelection, selectionarr) {
+export function paintCell(ctx, container, rows, cols, row, col, value, activeSelection, selectionarr, event) {
+    if (row === 0 && col === 0) {
+        value = ""; // Leave corner cell empty or put a custom value
+    }
     const w = cols.widths[col];
     const h = rows.heights[row];
     // Calculate pixel position in canvas (with scroll offset)
@@ -258,19 +261,31 @@ export function paintCell(ctx, container, rows, cols, row, col, value, activeSel
     ctx.strokeStyle = "rgb(19, 126, 67)";
     ctx.lineWidth = 2;
     // Draw selection borders for edge cells
-    if (!isHeader) {
+    if (!isHeader && !event.ctrlKey) {
         const isTopEdge = row === minRow;
         const isBottomEdge = row === maxRow;
         const isLeftEdge = col === minCol;
         const isRightEdge = col === maxCol;
-        // if (isTopEdge || isBottomEdge || isLeftEdge || isRightEdge) {
-        //     ctx.beginPath();
-        //     if (isTopEdge) { ctx.moveTo(drawX, drawY); ctx.lineTo(drawX + w, drawY); }
-        //     if (isBottomEdge) { ctx.moveTo(drawX, drawY + h); ctx.lineTo(drawX + w, drawY + h); }
-        //     if (isLeftEdge) { ctx.moveTo(drawX, drawY); ctx.lineTo(drawX, drawY + h); }
-        //     if (isRightEdge) { ctx.moveTo(drawX + w, drawY); ctx.lineTo(drawX + w, drawY + h); }
-        //     ctx.stroke();
-        // }
+        if (isTopEdge || isBottomEdge || isLeftEdge || isRightEdge) {
+            ctx.beginPath();
+            if (isTopEdge) {
+                ctx.moveTo(drawX, drawY);
+                ctx.lineTo(drawX + w, drawY);
+            }
+            if (isBottomEdge) {
+                ctx.moveTo(drawX, drawY + h);
+                ctx.lineTo(drawX + w, drawY + h);
+            }
+            if (isLeftEdge) {
+                ctx.moveTo(drawX, drawY);
+                ctx.lineTo(drawX, drawY + h);
+            }
+            if (isRightEdge) {
+                ctx.moveTo(drawX + w, drawY);
+                ctx.lineTo(drawX + w, drawY + h);
+            }
+            ctx.stroke();
+        }
     }
     // Header borders (bottom for col headers, right for row headers)
     if (isSelectedColumnHeader || isHighlightedColumnHeader) {
@@ -541,4 +556,13 @@ export function drawVisibleColumnHeaders(startCol, endCol, rows, cols, container
             continue;
         drawFixedColumnHeader(0, col, rows, cols, container, ctx, selectionarr, selection);
     }
+}
+// Add this function to paint.ts
+export function drawCornerCell(rows, cols, container, ctx) {
+    const w = cols.widths[0], h = rows.heights[0];
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(245,245,245,1)";
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = "#e0e0e0";
+    ctx.strokeRect(0.5, 0.5, w, h);
 }

@@ -86,10 +86,10 @@ export class CellSelectionManager {
             if (e.detail) {
                 this.selection = e.detail.selection;
                 this.selectionarr = e.detail.selectionarr;
-                Painter.paintSelectedCells(
-                    this.ctx!, this.griddrawer, this.rows, this.cols,
-                    this.cellmanager, this.container, this.selection, this.selectionarr
-                );
+                // Painter.paintSelectedCells(
+                //     this.ctx!, this.griddrawer, this.rows, this.cols,
+                //     this.cellmanager, this.container, this.selection, this.selectionarr,e
+                // );
             }
         });
     }
@@ -127,7 +127,7 @@ export class CellSelectionManager {
             // console.log('cellselection handlePointerDown oldvalue:', oldvalue);
             
             
-            if (this.selection && currentValue  && currentValue !== oldvalue) {
+            if (this.selection && currentValue  && currentValue !== oldvalue && this.ctx) {
                 // this.cellmanager.setCell(
                 //     this.selection.startRow,
                 //     this.selection.startCol,
@@ -136,8 +136,11 @@ export class CellSelectionManager {
                 this.commandpattern?.execute(
                     new celleditcommand(
                         this.cellmanager, this.selection.startRow, this.selection.startCol,
-                        this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "", currentValue, this.griddrawer,this.cellInput,this.keyboardSelection)
+                        this.cellmanager.getCell(this.selection.startRow, this.selection.startCol)?.value || "", currentValue, this.griddrawer,this.cellInput,this.keyboardSelection,event
+                        
+                    )
                 )
+                this.ctx
             }
         }
 
@@ -159,7 +162,7 @@ export class CellSelectionManager {
             endCol: col
         };
         this.selectionarr = [];
-        Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+        Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr,event);
         this.dragStartRow = row;
         this.dragStartCol = col;
         this.mouseMoveHandler = (event) => this.handlePointerMove(event);
@@ -167,7 +170,7 @@ export class CellSelectionManager {
         this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
         //cornercell
         paintCell(this.ctx!, this.container, this.rows, this.cols,
-        0,0,null, this.selection!, this.selectionarr);
+        0,0,null, this.selection!, this.selectionarr,event);
 
         this.cellInput?.blur()
     }
@@ -189,7 +192,10 @@ export class CellSelectionManager {
             if (this.selection && this.dragStartRow !== null && this.dragStartCol !== null) {
                 this.selection.endRow = currentRow;
                 this.selection.endCol = currentCol;
-                Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+                Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr,event);
+                //cornercell
+                paintCell(this.ctx!, this.container, this.rows, this.cols,
+                0,0,null, this.selection!, this.selectionarr,event); 
             }
         });
 
@@ -205,7 +211,7 @@ export class CellSelectionManager {
         this.lastY = 0;
                     //cornercell
             paintCell(this.ctx!, this.container, this.rows, this.cols,
-                0,0,null, this.selection!, this.selectionarr);
+                0,0,null, this.selection!, this.selectionarr,event);
     }
 
     startAutoScroll() {

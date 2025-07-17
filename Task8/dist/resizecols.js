@@ -107,7 +107,7 @@ export class ResizeCols {
             if (this.selection) {
                 drawVisibleColumnHeaders(startRow, endRow, this.rows, this.cols, this.container, this.ctx, this.selectionarr, this.selection);
                 //cornercell
-                paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr);
+                paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr, event);
             }
             // this.griddrawer.drawVisibleColumnHeaders(startCol,endCol,this.rows, this.cols);
         }
@@ -126,7 +126,7 @@ export class ResizeCols {
             const finalWidth = this.previewLineX - this.resizingColLeft;
             // Update the width in the cols object
             this.cols.setWidth(this.resizingCol, finalWidth);
-            this.commapndpattern?.execute(new resizeColCommand(this.cols, this.resizingCol, finalWidth, this.startWidth, this.griddrawer));
+            this.commapndpattern?.execute(new resizeColCommand(this.cols, this.resizingCol, finalWidth, this.startWidth, this.griddrawer, event));
             // Disable the preview line
             this.griddrawer.ctx.clearRect(0, 0, this.griddrawer.canvas.width, this.griddrawer.canvas.height);
             //  Clear the overlay (removes preview line)
@@ -140,9 +140,9 @@ export class ResizeCols {
         this.resizingCol = null;
         this.resizingColLeft = null;
         window.removeEventListener('pointermove', this.handlePointerMove.bind(this));
-        Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr);
+        Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr, event);
         //cornercell
-        paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr);
+        paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr, event);
     }
     /**
      HIT TEST
