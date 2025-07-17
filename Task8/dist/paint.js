@@ -72,45 +72,31 @@ function calculateVisibleRegion(rows, cols, container) {
     const scrollTop = container.scrollTop;
     const clientWidth = container.clientWidth;
     const clientHeight = container.clientHeight;
-    // Find first visible column (left edge)
-    let visibleLeft = 0, visibleRight = cols.n - 1;
-    let x = 0;
-    for (let c = 0; c < cols.n; c++) {
-        if (x + cols.widths[c] > scrollLeft) {
-            visibleLeft = c;
-            break;
-        }
-        x += cols.widths[c];
-    }
-    // Find last visible column (right edge)
-    x = 0;
-    for (let c = 0; c < cols.n; c++) {
-        x += cols.widths[c];
-        if (x > scrollLeft + clientWidth) {
-            visibleRight = c;
-            break;
-        }
-    }
-    // Find first visible row (top edge)
-    let visibleTop = 0, visibleBottom = rows.n - 1;
-    let y = 0;
-    for (let r = 0; r < rows.n; r++) {
-        if (y + rows.heights[r] > scrollTop) {
-            visibleTop = r;
-            break;
-        }
-        y += rows.heights[r];
-    }
-    // Find last visible row (bottom edge)
-    y = 0;
-    for (let r = 0; r < rows.n; r++) {
-        y += rows.heights[r];
-        if (y > scrollTop + clientHeight) {
-            visibleBottom = r;
-            break;
-        }
-    }
+    // Use binary search to find first visible column
+    const visibleLeft = binarySearchPosition(cols.positions, scrollLeft);
+    const visibleRight = binarySearchPosition(cols.positions, scrollLeft + clientWidth);
+    // Use binary search to find first visible row
+    const visibleTop = binarySearchPosition(rows.positions, scrollTop);
+    const visibleBottom = binarySearchPosition(rows.positions, scrollTop + clientHeight);
     return { visibleLeft, visibleRight, visibleTop, visibleBottom };
+}
+// Binary search helper - finds index where position would be inserted
+function binarySearchPosition(positions, target) {
+    let low = 0;
+    let high = positions.length - 1;
+    while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        if (positions[mid] < target) {
+            low = mid + 1;
+        }
+        else if (positions[mid] > target) {
+            high = mid - 1;
+        }
+        else {
+            return mid; // Exact match
+        }
+    }
+    return Math.max(0, low - 1); // Return closest position
 }
 /**
  * Paints a selection block cell-by-cell, but only for cells within the visible region.
@@ -170,18 +156,13 @@ function paintSelectionRectangle(ctx, rows, cols, container, selection, visible,
     // If selection is entirely in header, don't draw
     if (minRow > maxRow || minCol > maxCol)
         return;
+    // Use position differences for efficient width/height calculation
+    const w = cols.getPosition(maxCol + 1) - cols.getPosition(minCol);
+    const h = rows.getPosition(maxRow + 1) - rows.getPosition(minRow);
     // Compute top-left pixel of the rectangle
-    let x = 0, y = 0;
-    for (let i = 0; i < minCol; i++)
-        x += cols.widths[i];
-    for (let i = 0; i < minRow; i++)
-        y += rows.heights[i];
-    // Compute total width and height for the selection rectangle
-    let w = 0, h = 0;
-    for (let i = minCol; i <= maxCol; i++)
-        w += cols.widths[i];
-    for (let i = minRow; i <= maxRow; i++)
-        h += rows.heights[i];
+    // Get positions directly with O(1) lookup
+    const x = cols.getPosition(minCol);
+    const y = rows.getPosition(minRow);
     // Adjust for scroll position
     const drawX = x - container.scrollLeft;
     const drawY = y - container.scrollTop;
@@ -366,10 +347,7 @@ export function paintisHeader(drawX, drawY, w, h, ctx) {
  * Also calculates the x offset by summing column widths.
  */
 export function calculateDrawX(row, col, cols, container) {
-    let x = 0;
-    for (let i = 0; i < col; i++) {
-        x += cols.widths[i];
-    }
+    const x = cols.getPosition(col);
     if (row === 0 && col === 0) {
         return 0;
     }
@@ -388,10 +366,7 @@ export function calculateDrawX(row, col, cols, container) {
  * Also calculates the y offset by summing row heights.
  */
 export function calculateDrawY(row, col, rows, container) {
-    let y = 0;
-    for (let i = 0; i < row; i++) {
-        y += rows.heights[i];
-    }
+    const y = rows.getPosition(row);
     if (row === 0 && col === 0) {
         return 0;
     }

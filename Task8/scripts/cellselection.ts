@@ -155,13 +155,24 @@ export class CellSelectionManager {
         const col = findIndexFromCoord(virtualX, this.cols.widths);
         const row = findIndexFromCoord(virtualY, this.rows.heights);
         if (row < 1 || col < 1) return;
+        if (event.ctrlKey) {
+                this.selection = {
+                    startRow: row,
+                    startCol: col,
+                    endRow: row,
+                    endCol: col
+                };
+                this.selectionarr.push(this.selection);
+        } else if (!event.ctrlKey && this.selectionarr.length > 0) {
+                this.selectionarr = [];
+        }
         this.selection = {
             startRow: row,
             startCol: col,
             endRow: row,
             endCol: col
         };
-        this.selectionarr = [];
+        // this.selectionarr = [];
         Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr,event);
         this.dragStartRow = row;
         this.dragStartCol = col;
@@ -189,9 +200,24 @@ export class CellSelectionManager {
             const virtualY = y + this.container.scrollTop;
             const currentCol = findIndexFromCoord(virtualX, this.cols.widths);
             const currentRow = findIndexFromCoord(virtualY, this.rows.heights);
-            if (this.selection && this.dragStartRow !== null && this.dragStartCol !== null) {
+
+            if (event.ctrlKey && this.selection) {
                 this.selection.endRow = currentRow;
                 this.selection.endCol = currentCol;
+                this.selectionarr.push(this.selection);
+                Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr,event);
+                //cornercell
+                paintCell(this.ctx!, this.container, this.rows, this.cols,
+                0,0,null, this.selection!, this.selectionarr,event); 
+            }
+            // else if (!event.ctrlKey && this.selectionarr.length > 0) {
+            //     this.selectionarr = [];
+            // }
+
+            else if (this.selection && this.dragStartRow !== null && this.dragStartCol !== null) {
+                this.selection.endRow = currentRow;
+                this.selection.endCol = currentCol;
+                this.selectionarr = [];
                 Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr,event);
                 //cornercell
                 paintCell(this.ctx!, this.container, this.rows, this.cols,
