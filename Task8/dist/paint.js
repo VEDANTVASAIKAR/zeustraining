@@ -185,14 +185,14 @@ function paintSelectionRectangle(ctx, rows, cols, container, selection, visible,
     // Adjust for scroll position
     const drawX = x - container.scrollLeft;
     const drawY = y - container.scrollTop;
-    ctx.save();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = "rgb(19,126,67)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.rect(drawX, drawY, w, h);
-    ctx.stroke();
-    ctx.restore();
+    // ctx.save();
+    // ctx.globalAlpha = 1;
+    // ctx.strokeStyle = "rgb(19,126,67)";
+    // ctx.lineWidth = 2;
+    // ctx.beginPath();
+    // ctx.rect(drawX, drawY, w, h);
+    // ctx.stroke();
+    // ctx.restore();
 }
 /**
  * Paints an individual cell or header cell.
@@ -263,26 +263,14 @@ export function paintCell(ctx, container, rows, cols, row, col, value, activeSel
         const isBottomEdge = row === maxRow;
         const isLeftEdge = col === minCol;
         const isRightEdge = col === maxCol;
-        if (isTopEdge || isBottomEdge || isLeftEdge || isRightEdge) {
-            ctx.beginPath();
-            if (isTopEdge) {
-                ctx.moveTo(drawX, drawY);
-                ctx.lineTo(drawX + w, drawY);
-            }
-            if (isBottomEdge) {
-                ctx.moveTo(drawX, drawY + h);
-                ctx.lineTo(drawX + w, drawY + h);
-            }
-            if (isLeftEdge) {
-                ctx.moveTo(drawX, drawY);
-                ctx.lineTo(drawX, drawY + h);
-            }
-            if (isRightEdge) {
-                ctx.moveTo(drawX + w, drawY);
-                ctx.lineTo(drawX + w, drawY + h);
-            }
-            ctx.stroke();
-        }
+        // if (isTopEdge || isBottomEdge || isLeftEdge || isRightEdge) {
+        //     ctx.beginPath();
+        //     if (isTopEdge) { ctx.moveTo(drawX, drawY); ctx.lineTo(drawX + w, drawY); }
+        //     if (isBottomEdge) { ctx.moveTo(drawX, drawY + h); ctx.lineTo(drawX + w, drawY + h); }
+        //     if (isLeftEdge) { ctx.moveTo(drawX, drawY); ctx.lineTo(drawX, drawY + h); }
+        //     if (isRightEdge) { ctx.moveTo(drawX + w, drawY); ctx.lineTo(drawX + w, drawY + h); }
+        //     ctx.stroke();
+        // }
     }
     // Header borders (bottom for col headers, right for row headers)
     if (isSelectedColumnHeader || isHighlightedColumnHeader) {

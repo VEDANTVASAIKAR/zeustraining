@@ -216,9 +216,10 @@ export class GridDrawer {
     cols: Cols,
   ) {
     const isHeader = row === 0 || col === 0;
-    const x = cols.widths.slice(0, col).reduce((a, b) => a + b, 0);
-    const y = rows.heights.slice(0, row).reduce((a, b) => a + b, 0);
-    const w = cols.widths[col], h = rows.heights[row];
+    // O(1) position lookups directly from Rows and Cols
+    const x = cols.getPosition(col);
+    const y = rows.getPosition(row);
+    const w = cols.widths[col],h = rows.heights[row];
     const drawX = x - this.container.scrollLeft, drawY = y - this.container.scrollTop;
     this.ctx.clearRect(drawX, drawY, w, h);
     this.ctx.strokeStyle = "#e0e0e0";
