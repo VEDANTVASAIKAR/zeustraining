@@ -90,16 +90,23 @@ export class RowSelectionManager {
         if (x < this.cols.widths[0] && y > this.rows.heights[0]) {
             const virtualY = y + this.container.scrollTop;
             const row = findIndexFromCoord(virtualY, this.rows.heights);
-
-            if (event.ctrlKey) {
-                // Multi-row selection
-                const rowSelection = {
+            const rowSelection = {
                     startRow: row,
                     startCol: 0,
                     endRow: row,
                     endCol: this.cols.n - 1
                 };
-                this.selectionarr.push(rowSelection);
+            const exists = this.selectionarr.some(obj => obj.startRow == row && obj.startCol == 0 && obj.endRow == row && obj.endCol == this.cols.n - 1) 
+
+            if (event.ctrlKey) {
+                if (exists){
+                    this.selectionarr = this.selectionarr.filter(
+                    obj => !(obj.startRow == row && obj.startCol == 0 && obj.endRow == row &&
+                    obj.endCol == this.cols.n - 1));
+                }else {
+                    this.selectionarr.push(rowSelection);
+                }
+                
                 // console.log("Row selection array:", this.selectionarr);
                 
             } else if (!event.ctrlKey && this.selectionarr.length > 0) {
@@ -107,13 +114,15 @@ export class RowSelectionManager {
             }
 
             
-
-            this.selection = {
+            if(rowSelection != this.selection && !exists){
+                this.selection = {
                 startRow: row,
                 startCol: 0,
                 endRow: row,
                 endCol: this.cols.n - 1
-            };
+                };
+            }
+            
             this.dragStartRow = row;
             this.mouseMoveHandler = (moveEvent) => this.handlePointerMove(moveEvent);
             this.container.addEventListener('pointermove', this.mouseMoveHandler);
@@ -152,10 +161,25 @@ export class RowSelectionManager {
             this.container.removeEventListener('pointermove', this.mouseMoveHandler);
             this.mouseMoveHandler = null;
         }
-        if (this.selection) {
-            this.selectionarr.push(this.selection);
-            this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
-        }
+        
+        console.log(this.selection);
+        
+        // const exists = this.selectionarr.some(obj => obj.startRow == this.selection?.startRow && obj.startCol == this.selection?.startCol && obj.endRow == this.selection?.endRow && obj.endCol == this.selection?.endCol) 
+        // console.log(exists);
+        
+        // if (exists){
+        //     this.selectionarr = this.selectionarr.filter(
+        //     obj => !(obj.startRow == this.selection?.startRow && obj.startCol == this.selection?.startCol && obj.endRow == this.selection?.endRow && obj.endCol == this.selection?.endCol));
+        // }else {
+            if (this.selection) {
+                this.selectionarr.push(this.selection);
+                this.dispatchSelectionChangeEvent(this.selection,this.selectionarr);
+                Painter.paintSelectedCells(this.ctx!, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr,event);
+                //cornercell
+                paintCell(this.ctx!, this.container, this.rows, this.cols,
+                                0,0,null, this.selection!, this.selectionarr,event); 
+            }
+        // }
         
         this.lastX = 0;
         this.lastY = 0;

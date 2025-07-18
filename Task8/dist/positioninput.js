@@ -45,6 +45,7 @@ export class SelectionInputManager {
      * Hides input if selection is invalid.
      */
     positionInputOnSelection() {
+        // console.log(this.selection);
         if (!this.selection) {
             this.cellInput.style.display = "none";
             return;

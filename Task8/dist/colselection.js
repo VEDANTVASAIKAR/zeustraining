@@ -61,32 +61,42 @@ export class ColumnSelectionManager {
         if (y < this.rows.heights[0] && x > this.cols.widths[0]) {
             const virtualX = x + this.container.scrollLeft;
             const col = findIndexFromCoord(virtualX, this.cols.widths);
-            if (event.ctrlKey) {
-                const colSelection = {
-                    startRow: 0,
-                    startCol: col,
-                    endRow: this.rows.n - 1,
-                    endCol: col
-                };
-                this.selectionarr.push(colSelection);
-            }
-            else if (!event.ctrlKey && this.selectionarr.length > 0) {
-                this.selectionarr = [];
-            }
-            this.selection = {
+            const colSelection = {
                 startRow: 0,
                 startCol: col,
                 endRow: this.rows.n - 1,
                 endCol: col
             };
+            const exists = this.selectionarr.some(obj => obj.startRow == 0 && obj.startCol == col && obj.endRow == this.rows.n - 1 && obj.endCol == col);
+            if (event.ctrlKey) {
+                if (exists) {
+                    this.selectionarr = this.selectionarr.filter(obj => !(obj.startRow == 0 && obj.startCol == col && obj.endRow == this.rows.n - 1 && obj.endCol == col));
+                }
+                else {
+                    this.selectionarr.push(colSelection);
+                }
+            }
+            else if (!event.ctrlKey && this.selectionarr.length > 0) {
+                this.selectionarr = [];
+            }
+            if (colSelection != this.selection && !exists) {
+                this.selection = {
+                    startRow: 0,
+                    startCol: col,
+                    endRow: this.rows.n - 1,
+                    endCol: col
+                };
+            }
             this.dragStartCol = col;
             console.log(col);
             this.mouseMoveHandler = (moveEvent) => this.handlePointerMove(moveEvent);
             this.container.addEventListener('pointermove', this.mouseMoveHandler);
+            if (this.selection) {
+                this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
+            }
             Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr, event);
             //cornercell
             paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr, event);
-            this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
         }
     }
     handlePointerMove(event) {
@@ -100,6 +110,7 @@ export class ColumnSelectionManager {
             console.log(`Current column: ${currentCol}, Drag start column: ${this.dragStartCol}`);
             if (this.selection && this.dragStartCol !== null) {
                 this.selection.endCol = currentCol;
+                this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
                 Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr, event);
                 //cornercell
                 paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr, event);
@@ -115,9 +126,10 @@ export class ColumnSelectionManager {
         if (this.selection) {
             this.selectionarr.push(this.selection);
             this.dispatchSelectionChangeEvent(this.selection, this.selectionarr);
+            Painter.paintSelectedCells(this.ctx, this.griddrawer, this.rows, this.cols, this.cellmanager, this.container, this.selection, this.selectionarr, event);
+            //cornercell
+            paintCell(this.ctx, this.container, this.rows, this.cols, 0, 0, null, this.selection, this.selectionarr, event);
         }
-        console.log(this.selection);
-        console.log(this.selectionarr);
         this.lastX = 0;
         this.lastY = 0;
     }

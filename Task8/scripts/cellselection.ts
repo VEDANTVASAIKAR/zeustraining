@@ -63,6 +63,7 @@ export class CellSelectionManager {
         window.addEventListener('resize', () => {
             this.rect = this.canvas.getBoundingClientRect();    
         })
+        
         // this.cellInput?.addEventListener("input", (e) => {
         //     if (this.selection?.startRow !== null && this.selection?.startCol !== null) {
         //         const currentValue = this.cellInput?.value;

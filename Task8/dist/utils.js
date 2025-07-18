@@ -6,7 +6,7 @@
  */
 export function findIndexFromCoord(coord, sizes) {
     let sum = 0;
-    console.log(sizes.length);
+    // console.log(sizes.length);
     for (let i = 0; i < sizes.length; i++) {
         sum += sizes[i];
         if (coord < sum) {

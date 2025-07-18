@@ -1,7 +1,7 @@
 import { Painter } from "./paint.js";
 import { celleditcommand } from "./celleditcommand.js";
 export class KeyboardCellSelection {
-    constructor(griddrawer, rows, cols, cellmanager, canvas, statistics = null, scrollRefresh = null, Commandpattern) {
+    constructor(griddrawer, rows, cols, cellmanager, canvas, statistics = null, scrollRefresh = null, Commandpattern, selectioninputmanager) {
         this.statistics = null;
         this.eventmanager = null;
         this.scrollRefresh = null;
@@ -20,8 +20,17 @@ export class KeyboardCellSelection {
         // this.cellInput?.addEventListener('keydown', (e) => this.handleKeyDown(e));
         this.scrollRefresh = scrollRefresh;
         this.commandpattern = Commandpattern;
+        this.selectioninputmanager = selectioninputmanager;
         this.listenSelectionChange();
         this.initKeyboardEvents();
+        this.activeSelection = {
+            startRow: 1,
+            startCol: 1,
+            endRow: 1,
+            endCol: 1
+        };
+        this.dispatchSelectionChangeEvent(this.activeSelection);
+        this.selectioninputmanager.positionInputOnSelection();
         // this.cellInput?.addEventListener("input", (e) => {
         //     if (this.activeSelection?.startRow !== null && this.activeSelection?.startCol !== null) {
         //         const currentValue = this.cellInput?.value;

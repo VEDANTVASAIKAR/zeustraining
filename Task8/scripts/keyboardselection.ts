@@ -8,6 +8,7 @@ import { Painter, SelectionRange } from "./paint.js";
 import { ScrollRefresh } from "./scrollrefresh.js";
 import { Commandpattern } from "./commandpattern.js";   
 import { celleditcommand } from "./celleditcommand.js";
+import { SelectionInputManager } from "./positioninput.js";
 
 export class KeyboardCellSelection {
     griddrawer: GridDrawer;
@@ -24,6 +25,7 @@ export class KeyboardCellSelection {
     cellInput: HTMLInputElement | null = null;
     selectionarr: SelectionRange[] = [];
     commandpattern: Commandpattern ;
+    selectioninputmanager : SelectionInputManager;
 
     constructor(
         griddrawer: GridDrawer,
@@ -33,7 +35,10 @@ export class KeyboardCellSelection {
         canvas: HTMLCanvasElement,
         statistics: Statistics | null = null,
         scrollRefresh : ScrollRefresh | null = null,
-        Commandpattern: Commandpattern
+        Commandpattern: Commandpattern,
+        selectioninputmanager : SelectionInputManager
+
+        
     ) {
         this.container = document.querySelector('.container') as HTMLElement;
         this.griddrawer = griddrawer;
@@ -47,8 +52,21 @@ export class KeyboardCellSelection {
         // this.cellInput?.addEventListener('keydown', (e) => this.handleKeyDown(e));
         this.scrollRefresh = scrollRefresh;
         this.commandpattern = Commandpattern;
+        this.selectioninputmanager = selectioninputmanager
         this.listenSelectionChange();
         this.initKeyboardEvents();
+        this.activeSelection = {
+            startRow: 1,
+            startCol: 1,
+            endRow: 1,
+            endCol: 1
+
+        }
+        this.dispatchSelectionChangeEvent(this.activeSelection)
+        this.selectioninputmanager.positionInputOnSelection()
+        
+        
+        
         // this.cellInput?.addEventListener("input", (e) => {
         //     if (this.activeSelection?.startRow !== null && this.activeSelection?.startCol !== null) {
         //         const currentValue = this.cellInput?.value;
