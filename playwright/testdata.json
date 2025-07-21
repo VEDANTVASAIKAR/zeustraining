@@ -1,0 +1,12 @@
+{
+    "username": "Vedantt",
+    "password" : "12345678",
+    "name" : "Vedant",
+    "interest" : ["cypress","Java","API"],
+    "gender" : "Male",
+    "address":{
+        "area" : "hsr",
+        "city" : "Banglore",
+        "pincode" : 556699 
+    }
+}

@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test')
 test('valid login', async function({ page })  {
     await page.goto('https://opensource-demo.orangehrmlive.com/web/index.php/auth/login')
 
-    await page.getByPlaceholder('Username').pressSequentially('Admin',{delay: 1000})
+    await page.getByPlaceholder('Username').pressSequentially('Admin')
 
     await page.getByPlaceholder('Password').fill('admin123')
 
