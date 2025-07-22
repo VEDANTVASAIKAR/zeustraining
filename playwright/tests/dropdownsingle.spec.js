@@ -1,6 +1,5 @@
-const { log } = require('console')
-const {test,expect} = require('playwright/test')
 
+import {test,expect} from '@playwright/test'
 test('select singlevalue',async function ({page}) 
 {
     //label/value/index/  

@@ -1,5 +1,5 @@
-const {test,expect} = require("@playwright/test")
-const testdata = JSON.parse(JSON.stringify(require('../testlogin.json')))
+import {test,expect} from '@playwright/test'
+import testdata from '../testlogin.json' assert { type: 'json' };
 
 test.describe("Data Driven Login Test", ()=>{
 

@@ -1,5 +1,4 @@
-const {test,expect} = require("@playwright/test")
-
+import {test,expect} from '@playwright/test'
 test('alert',async function({page}){
 
     await page.goto("https://testpages.herokuapp.com/styled/alerts/alert-test.html")

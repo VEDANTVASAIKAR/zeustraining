@@ -1,7 +1,6 @@
 {
-  "name": "playwright",
+  "name": "task8",
   "version": "1.0.0",
-  "type": "module",
   "main": "index.js",
   "scripts": {},
   "keywords": [],
@@ -10,8 +9,6 @@
   "description": "",
   "devDependencies": {
     "@playwright/test": "^1.54.1",
-    "@types/node": "^24.0.14",
-    "allure-playwright": "^3.3.2"
+    "@types/node": "^24.0.15"
   }
-
 }

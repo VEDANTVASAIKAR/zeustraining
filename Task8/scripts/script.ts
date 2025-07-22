@@ -63,8 +63,8 @@ function resizeCanvasesWithDPI() {
 window.addEventListener('resize', resizeCanvasesWithDPI);
 resizeCanvasesWithDPI(); // Call immediately to set initial size
 
-const rows = new Rows(100000);
-const cols = new Cols(500); 
+export const rows = new Rows(100000);
+export const cols = new Cols(500); 
 
 const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols,cellManager);
@@ -147,3 +147,8 @@ loadData(values);
 
 
 
+// Attach cols and rows to window for Playwright/browser tests
+// @ts-ignore
+(window as any).cols = cols;
+// @ts-ignore
+(window as any).rows = rows;

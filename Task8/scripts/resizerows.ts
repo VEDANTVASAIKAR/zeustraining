@@ -157,14 +157,15 @@ export class ResizeRows {
             const adjustedPreviewLineY = this.previewLineY - this.container.scrollTop;
             this.griddrawer.drawPreviewLineOverlayRow(adjustedPreviewLineY);
             // this.griddrawer.drawVisibleRowHeaders(startRow, endRow, this.rows, this.cols);
-            drawVisibleRowHeaders(startRow,endRow, this.rows, this.cols, this.container,this.ctx!,  this.selectionarr, this.selection!);
-        }
+        
         //cornercell
         if (this.selection){
+            drawVisibleRowHeaders(startRow,endRow, this.rows, this.cols, this.container,this.ctx!,  this.selectionarr, this.selection!);
+
             paintCell(this.ctx!, this.container, this.rows, this.cols,
             0,0,null, this.selection, this.selectionarr,event);
         }            
-
+        }
     }
 
     handlePointerUp(event: PointerEvent) {
@@ -207,10 +208,10 @@ export class ResizeRows {
         this.previewLineY = null;
       
         window.removeEventListener('pointermove', this.handlePointerMove.bind(this));
-        // Painter.paintSelectedCells(
-        //                 this.ctx!, this.griddrawer, this.rows, this.cols,
-        //                 this.cellmanager, this.container, this.selection, this.selectionarr,event
-        //             );
+        Painter.paintSelectedCells(
+                        this.ctx!, this.griddrawer, this.rows, this.cols,
+                        this.cellmanager, this.container, this.selection, this.selectionarr,event
+                    );
         //cornercell
         paintCell(this.ctx!, this.container, this.rows, this.cols,
         0,0,null, this.selection!, this.selectionarr,event);

@@ -1,5 +1,5 @@
-const {test,expect} = require('@playwright/test')
-const { log } = require('console')
+import {test,expect} from '@playwright/test'
+
 
 test('Verify application',async function({page})  {
 
