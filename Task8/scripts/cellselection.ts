@@ -147,9 +147,19 @@ export class CellSelectionManager {
 
 
         this.startAutoScroll();
+
+        
         // const thisrect = this.canvas.getBoundingClientRect();
         const x = event.clientX - this.rect.left;
         const y = event.clientY - this.rect.top;
+
+        if (
+            x < 0 || y < 0 ||
+            x > this.canvas.width / (window.devicePixelRatio || 1) ||
+            y > this.canvas.height / (window.devicePixelRatio || 1)
+        ) {
+            return; // Ignore click!
+        }
         if (x < this.cols.widths[0] || y < this.rows.heights[0]) return;
         const virtualX = x + this.container.scrollLeft;
         const virtualY = y + this.container.scrollTop;

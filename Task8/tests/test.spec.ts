@@ -7,8 +7,7 @@ import { KeyboardSelectionTest } from '../testclasses/keyboardselection.spec'
 import { RowDragSelectionTest } from '../testclasses/rowdragselection.spec'
 import { RowResizeTest } from '../testclasses/rowresize.spec'
 import { RowSelectionTest } from '../testclasses/rowselection.spec'
-import { cols } from '../scripts/script';
-import { rows } from '../scripts/script';
+
 
 
 test('Excel Testing', async ({ page }) => {
@@ -26,23 +25,20 @@ test('Excel Testing', async ({ page }) => {
 
     const testObjects = [
         columndragselection,
-        columnresize,
         columnselection,
-        ctrlselection,
         keyboardselection,
         rowdragselection,
-        rowresize,
-        rowselection
+        rowselection,
+        columnresize,
+        rowresize
+        
     ];
 
-    // for (const testobject of testObjects){
-    //     await testobject.test()
-    // }
+    for (const testobject of testObjects){
+        await testobject.test()
+        await testobject.verifytest()
+    }
 
-    await columnresize.test()
-    await columnresize.verifytest()
-    await rowresize.test()
-    await rowresize.verifytest()
     
 
 })

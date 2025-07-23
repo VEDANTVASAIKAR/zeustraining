@@ -63,8 +63,14 @@ function resizeCanvasesWithDPI() {
 window.addEventListener('resize', resizeCanvasesWithDPI);
 resizeCanvasesWithDPI(); // Call immediately to set initial size
 
-export const rows = new Rows(100000);
+export const rows = new Rows(1000);
 export const cols = new Cols(500); 
+
+const totalWidth = cols.widths.reduce((sum, w) => sum + w, 0);
+const totalHeight = rows.heights.reduce((sum, h) => sum + h, 0);
+const scrollable = document.getElementById('scrollable') as HTMLElement;
+scrollable.style.width = `${totalWidth}px`;
+scrollable.style.height = `${totalHeight}px`;
 
 const cellManager = new CellManager();
 const grid = new GridDrawer("canvas", rows, cols,cellManager);
@@ -105,45 +111,35 @@ document.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === 'y') commandpattern.redo();
     });
 
-/**
- * Loads data into the grid.
- * @param {any[]} data - An array of objects to load.
- */
-function loadData(data: any[]) {
-    if (!data || data.length === 0) {
-        return;
+function loadData(data: any[], repeat: number = 1) {
+    if (!data || data.length === 0 || repeat < 1) return;
+
+    const headers = Object.keys(data[0]);
+
+    // For each repetition
+    for (let r = 0; r < repeat; r++) {
+        const columnOffset = r * headers.length;
+
+        // Load headers
+        headers.forEach((header, colIndex) => {
+            cellManager.setCell(1, columnOffset + colIndex + 1, header);
+        });
+
+        // Load data
+        data.forEach((dataRow, rowIndex) => {
+            headers.forEach((header, colIndex) => {
+                cellManager.setCell(rowIndex + 2, columnOffset + colIndex + 1, dataRow[header]);
+            });
+        });
     }
 
-    // Get headers from the first object's keys
-    const headers = Object.keys(data[0]);
-    // console.log("Headers:", headers);
-    
-
-    // Populate column headers (starting from col 1)
-    headers.forEach((header, colIndex) => {
-        // We use colIndex + 1 because column 0 is for row numbers.
-        cellManager.setCell(1, colIndex +1 , header);
-    });
-
-    // Populate data rows
-    data.forEach((dataRow, rowIndex) => {
-        // We use rowIndex + 1 because row 0 is for headers.
-        headers.forEach((header, colIndex) => {
-            // colIndex + 1 to align with headers
-            cellManager.setCell(rowIndex + 2, colIndex + 1, dataRow[header]);
-        });
-    });
-
-    // Redraw the grid to show the new data
     grid.rendervisible(rows, cols);
 }
-
-
-let data = new GridDataGen(100000);
+let data = new GridDataGen(1000);
 let values = data.generateData();
-// console.log(values);
-// Load the generated data into the grid
-loadData(values);
+
+// Repeat the data 5 times side by side
+loadData(values, 100);
 
 
 

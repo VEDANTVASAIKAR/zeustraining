@@ -6,6 +6,7 @@ import { RowSelectionManager } from "./rowselection";
 import { ColumnSelectionManager } from "./colselection";
 import { CellSelectionManager } from "./cellselection";    
 import { Cornercell } from "./cornercell";
+import { log } from "console";
 
 // Type for handlers that support hittest/pointer events
 type PointerHandler =  ResizeRows | ResizeCols | RowSelectionManager | ColumnSelectionManager | CellSelectionManager | Cornercell;
@@ -32,6 +33,8 @@ export class PointerHandlers {
     // Always show resize handles on any pointermove
     private handlePointerMove = (event: PointerEvent) => {
 
+        
+
         this.eventmanager.showresizehandles(event);
 
         // If a handler is active (drag or resize), delegate pointermove to it
@@ -43,6 +46,9 @@ export class PointerHandlers {
     };
 
     private handlePointerDown = (event: PointerEvent) => {
+        if(event.clientX > this.container.clientWidth || event.clientY >  this.container.clientHeight){
+            return;
+        }
         this.eventfunction = this.hittest(event);
 
         if (this.eventfunction && "handlePointerDown" in this.eventfunction) {

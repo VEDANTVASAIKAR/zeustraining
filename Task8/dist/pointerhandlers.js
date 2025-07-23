@@ -21,6 +21,9 @@ export class PointerHandlers {
             }
         };
         this.handlePointerDown = (event) => {
+            if (event.clientX > this.container.clientWidth || event.clientY > this.container.clientHeight) {
+                return;
+            }
             this.eventfunction = this.hittest(event);
             if (this.eventfunction && "handlePointerDown" in this.eventfunction) {
                 this.eventfunction.handlePointerDown(event);
