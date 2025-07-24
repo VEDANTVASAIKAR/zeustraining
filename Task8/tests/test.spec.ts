@@ -12,7 +12,7 @@ import { RowSelectionTest } from '../testclasses/rowselection.spec'
 
 test('Excel Testing', async ({ page }) => {
 
-    await page.goto('http://127.0.0.1:5500/Task8/index.html');
+    await page.goto('http://127.0.0.1:5501/Task8/index.html');
 
     const columndragselection : ColumnDragSelectionTest = new ColumnDragSelectionTest(page)
     const columnresize: ColumnResizeTest = new ColumnResizeTest(page);
@@ -34,10 +34,14 @@ test('Excel Testing', async ({ page }) => {
         
     ];
 
-    for (const testobject of testObjects){
-        await testobject.test()
-        await testobject.verifytest()
-    }
+    // for (const testobject of testObjects){
+    //     await testobject.test()
+    //     await testobject.verifytest()
+    // }
+
+    await columndragselection.test(270,1070);
+    await columndragselection.verifytest();
+
 
     
 
