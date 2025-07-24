@@ -13,12 +13,11 @@ import { getExcelColumnLabel } from "./utils.js";
  * @param selectionarr - Array of selection ranges (multi-selection)
  */
 export function paintMultiSelections(ctx, griddrawer, rows, cols, cellmanager, container, selectionarr, event) {
-    // Calculate the visible region for performance
     const visible = calculateVisibleRegion(rows, cols, container);
+    // Track painted cells for this frame
+    const paintedCells = new Set();
     for (const sel of selectionarr) {
-        // Paint the selection block, cell-by-cell, but only within visible region
-        paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible, event);
-        // Paint a rectangle overlay for the selection block (drawn on top of cells)
+        paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible, event, paintedCells);
         paintSelectionRectangle(ctx, rows, cols, container, sel, visible, false);
     }
 }
@@ -40,18 +39,18 @@ export class Painter {
         const { startRow, endRow, startCol, endCol } = griddrawer.getVisibleRange(rows, cols);
         if (!ctx)
             return;
-        // Ensure grid is rendered (not responsible for selection painting)
         griddrawer.rendervisible(rows, cols);
-        // Calculate visible region once for efficiency
         const visible = calculateVisibleRegion(rows, cols, container);
+        // Track which cells were already painted this frame
+        const paintedCells = new Set();
         // Paint all multi-selections first (lower z-order)
         for (const sel of selectionarr) {
-            paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible, event);
+            paintSelectionBlock(ctx, rows, cols, cellmanager, container, sel, selectionarr, visible, event, paintedCells);
             paintSelectionRectangle(ctx, rows, cols, container, sel, visible, false);
         }
         // Paint the current/active selection last (topmost z-order)
         if (selection) {
-            paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible, event);
+            paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible, event, paintedCells);
             paintSelectionRectangle(ctx, rows, cols, container, selection, visible, true);
         }
         drawVisibleColumnHeaders(startCol, endCol, rows, cols, container, ctx, selectionarr, selection);
@@ -110,7 +109,11 @@ function binarySearchPosition(positions, target) {
  * @param selectionarr - Array of multi-selection ranges (for header highlighting)
  * @param visible - Object with visible row/col indices
  */
-function paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible, event) {
+/**
+ * Paints a selection block cell-by-cell, but only for cells within the visible region.
+ * Now only paints a cell if it hasn't been painted already this frame.
+ */
+function paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection, selectionarr, visible, event, paintedCells) {
     const minRow = Math.min(selection.startRow, selection.endRow);
     const maxRow = Math.max(selection.startRow, selection.endRow);
     const minCol = Math.min(selection.startCol, selection.endCol);
@@ -118,20 +121,32 @@ function paintSelectionBlock(ctx, rows, cols, cellmanager, container, selection,
     // Paint all normal cells that are visible (main grid region)
     for (let r = Math.max(minRow, visible.visibleTop); r <= Math.min(maxRow, visible.visibleBottom); r++)
         for (let c = Math.max(minCol, visible.visibleLeft); c <= Math.min(maxCol, visible.visibleRight); c++) {
-            // Get cell value; can be null if not loaded
+            const key = `${r},${c}`;
+            if (paintedCells.has(key))
+                continue;
+            paintedCells.add(key);
             const cell = cellmanager.getCell(r, c);
             const value = cell ? cell.value : null;
             paintCell(ctx, container, rows, cols, r, c, value, selection, selectionarr, event);
         }
     // Paint row headers if visible (first column)
     for (let r = Math.max(minRow, visible.visibleTop); r <= Math.min(maxRow, visible.visibleBottom); r++)
-        if (visible.visibleLeft === 0)
-            paintCell(ctx, container, rows, cols, r, 0, r, selection, selectionarr, event);
+        if (visible.visibleLeft === 0) {
+            const key = `${r},0`;
+            if (!paintedCells.has(key)) {
+                paintedCells.add(key);
+                paintCell(ctx, container, rows, cols, r, 0, r, selection, selectionarr, event);
+            }
+        }
     // Paint column headers if visible (first row)
     for (let c = Math.max(minCol, visible.visibleLeft); c <= Math.min(maxCol, visible.visibleRight); c++)
         if (visible.visibleTop === 0) {
-            const columnLabel = getExcelColumnLabel(c - 1);
-            paintCell(ctx, container, rows, cols, 0, c, columnLabel, selection, selectionarr, event);
+            const key = `0,${c}`;
+            if (!paintedCells.has(key)) {
+                paintedCells.add(key);
+                const columnLabel = getExcelColumnLabel(c - 1);
+                paintCell(ctx, container, rows, cols, 0, c, columnLabel, selection, selectionarr, event);
+            }
         }
 }
 /**
