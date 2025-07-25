@@ -8,14 +8,14 @@ POST http://localhost:5034/games
 Content-Type: application/json
 
 {
-        "Name" : "g4",
+        "name": "ggg1",
         "Genre" : "fight",
         "Price" : 19.99,
         "ReleaseDate" : "2011-11-18"
 }
 
 ###
-PUT http://localhost:5034/games/1
+PUT http://localhost:5034/games/5
 Content-Type:  application/json
 
 {
@@ -27,4 +27,4 @@ Content-Type:  application/json
   }
 
 ###
-DELETE http://localhost:5034/games/1
+DELETE http://localhost:5034/games/2

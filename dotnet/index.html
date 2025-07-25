@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Todo List (Frontend Only)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 1em;}
+        th, td { border: 1px solid #ccc; padding: 0.5em; text-align: left;}
+        input, button { margin: 0.5em 0; }
+    </style>
+</head>
+<body>
+    <h1>Todos</h1>
+    <table id="todosTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Is Complete</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Todos will go here -->
+        </tbody>
+    </table>
+
+    <h2>Add a New Todo</h2>
+    <form id="addTodoForm">
+        <input type="text" id="name" placeholder="Name" required>
+        <label>
+            <input type="checkbox" id="isComplete">
+            Complete
+        </label>
+        <button type="submit">Add Todo</button>
+    </form>
+
+    <script>
+        function fetchTodos() {
+            fetch('http://localhost:5253/todoitems')
+                .then(response => response.json())
+                .then(todos => {
+                    renderTodos(todos);
+                });
+        }
+
+        function renderTodos(todos) {
+            const tbody = document.querySelector('#todosTable tbody');
+            tbody.innerHTML = '';
+            todos.forEach(todo => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${todo.id}</td>
+                    <td>${todo.name}</td>
+                    <td>${todo.isComplete ? '✅' : '❌'}</td>
+                    <td><button onclick="deleteTodo(${todo.id})">Delete</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        fetchTodos(); // Only load from backend
+
+        // The add and delete functionality will need to make POST/DELETE requests to the backend instead of using the dummy array!
+    </script>
+</body>
+</html>
